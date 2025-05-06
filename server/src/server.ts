@@ -4,7 +4,7 @@ import {
   JSONRPCError,
   JSONRPCNotification,
   InitializeRequestSchema,
-  LoggingMessageNotification,
+  ToolListChangedNotification,
 } from "@modelcontextprotocol/sdk/types.js";
 import { randomUUID } from "node:crypto";
 import { Request, Response } from "express";
@@ -22,19 +22,23 @@ const SESSION_ID_HEADER_NAME = "mcp-session-id";
 
 export class MCPServer {
   server: McpServer;
-
   transports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
+  toolsRegistered: boolean = false;
 
   constructor(server: McpServer) {
     this.server = server;
-    this.setupTools(this.server);
+    this.toolsRegistered = this.setupTools(this.server);
+    console.log(
+      `MCP Server initialized with tools registered: ${this.toolsRegistered}`
+    );
   }
 
   async handleGetRequest(req: Request, res: Response) {
-    console.log("get request received");
+    console.log("GET request received");
 
     const sessionId = req.headers["mcp-session-id"] as string | undefined;
     if (!sessionId || !this.transports[sessionId]) {
+      console.error(`Invalid session ID: ${sessionId}`);
       res
         .status(400)
         .json(
@@ -46,121 +50,111 @@ export class MCPServer {
     console.log(`Establishing SSE stream for session ${sessionId}`);
     const transport = this.transports[sessionId];
     await transport.handleRequest(req, res);
-    await this.streamMessages(transport);
+
+    // Send a welcome notification
+    this.sendNotification(transport, {
+      method: "notifications/message",
+      params: { level: "info", data: "SSE Connection established" },
+    });
 
     return;
   }
 
   async handlePostRequest(req: Request, res: Response) {
     const sessionId = req.headers[SESSION_ID_HEADER_NAME] as string | undefined;
-
-    let transport: StreamableHTTPServerTransport;
+    console.log(`POST request received, sessionId: ${sessionId || "none"}`);
 
     try {
       if (sessionId && this.transports[sessionId]) {
-        transport = this.transports[sessionId];
+        console.log(`Using existing transport for session ${sessionId}`);
+        const transport = this.transports[sessionId];
         await transport.handleRequest(req, res, req.body);
         return;
       }
 
       if (!sessionId && this.isInitializeRequest(req.body)) {
+        console.log("Handling initialize request");
         const transport = new StreamableHTTPServerTransport({
           sessionIdGenerator: () => randomUUID(),
-          // for stateless mode:
-          // sessionIdGenerator: undefined
         });
 
         await this.server.connect(transport);
         await transport.handleRequest(req, res, req.body);
 
-        const sessionId = transport.sessionId;
-        if (sessionId) {
-          this.transports[sessionId] = transport;
+        const newSessionId = transport.sessionId;
+        if (newSessionId) {
+          console.log(`Created new session: ${newSessionId}`);
+          this.transports[newSessionId] = transport;
+
+          this.sendToolListChangedNotification(transport);
+        } else {
+          console.error("No session ID generated for new transport");
         }
 
         return;
       }
 
+      console.error(
+        "Invalid request: missing session ID or not an initialize request"
+      );
       res
         .status(400)
         .json(
           this.createErrorResponse("Bad Request: invalid session ID or method.")
         );
-      return;
     } catch (error) {
       console.error("Error handling MCP request:", error);
-      res.status(500).json(this.createErrorResponse("Internal server error."));
-      return;
+      res
+        .status(500)
+        .json(this.createErrorResponse(`Internal server error: ${error}`));
     }
   }
 
-  private setupTools(server: McpServer) {
-    registerDocumentTools(server);
-    registerIndexTools(server);
-    registerSearchTools(server);
-    registerSettingsTools(server);
-    registerSystemTools(server);
-    registerTaskTools(server);
-    registerVectorTools(server);
-  }
-
-  private async streamMessages(transport: StreamableHTTPServerTransport) {
+  private setupTools(server: McpServer): boolean {
     try {
-      const message: LoggingMessageNotification = {
-        method: "notifications/message",
-        params: { level: "info", data: "SSE Connection established" },
-      };
+      console.log("Registering tools with MCP server...");
 
-      this.sendNotification(transport, message);
+      registerSystemTools(server);
+      registerIndexTools(server);
+      registerSearchTools(server);
+      registerSettingsTools(server);
+      registerDocumentTools(server);
+      registerTaskTools(server);
+      registerVectorTools(server);
 
-      let messageCount = 0;
-
-      const interval = setInterval(async () => {
-        messageCount++;
-
-        const data = `Message ${messageCount} at ${new Date().toISOString()}`;
-
-        const message: LoggingMessageNotification = {
-          method: "notifications/message",
-          params: { level: "info", data: data },
-        };
-
-        try {
-          this.sendNotification(transport, message);
-
-          console.log(`Sent: ${data}`);
-
-          if (messageCount === 2) {
-            clearInterval(interval);
-
-            const message: LoggingMessageNotification = {
-              method: "notifications/message",
-              params: { level: "info", data: "Streaming complete!" },
-            };
-
-            this.sendNotification(transport, message);
-
-            console.log("Stream completed");
-          }
-        } catch (error) {
-          console.error("Error sending message:", error);
-          clearInterval(interval);
-        }
-      }, 1000);
+      console.log("All tools registered successfully");
+      return true;
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error("Failed to register tools:", error);
+      return false;
     }
+  }
+
+  private sendToolListChangedNotification(
+    transport: StreamableHTTPServerTransport
+  ) {
+    const notification: ToolListChangedNotification = {
+      method: "notifications/tools/list_changed",
+      params: {},
+    };
+
+    this.sendNotification(transport, notification);
   }
 
   private async sendNotification(
     transport: StreamableHTTPServerTransport,
     notification: Notification
   ) {
-    const rpcNotificaiton: JSONRPCNotification = {
-      ...notification,
-      jsonrpc: JSON_RPC,
-    };
-    await transport.send(rpcNotificaiton);
+    try {
+      const rpcNotification: JSONRPCNotification = {
+        ...notification,
+        jsonrpc: JSON_RPC,
+      };
+      await transport.send(rpcNotification);
+      console.log(`Sent notification: ${notification.method}`);
+    } catch (error) {
+      console.error("Failed to send notification:", error);
+    }
   }
 
   private createErrorResponse(message: string): JSONRPCError {
