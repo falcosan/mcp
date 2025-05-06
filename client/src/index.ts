@@ -74,8 +74,7 @@ class MCPClient {
 
         console.log(`✅ Successfully loaded ${this.tools.length} tools`);
 
-        // If tools were loaded, let's print them out
-        if (this.tools.length > 0) {
+        if (this.tools.length) {
           console.log("Available tools:");
           this.tools.forEach((tool, index) => {
             console.log(`${index + 1}. ${tool.name}: ${tool.description}`);
@@ -116,10 +115,15 @@ class MCPClient {
   }
 
   /**
-   * Call a tool by name
+   * Call a tool by name and return the result
    * @param name Name of the tool to call
+   * @returns The result of the tool call
    */
-  async callTool(name: string): Promise<void> {
+  async callTool(name: string): Promise<{
+    success: boolean;
+    data?: any;
+    error?: string;
+  }> {
     try {
       console.log(`\n🔧 Calling tool: ${name}`);
 
@@ -132,27 +136,33 @@ class MCPClient {
       });
 
       if (!result) {
-        console.error("❌ Received null or undefined result from tool");
-        return;
+        return {
+          success: false,
+          error: "Received null or undefined result from tool",
+        };
       }
 
       const content = result.content as object[];
 
       if (!content?.length) {
-        console.log("No content returned");
-        return;
+        return { success: true, data: [] };
       }
 
-      content.forEach((item) => {
+      const processedContent = content.reduce((result, item) => {
         const parse = TextContentSchema.safeParse(item);
         if (parse.success) {
-          console.log(parse.data.text);
+          result = JSON.parse(parse.data.text);
         } else {
-          console.log(`Unknown content type: ${JSON.stringify(item)}`);
+          result = item;
         }
-      });
+        return result;
+      }, {});
+
+      return { success: true, data: processedContent };
     } catch (error) {
-      console.error(`❌ Error calling tool ${name}:`, error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      return { success: false, error: errorMessage };
     }
   }
 
@@ -190,14 +200,12 @@ class MCPClient {
           indexUid: "test-index",
         };
 
-      // Search tools
       case "search":
         return {
           indexUid: this.meilisearchIndexUid,
           q: "action",
         };
 
-      // Document tools
       case "get-documents":
         return {
           indexUid: this.meilisearchIndexUid,
@@ -213,7 +221,6 @@ class MCPClient {
           ]),
         };
 
-      // Settings tools
       case "get-settings":
       case "get-searchable-attributes":
       case "get-displayed-attributes":
@@ -306,7 +313,7 @@ async function main() {
 
     // Add here futures API calls to use the tools.
     // Example:
-    await client.callTool("health");
+    console.log(await client.callTool("health"));
 
     console.log("\n✅ Client running. Press Ctrl+C to exit.");
 
