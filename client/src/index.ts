@@ -1,10 +1,10 @@
+import { URL } from "node:url";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { URL } from "url";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import {
+  TextContentSchema,
   LoggingMessageNotificationSchema,
   ToolListChangedNotificationSchema,
-  TextContentSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 
 class MCPClient {
@@ -63,7 +63,7 @@ class MCPClient {
 
       const result = await this.client.callTool({
         name: name,
-        arguments: { name: "itsuki" },
+        arguments: { name: "ciaone" },
       });
 
       const content = result.content as object[];
@@ -80,7 +80,6 @@ class MCPClient {
     }
   }
 
-  // Set up notification handlers for server-initiated messages
   private setUpNotifications() {
     this.client.setNotificationHandler(
       LoggingMessageNotificationSchema,
@@ -91,7 +90,6 @@ class MCPClient {
         );
       }
     );
-    // will only be triggered after list tools called
     this.client.setNotificationHandler(
       ToolListChangedNotificationSchema,
       async (notification) => {
