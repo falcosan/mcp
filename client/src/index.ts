@@ -123,7 +123,6 @@ class MCPClient {
     try {
       console.log(`\n🔧 Calling tool: ${name}`);
 
-      // Get appropriate arguments based on tool name
       const args = this.getToolArguments(name);
       console.log("With arguments:", JSON.stringify(args, null, 2));
 
@@ -139,8 +138,7 @@ class MCPClient {
 
       const content = result.content as object[];
 
-      console.log("📊 Results:");
-      if (!content || content.length === 0) {
+      if (!content?.length) {
         console.log("No content returned");
         return;
       }
@@ -148,9 +146,9 @@ class MCPClient {
       content.forEach((item) => {
         const parse = TextContentSchema.safeParse(item);
         if (parse.success) {
-          console.log(`- ${parse.data.text}`);
+          console.log(parse.data.text);
         } else {
-          console.log(`- Unknown content type: ${JSON.stringify(item)}`);
+          console.log(`Unknown content type: ${JSON.stringify(item)}`);
         }
       });
     } catch (error) {
@@ -264,7 +262,6 @@ class MCPClient {
    * Wait for completion (transport close)
    */
   async waitForCompletion(): Promise<void> {
-    console.log("Waiting for completion...");
     while (!this.isCompleted) {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
@@ -307,13 +304,10 @@ async function main() {
       return;
     }
 
-    // Example: Try to list indexes
-    const indexListTool = client.tools.find((t) => t.name === "list-indexes");
-    if (indexListTool) {
-      await client.callTool("list-indexes");
-    }
+    // Add here futures API calls to use the tools.
+    // Example:
+    await client.callTool("health");
 
-    // Keep the connection open until manually closed
     console.log("\n✅ Client running. Press Ctrl+C to exit.");
 
     await client.waitForCompletion();
@@ -324,5 +318,4 @@ async function main() {
   }
 }
 
-// Start the client
 main().catch(console.error);
