@@ -316,9 +316,6 @@ async function main() {
     // Keep the connection open until manually closed
     console.log("\n✅ Client running. Press Ctrl+C to exit.");
 
-    // Optional: uncomment to automatically exit after some time
-    // setTimeout(() => client.close(), 10000);
-
     await client.waitForCompletion();
   } catch (error) {
     console.error("❌ Fatal error:", error);
