@@ -4,13 +4,8 @@
   "description": "",
   "main": "index.js",
   "type": "module",
-  "bin": {
-    "create-mcp-server": "./build/index.js"
-  },
   "scripts": {
+    "dev": "node build/index.js",
     "build": "tsc && chmod 755 build/index.js"
-  },
-  "files": [
-    "build"
-  ]
+  }
 }
