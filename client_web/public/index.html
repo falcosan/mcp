@@ -17,7 +17,7 @@
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       }
-      h2 {
+      h1 {
         color: #333;
         margin-top: 0;
       }
@@ -30,9 +30,6 @@
         font-size: 16px;
         box-sizing: border-box;
       }
-      #results {
-        margin-top: 20px;
-      }
       .model-selector {
         margin-bottom: 15px;
         display: flex;
@@ -43,11 +40,6 @@
         margin-left: 10px;
         border: 1px solid #ddd;
         border-radius: 4px;
-      }
-      .status {
-        font-size: 14px;
-        margin-top: 5px;
-        color: #666;
       }
       .query-info {
         background-color: #f8f9fa;
@@ -71,13 +63,13 @@
   </head>
   <body>
     <div class="container">
-      <h2>Meilisearch MCP Search</h2>
+      <h1>Meilisearch MCP Search</h1>
       <input
+        autofocus
         type="search"
         id="searchInput"
-        placeholder="Enter your search query..."
+        placeholder="Search"
         class="form-control"
-        autofocus
       />
       <div id="results"></div>
     </div>
