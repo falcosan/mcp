@@ -4,6 +4,10 @@ project:
   name: mcp-meilisearch
   description: MCP server that provides a bridge between AI models and Meilisearch
   version: 1.0.0
+  startCommand:
+    command: cd server && node --env-file=.env build/index.js
+    description: Start the MCP server
+    cwd: .
 
 workspace:
   packages:
