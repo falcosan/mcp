@@ -4,10 +4,39 @@ project:
   name: mcp-meilisearch
   description: MCP server that provides a bridge between AI models and Meilisearch
   version: 1.0.0
-  startCommand:
-    command: cd server && node --env-file=.env build/index.js
-    description: Start the MCP server
-    cwd: .
+
+startCommand:
+  type: http
+  configSchema:
+    type: object
+    properties:
+      MEILISEARCH_HOST:
+        type: string
+        default: http://localhost:7700
+        description: URL for the Meilisearch instance
+      MEILISEARCH_API_KEY:
+        type: string
+        default: ""
+        description: API key for Meilisearch, if required
+      MEILISEARCH_TIMEOUT:
+        type: number
+        default: 5000
+        description: Timeout for Meilisearch API requests in milliseconds
+  commandFunction: |-
+    (config) => ({
+      command: 'node',
+      args: ['dist/index.js'],
+      env: {
+        NODE_ENV: 'production',
+        MEILISEARCH_HOST: config.MEILISEARCH_HOST,
+        MEILISEARCH_API_KEY: config.MEILISEARCH_API_KEY,
+        MEILISEARCH_TIMEOUT: config.MEILISEARCH_TIMEOUT.toString()
+      }
+    })
+  exampleConfig:
+    MEILISEARCH_HOST: http://localhost:7700
+    MEILISEARCH_API_KEY: your-api-key
+    MEILISEARCH_TIMEOUT: 5000
 
 workspace:
   packages:
@@ -23,21 +52,13 @@ build:
 
     build:
       description: Build the server
-      command: cd server && npm run build
+      command: npm run build --workspace=server
 
-    clean:
-      description: Clean build artifacts
-      command: rm -rf server/build
-
-    start:
-      description: Start the MCP server
-      command: cd server && node --env-file=.env build/index.js
-
-    package:
-      description: Package the server for deployment
+    dist:
+      description: Create distribution package
       command: |
         mkdir -p dist
-        cp -r server/build dist/
+        cp -r server/build/* dist/
         cp server/package.json dist/
         echo '{"type":"module"}' > dist/package.json
 
@@ -49,47 +70,17 @@ build:
       MEILISEARCH_HOST: http://localhost:7700
       MEILISEARCH_TIMEOUT: 5000
 
-services:
-  - name: meilisearch
-    description: Meilisearch instance
-    type: external
-    url: ${MEILISEARCH_HOST}
-    health-check: ${MEILISEARCH_HOST}/health
-
-  - name: mcp-server
-    description: MCP Server
-    type: internal
-    path: server
-    command: node --env-file=.env build/index.js
-    port: 3000
-    depends-on:
-      - meilisearch
-
 dependencies:
-  server:
-    - "@modelcontextprotocol/sdk"
-    - express
-    - axios
-    - zod
+  production:
+    - "@modelcontextprotocol/sdk": "^1.10.1"
+    - express: "^5.1.0"
+    - axios: "^1.9.0"
+    - zod: "^3.24.4"
 
   development:
-    - typescript
-    - "@types/express"
-    - "@types/node"
-
-deployment:
-  artifacts:
-    - source: server/build/
-      destination: /app
-    - source: server/package.json
-      destination: /app
-
-  entrypoint: node /app/index.js
-  environment_variables:
-    - MEILISEARCH_HOST
-    - MEILISEARCH_API_KEY
-    - MEILISEARCH_TIMEOUT
-    - PORT
+    - typescript: "^5.8.3"
+    - "@types/express": "^5.0.1"
+    - "@types/node": "^22.14.0"
 
 pipelines:
   default:
@@ -98,17 +89,4 @@ pipelines:
   deploy:
     - setup
     - build
-    - package
-
-documentation:
-  architecture: |
-    This is a server-only deployment of the MCP (Model Context Protocol) server 
-    that provides AI models with direct access to Meilisearch's functionalities.
-
-    The server exposes a StreamableHTTP transport implementation of MCP with tools for:
-    - System operations (health checks, version info)
-    - Index management (create, update, delete)
-    - Document operations (add, update, retrieve)
-    - Search capabilities (including vector search)
-    - Settings management
-    - Task management
+    - dist
