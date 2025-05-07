@@ -2,11 +2,11 @@ version: "1.0"
 
 project:
   name: mcp-meilisearch
-  description: MCP server that provides a bridge between AI models and Meilisearch
+  description: MCP server that provides a bridge between AI models and Meilisearch.
   version: 1.0.0
 
 startCommand:
-  type: http
+  type: stdio
   configSchema:
     type: object
     properties:
@@ -21,22 +21,32 @@ startCommand:
       MEILISEARCH_TIMEOUT:
         type: number
         default: 5000
-        description: Timeout for Meilisearch API requests in milliseconds
+        description: Timeout for Meilisearch API requests in milliseconds.
+      PORT:
+        type: number
+        default: 3000
+        description: Port for the MCP server to listen on.
+    required:
+      - MEILISEARCH_HOST
+      - MEILISEARCH_API_KEY
+      - PORT
   commandFunction: |-
     (config) => ({
       command: 'node',
-      args: ['dist/index.js'],
+      args: ['dist/index.js'], // Assumes 'dist' contains the built server
       env: {
         NODE_ENV: 'production',
         MEILISEARCH_HOST: config.MEILISEARCH_HOST,
         MEILISEARCH_API_KEY: config.MEILISEARCH_API_KEY,
-        MEILISEARCH_TIMEOUT: config.MEILISEARCH_TIMEOUT.toString()
+        MEILISEARCH_TIMEOUT: config.MEILISEARCH_TIMEOUT.toString(),
+        PORT: config.PORT.toString() // Pass port to the application
       }
     })
   exampleConfig:
     MEILISEARCH_HOST: http://localhost:7700
-    MEILISEARCH_API_KEY: your-api-key
+    MEILISEARCH_API_KEY: "your-meilisearch-api-key"
     MEILISEARCH_TIMEOUT: 5000
+    PORT: 3000
 
 workspace:
   packages:
@@ -44,49 +54,64 @@ workspace:
       type: app
       target: node
 
-build:
-  commands:
-    setup:
-      description: Install dependencies
-      command: npm install
-
-    build:
-      description: Build the server
-      command: npm run build --workspace=server
-
-    dist:
-      description: Create distribution package
-      command: |
-        mkdir -p dist
-        cp -r server/build/* dist/
-        cp server/package.json dist/
-        echo '{"type":"module"}' > dist/package.json
-
-  environment:
-    required:
-      - MEILISEARCH_HOST
-      - MEILISEARCH_API_KEY
-    default:
-      MEILISEARCH_HOST: http://localhost:7700
-      MEILISEARCH_TIMEOUT: 5000
-
 dependencies:
   production:
-    - "@modelcontextprotocol/sdk": "^1.10.1"
-    - express: "^5.1.0"
-    - axios: "^1.9.0"
-    - zod: "^3.24.4"
-
+    "@modelcontextprotocol/sdk": "^1.10.1"
+    express: "^5.1.0"
+    axios: "^1.9.0"
+    zod: "^3.24.4"
   development:
-    - typescript: "^5.8.3"
-    - "@types/express": "^5.0.1"
-    - "@types/node": "^22.14.0"
+    typescript: "^5.8.3"
+    "@types/express": "^5.0.1"
+    "@types/node": "^22.14.0"
+
+build:
+  commands:
+    clean:
+      description: Clean build artifacts and distribution folder.
+      command: |
+        rm -rf server/build
+        rm -rf dist
+
+    install-deps:
+      description: Install root and workspace dependencies.
+      command: npm install
+
+    build-app:
+      description: Build the server application.
+      command: npm run build --workspace=server
+
+    package-app:
+      description: Create a distribution package for the server.
+      command: |
+        echo "Packaging application into dist/ directory..."
+        mkdir -p dist
+        cp -r server/build/* dist/
+        echo '{
+          "name": "mcp-meilisearch-server-dist",
+          "version": "1.0.0",
+          "main": "index.js",
+          "type": "module",
+          "dependencies": {
+            "@modelcontextprotocol/sdk": "^1.10.1",
+            "express": "^5.1.0",
+            "axios": "^1.9.0",
+            "zod": "^3.24.4"
+          }
+        }' > dist/package.json
+        echo "Application packaged successfully."
 
 pipelines:
   default:
-    - build
+    - build-app
 
-  deploy:
-    - setup
-    - build
-    - dist
+  build-package:
+    - clean
+    - build-app
+    - package-app
+
+  ci:
+    - clean
+    - install-deps
+    - build-app
+    - package-app
