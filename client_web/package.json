@@ -1,11 +1,10 @@
 {
-  "name": "client",
+  "name": "client_web",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "node build/index.js",
-    "build": "tsc && chmod 755 build/index.js"
+    "dev": "node index.js"
   }
 }
