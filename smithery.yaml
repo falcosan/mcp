@@ -33,8 +33,6 @@ startCommand:
   exampleConfig:
     MEILISEARCH_HOST: http://localhost:7700
     MEILISEARCH_API_KEY: "your-meilisearch-api-key"
-    MEILISEARCH_TIMEOUT: 5000
-    PORT: 3000
 
 workspace:
   packages:
