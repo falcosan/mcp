@@ -2,6 +2,7 @@ startCommand:
   type: http
   configSchema:
     type: object
+    required: ["MEILISEARCH_HOST"]
     properties:
       MEILISEARCH_HOST:
         type: string
@@ -11,18 +12,8 @@ startCommand:
         type: string
         default: ""
         description: API key for Meilisearch, if required
-    required:
-      - MEILISEARCH_HOST
-  commandFunction: |-
-    (config) => ({
-      command: 'node',
-      args: ['dist/index.js']
-      env: {
-        NODE_ENV: 'production',
-        MEILISEARCH_HOST: config.MEILISEARCH_HOST,
-        MEILISEARCH_API_KEY: config.MEILISEARCH_API_KEY,
-      }
-    })
-  exampleConfig:
-    MEILISEARCH_HOST: http://localhost:7700
-    MEILISEARCH_API_KEY: "your-meilisearch-api-key"
+      temperature:
+        type: number
+        default: 0.7
+        minimum: 0
+        maximum: 1
