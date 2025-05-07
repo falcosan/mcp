@@ -14,7 +14,7 @@ class MCPClient {
   private tries: number = 0;
   private isCompleted = false;
   private transport: StreamableHTTPClientTransport | null = null;
-  private meilisearchIndexUid: string = "movies";
+  private readonly meilisearchIndexUid: string = "movies";
 
   constructor(serverName: string) {
     this.client = new Client({
@@ -258,14 +258,6 @@ class MCPClient {
   }
 
   /**
-   * Set the Meilisearch index UID to use
-   * @param indexUid Index UID
-   */
-  setIndexUid(indexUid: string): void {
-    this.meilisearchIndexUid = indexUid;
-  }
-
-  /**
    * Wait for completion (transport close)
    */
   async waitForCompletion(): Promise<void> {
@@ -310,18 +302,6 @@ async function main() {
       );
       return;
     }
-
-    // Add here futures API calls to use the tools.
-    // Example:
-    console.log("\n--- Health Check ---");
-    const healthResult = await client.callTool("health");
-    console.log(healthResult);
-
-    console.log("\n--- List Indexes ---");
-    const indexesResult = await client.callTool("list-indexes");
-    console.log(indexesResult);
-
-    console.log("\n✅ Client running. Press Ctrl+C to exit.");
 
     await client.waitForCompletion();
   } catch (error) {

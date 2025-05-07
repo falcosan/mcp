@@ -51,7 +51,6 @@ export class MCPServer {
     const transport = this.transports[sessionId];
     await transport.handleRequest(req, res);
 
-    // Send a welcome notification
     this.sendNotification(transport, {
       method: "notifications/message",
       params: { level: "info", data: "SSE Connection established" },
@@ -62,7 +61,7 @@ export class MCPServer {
 
   async handlePostRequest(req: Request, res: Response) {
     const sessionId = req.headers[SESSION_ID_HEADER_NAME] as string | undefined;
-    console.log(`POST request received, sessionId: ${sessionId || "none"}`);
+    console.log(`POST request received, sessionId: ${sessionId}`);
 
     try {
       if (sessionId && this.transports[sessionId]) {
@@ -74,18 +73,22 @@ export class MCPServer {
 
       if (!sessionId && this.isInitializeRequest(req.body)) {
         console.log("Handling initialize request");
+        const newSessionId = randomUUID();
         const transport = new StreamableHTTPServerTransport({
-          sessionIdGenerator: () => randomUUID(),
+          sessionIdGenerator: () => newSessionId,
         });
 
+        transport.sessionId = newSessionId;
+
         await this.server.connect(transport);
+
+        res.setHeader(SESSION_ID_HEADER_NAME, newSessionId);
+        res.setHeader("Access-Control-Expose-Headers", SESSION_ID_HEADER_NAME);
+
         await transport.handleRequest(req, res, req.body);
 
-        const newSessionId = transport.sessionId;
         if (newSessionId) {
-          console.log(`Created new session: ${newSessionId}`);
           this.transports[newSessionId] = transport;
-
           this.sendToolListChangedNotification(transport);
         } else {
           console.error("No session ID generated for new transport");
