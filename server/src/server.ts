@@ -36,7 +36,7 @@ router.get(MCP_ENDPOINT, async (req: Request, res: Response) => {
 
 app.use("/", router);
 
-const PORT = 3000;
+const PORT = 8080;
 app.listen(PORT, () => {
   console.log(`MCP Streamable HTTP Server listening on port ${PORT}`);
   console.log(`Server endpoint: http://localhost:${PORT}${MCP_ENDPOINT}`);
