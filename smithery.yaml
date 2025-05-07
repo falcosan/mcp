@@ -14,7 +14,7 @@ startCommand:
   commandFunction: |-
     (config) => ({
       command: 'node',
-      args: ['build/index.js'],
+      args: ['dist/index.js'],
       env: {
         NODE_ENV: 'production',
         MEILISEARCH_HOST: config.MEILISEARCH_HOST,
