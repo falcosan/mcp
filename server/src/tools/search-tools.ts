@@ -35,7 +35,7 @@ interface MultiSearchParams {
 
 interface GlobalSearchParams {
   q: string;
-  limitPerIndex?: number;
+  limit?: number;
 }
 
 /**
@@ -54,7 +54,7 @@ export const registerSearchTools = (server: McpServer) => {
       limit: z
         .number()
         .min(1)
-        .max(1000)
+        .max(99999)
         .optional()
         .describe("Maximum number of results to return (default: 20)"),
       offset: z
@@ -203,22 +203,20 @@ export const registerSearchTools = (server: McpServer) => {
     "search-across-all-indexes",
     "Search for a term across all available Meilisearch indexes and return combined results.",
     {
-      q: z
-        .string()
-        .describe('The search query term (e.g., "superhero movies")'),
-      limitPerIndex: z
+      q: z.string().describe("Search query"),
+      limit: z
         .number()
         .min(1)
-        .max(100)
+        .max(9999)
         .optional()
         .describe(
-          "Maximum number of results to return per index (default: 10)"
+          "Maximum number of results to return per index (default: 20)"
         ),
     },
-    async ({ q, limitPerIndex = 10 }: GlobalSearchParams) => {
+    async ({ q, limit = 20 }: GlobalSearchParams) => {
       try {
         console.log(
-          `[Tool:search-across-all-indexes] Received query: "${q}", limit/index: ${limitPerIndex}`
+          `[Tool:search-across-all-indexes] Received query: "${q}", limit/index: ${limit}`
         );
         const indexesResponse = await apiClient.get("/indexes", {
           params: { limit: 1000 },
@@ -253,7 +251,7 @@ export const registerSearchTools = (server: McpServer) => {
               `/indexes/${uid}/search`,
               {
                 q,
-                limit: limitPerIndex,
+                limit,
               }
             );
             // Augment hits with index UID for context

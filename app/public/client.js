@@ -1,8 +1,8 @@
 document.addEventListener("DOMContentLoaded", function () {
   const MCP_SERVER_URL = "http://localhost:3000";
 
-  const searchInput = document.getElementById("searchInput");
   const resultsDiv = document.getElementById("results");
+  const searchInput = document.getElementById("searchInput");
 
   let sessionId = null;
 
@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   }
 
-  async function callMcpTool(toolName, toolArgs) {
+  async function callTool(toolName, toolArgs) {
     try {
       if (!sessionId) {
         const initialized = await initializeMcpSession();
@@ -140,9 +140,8 @@ document.addEventListener("DOMContentLoaded", function () {
       resultsDiv.innerHTML = "<p>Searching...</p>";
 
       try {
-        const searchResults = await callMcpTool("search-across-all-indexes", {
+        const searchResults = await callTool("search-across-all-indexes", {
           q: query,
-          limit: 20,
         });
 
         if (searchResults.error) {
