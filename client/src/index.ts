@@ -303,6 +303,18 @@ async function main() {
       return;
     }
 
+    // Add here futures API calls to use the tools.
+    // Example:
+    // console.log("\n--- Health Check ---");
+    // const healthResult = await client.callTool("health");
+    // console.log(healthResult);
+
+    // console.log("\n--- List Indexes ---");
+    // const indexesResult = await client.callTool("list-indexes");
+    // console.log(indexesResult);
+
+    console.log("\n✅ Client running. Press Ctrl+C to exit.");
+
     await client.waitForCompletion();
   } catch (error) {
     console.error("❌ Fatal error:", error);

@@ -61,14 +61,16 @@ export class MCPServer {
 
   async handlePostRequest(req: Request, res: Response) {
     const sessionId = req.headers[SESSION_ID_HEADER_NAME] as string | undefined;
-    console.log(`POST request received, sessionId: ${sessionId}`);
 
     try {
-      if (sessionId && this.transports[sessionId]) {
-        console.log(`Using existing transport for session ${sessionId}`);
-        const transport = this.transports[sessionId];
-        await transport.handleRequest(req, res, req.body);
-        return;
+      if (sessionId) {
+        console.log(`POST request received, sessionId: ${sessionId}`);
+        if (this.transports[sessionId]) {
+          console.log(`Using existing transport for session ${sessionId}`);
+          const transport = this.transports[sessionId];
+          await transport.handleRequest(req, res, req.body);
+          return;
+        }
       }
 
       if (!sessionId && this.isInitializeRequest(req.body)) {
