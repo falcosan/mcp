@@ -1,4 +1,4 @@
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { randomUUID } from "node:crypto";
 import {
   Notification,
   JSONRPCError,
@@ -6,16 +6,16 @@ import {
   InitializeRequestSchema,
   ToolListChangedNotification,
 } from "@modelcontextprotocol/sdk/types.js";
-import { randomUUID } from "node:crypto";
 import { Request, Response } from "express";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import registerDocumentTools from "./tools/document-tools.js";
+import registerTaskTools from "./tools/task-tools.js";
 import registerIndexTools from "./tools/index-tools.js";
 import registerSearchTools from "./tools/search-tools.js";
-import registerSettingsTools from "./tools/settings-tools.js";
 import registerSystemTools from "./tools/system-tools.js";
-import registerTaskTools from "./tools/task-tools.js";
 import registerVectorTools from "./tools/vector-tools.js";
+import registerDocumentTools from "./tools/document-tools.js";
+import registerSettingsTools from "./tools/settings-tools.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 
 const JSON_RPC = "2.0";
 const SESSION_ID_HEADER_NAME = "mcp-session-id";
@@ -178,9 +178,8 @@ export class MCPServer {
       const result = InitializeRequestSchema.safeParse(data);
       return result.success;
     };
-    if (Array.isArray(body)) {
-      return body.some((request) => isInitial(request));
-    }
+    if (Array.isArray(body)) return body.some(isInitial);
+
     return isInitial(body);
   }
 }
