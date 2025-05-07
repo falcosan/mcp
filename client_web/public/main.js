@@ -145,7 +145,7 @@ class SearchUI {
     hits.forEach((hit) => {
       const title = hit.title || hit.name || hit.id || "Unnamed document";
       const item = document.createElement("li");
-      item.innerHTML = `<strong>${title}</strong>`;
+      item.innerHTML = `<span><i>${hit._indexUid}</i></span><br><strong>${title}</strong>`;
       resultsList.appendChild(item);
     });
 
