@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 import {
   Notification,
-  JSONRPCError,
   JSONRPCNotification,
   InitializeRequestSchema,
   ToolListChangedNotification,
@@ -14,6 +13,7 @@ import registerSystemTools from "./tools/system-tools.js";
 import registerVectorTools from "./tools/vector-tools.js";
 import registerDocumentTools from "./tools/document-tools.js";
 import registerSettingsTools from "./tools/settings-tools.js";
+import { createErrorResponse } from "./utils/error-handler.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 
@@ -40,7 +40,7 @@ class MCPServer {
       res
         .status(400)
         .json(
-          this.createErrorResponse("Bad Request: invalid session ID or method.")
+          createErrorResponse("Bad Request: invalid session ID or method.")
         );
       return;
     }
@@ -103,13 +103,13 @@ class MCPServer {
       res
         .status(400)
         .json(
-          this.createErrorResponse("Bad Request: invalid session ID or method.")
+          createErrorResponse("Bad Request: invalid session ID or method.")
         );
     } catch (error) {
       console.error("Error handling MCP request:", error);
       res
         .status(500)
-        .json(this.createErrorResponse(`Internal server error: ${error}`));
+        .json(createErrorResponse(`Internal server error: ${error}`));
     }
   }
 
@@ -158,17 +158,6 @@ class MCPServer {
     } catch (error) {
       console.error("Failed to send notification:", error);
     }
-  }
-
-  private createErrorResponse(message: string): JSONRPCError {
-    return {
-      jsonrpc: "2.0",
-      error: {
-        code: -32000,
-        message: message,
-      },
-      id: randomUUID(),
-    };
   }
 
   private isInitializeRequest(body: any): boolean {

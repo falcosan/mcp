@@ -1,8 +1,7 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-
 import apiClient from "../utils/api-handler.js";
 import { createErrorResponse } from "../utils/error-handler.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 /**
  * Meilisearch Search Tools
@@ -33,10 +32,8 @@ interface MultiSearchParams {
   searches: string;
 }
 
-interface GlobalSearchParams {
-  q: string;
-  limit?: number;
-}
+interface GlobalSearchParams
+  extends Pick<SearchParams, "q" | "limit" | "attributesToRetrieve"> {}
 
 /**
  * Register search tools with the MCP server
@@ -54,7 +51,6 @@ export const registerSearchTools = (server: McpServer) => {
       limit: z
         .number()
         .min(1)
-        .max(99999)
         .optional()
         .describe("Maximum number of results to return (default: 20)"),
       offset: z
@@ -207,17 +203,17 @@ export const registerSearchTools = (server: McpServer) => {
       limit: z
         .number()
         .min(1)
-        .max(9999)
         .optional()
         .describe(
           "Maximum number of results to return per index (default: 20)"
         ),
+      attributesToRetrieve: z
+        .array(z.string())
+        .optional()
+        .describe("Attributes to include in results"),
     },
-    async ({ q, limit = 20 }: GlobalSearchParams) => {
+    async ({ q, limit, attributesToRetrieve }: GlobalSearchParams) => {
       try {
-        console.log(
-          `[Tool:search-across-all-indexes] Received query: "${q}", limit/index: ${limit}`
-        );
         const indexesResponse = await apiClient.get("/indexes", {
           params: { limit: 1000 },
         });
@@ -239,12 +235,6 @@ export const registerSearchTools = (server: McpServer) => {
             ],
           };
         }
-        console.log(
-          `[Tool:search-across-all-indexes] Searching in indexes: ${indexUids.join(
-            ", "
-          )}`
-        );
-
         const searchPromises = indexUids.map(async (uid) => {
           try {
             const searchResult = await apiClient.post(
@@ -252,16 +242,14 @@ export const registerSearchTools = (server: McpServer) => {
               {
                 q,
                 limit,
+                attributesToRetrieve,
               }
             );
             return searchResult.data.hits.map((hit: any) => ({
-              _indexUid: uid,
+              indexUid: uid,
               ...hit,
             }));
           } catch (searchError: any) {
-            console.error(
-              `[Tool:search-across-all-indexes] Error searching in index ${uid} for query "${q}": ${searchError.message}`
-            );
             return [];
           }
         });
@@ -269,18 +257,12 @@ export const registerSearchTools = (server: McpServer) => {
         const resultsPerIndex = await Promise.all(searchPromises);
         const allHits = resultsPerIndex.flat();
 
-        console.log(
-          `[Tool:search-across-all-indexes] Query "${q}" completed. Total combined hits: ${allHits.length}`
-        );
         return {
           content: [
             { type: "text", text: JSON.stringify({ allHits }, null, 2) },
           ],
         };
       } catch (error: any) {
-        console.error(
-          `[Tool:search-across-all-indexes] General error for query "${q}": ${error.message}`
-        );
         return createErrorResponse(error);
       }
     }
