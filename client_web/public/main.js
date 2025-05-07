@@ -1,14 +1,17 @@
-document.addEventListener("DOMContentLoaded", function () {
-  const MCP_SERVER_URL = "http://localhost:3000";
+class MCPDisplay {
+  constructor(serverUrl) {
+    this.serverUrl = serverUrl;
+    this.sessionId = null;
+    this.endpoint = `${serverUrl}/mcp`;
+  }
 
-  const resultsDiv = document.getElementById("results");
-  const searchInput = document.getElementById("searchInput");
+  generateRequestId() {
+    return `req-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+  }
 
-  let sessionId = null;
-
-  async function initializeMcpSession() {
+  async initialize() {
     try {
-      const response = await fetch(`${MCP_SERVER_URL}/mcp`, {
+      const response = await fetch(this.endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -25,185 +28,134 @@ document.addEventListener("DOMContentLoaded", function () {
             },
           },
           jsonrpc: "2.0",
-          id: generateRequestId(),
+          id: this.generateRequestId(),
         }),
       });
 
-      let headerSessionId = response.headers.get("mcp-session-id");
+      this.sessionId = response.headers.get("mcp-session-id");
 
-      if (headerSessionId) {
-        sessionId = headerSessionId;
-        return true;
-      }
-
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
+      if (!this.sessionId) {
         const data = await response.json();
-
-        if (data.result && data.result.sessionId) {
-          sessionId = data.result.sessionId;
-          return true;
-        } else if (data.error) {
-          console.error("Failed to initialize MCP session:", data.error);
-          return false;
-        }
+        this.sessionId = data.result?.sessionId;
       }
 
-      console.error("No session ID found in response");
-      return false;
+      return !!this.sessionId;
     } catch (error) {
-      console.error("Error initializing MCP session:", error);
+      console.error("Failed to initialize MCP session:", error);
       return false;
     }
   }
 
-  async function callTool(toolName, toolArgs) {
-    try {
-      if (!sessionId) {
-        const initialized = await initializeMcpSession();
-        if (!initialized) {
-          throw new Error("Could not establish connection to search server");
-        }
-      }
+  async callTool(toolName, toolArgs = {}) {
+    if (!this.sessionId && !(await this.initialize())) {
+      throw new Error("Could not establish connection to search server");
+    }
 
-      const response = await fetch(`${MCP_SERVER_URL}/mcp`, {
+    try {
+      const response = await fetch(this.endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json, text/event-stream",
-          "mcp-session-id": sessionId,
+          "mcp-session-id": this.sessionId,
         },
         body: JSON.stringify({
           jsonrpc: "2.0",
           method: "tools/call",
           params: {
             name: toolName,
-            arguments: toolArgs || {},
+            arguments: toolArgs,
           },
-          id: generateRequestId(),
+          id: this.generateRequestId(),
         }),
       });
 
       if (!response.ok) {
-        const errorText = await response.text().catch(() => "Unknown error");
-        throw new Error(`HTTP error ${response.status}: ${errorText}`);
+        throw new Error(`Server error: ${response.status}`);
       }
 
       const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
+      if (contentType?.includes("application/json")) {
         const jsonResponse = await response.json();
-
-        if (jsonResponse.result && jsonResponse.result.data) {
-          return jsonResponse.result.data;
-        }
-
-        return jsonResponse;
+        return jsonResponse.result?.data || jsonResponse;
       } else {
         const text = await response.text();
-        return parseApiResponse(text);
+        const dataMatch = text.match(/data: (.*)/);
+        if (!dataMatch?.[1]) throw new Error("Invalid response format");
+
+        const parsedResponse = JSON.parse(dataMatch[1]);
+        const contentText = parsedResponse.result.content[0].text;
+        return JSON.parse(contentText);
       }
     } catch (error) {
       console.error(`Error calling tool '${toolName}':`, error);
       throw error;
     }
   }
+}
 
-  function parseApiResponse(text) {
+class SearchUI {
+  constructor(client, searchInputId, resultsId) {
+    this.client = client;
+    this.searchInput = document.getElementById(searchInputId);
+    this.resultsDiv = document.getElementById(resultsId);
+    this.setupEventListeners();
+  }
+
+  setupEventListeners() {
+    this.searchInput.addEventListener("keyup", (e) => {
+      if (e.key === "Enter") this.performSearch();
+    });
+  }
+
+  async performSearch() {
+    const query = this.searchInput.value.trim();
+    if (!query) return;
+
+    this.showLoading();
+
     try {
-      const dataMatch = text.match(/data: (.*)/);
-      if (!dataMatch || !dataMatch[1]) {
-        throw new Error("Failed to extract data portion from response");
-      }
-      const parsedResponse = JSON.parse(dataMatch[1]);
-      const contentText = parsedResponse.result.content[0].text;
-
-      return JSON.parse(contentText);
-    } catch (error) {
-      console.error("Error parsing API response:", error);
-      throw new Error(
-        `Failed to parse: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
+      const searchResults = await this.client.callTool(
+        "search-across-all-indexes",
+        { q: query }
       );
+      this.displayResults(searchResults);
+    } catch (error) {
+      this.showError(error.message);
     }
   }
 
-  function generateRequestId() {
-    return `req-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+  showLoading() {
+    this.resultsDiv.innerHTML = `<pre class="loading">Processing...</pre>`;
   }
 
-  searchInput.addEventListener("keyup", async function (e) {
-    if (e.key === "Enter") {
-      const query = searchInput.value;
-      if (!query.trim()) return;
+  showError(message) {
+    this.resultsDiv.innerHTML = `<pre class="error">Error: ${message}</pre>`;
+  }
 
-      resultsDiv.innerHTML = "<p>Processing query...</p>";
+  displayResults(response) {
+    const hits = response.allHits || [];
 
-      try {
-        let searchQuery = query;
-
-        const searchResults = await callTool("search-across-all-indexes", {
-          q: searchQuery,
-        });
-
-        if (searchResults.error) {
-          resultsDiv.innerHTML = `<p>Search error: ${
-            searchResults.error.message || JSON.stringify(searchResults.error)
-          }</p>`;
-          return;
-        }
-
-        displayResults(searchResults, searchQuery, query);
-      } catch (error) {
-        resultsDiv.innerHTML = `<p>Error: ${error.message}</p>`;
-      }
-    }
-  });
-
-  function displayResults(response, enhancedQuery, originalQuery) {
-    resultsDiv.innerHTML = "";
-
-    if (!response.allHits?.length) {
-      resultsDiv.innerHTML = "<p>No results or invalid response format</p>";
+    if (!hits.length) {
+      this.resultsDiv.innerHTML = "<pre>No matching documents found</pre>";
       return;
     }
 
-    try {
-      const hits = response.allHits;
+    const resultsList = document.createElement("ul");
+    hits.forEach((hit) => {
+      const title = hit.title || hit.name || hit.id || "Unnamed document";
+      const item = document.createElement("li");
+      item.innerHTML = `<strong>${title}</strong>`;
+      resultsList.appendChild(item);
+    });
 
-      if (hits.length) {
-        if (enhancedQuery !== originalQuery) {
-          const queryInfo = document.createElement("div");
-          queryInfo.className = "query-info";
-          queryInfo.innerHTML = `<p><strong>Original query:</strong> "${originalQuery}"</p>
-                                <p><strong>Enhanced query:</strong> "${enhancedQuery}"</p>`;
-          resultsDiv.appendChild(queryInfo);
-        }
-
-        const resultsList = document.createElement("ul");
-
-        hits.forEach((hit) => {
-          const listItem = document.createElement("li");
-          const title = hit.title || hit.name || hit.id || "Unnamed document";
-
-          listItem.innerHTML = `<strong>${title}</strong>`;
-          resultsList.appendChild(listItem);
-        });
-
-        resultsDiv.appendChild(resultsList);
-
-        const countElem = document.createElement("p");
-        countElem.className = "results-count";
-        countElem.textContent = `Found ${hits.length} results`;
-        resultsDiv.prepend(countElem);
-      } else {
-        resultsDiv.innerHTML = "<p>No matching documents found</p>";
-      }
-    } catch (error) {
-      console.error("Error parsing results:", error);
-      resultsDiv.innerHTML = "<p>Error processing results</p>";
-    }
+    this.resultsDiv.innerHTML = `<pre class="results-count">Found ${hits.length} results</pre>`;
+    this.resultsDiv.appendChild(resultsList);
   }
+}
 
-  initializeMcpSession();
+document.addEventListener("DOMContentLoaded", () => {
+  const client = new MCPDisplay("http://localhost:3000");
+  new SearchUI(client, "searchInput", "results");
+  client.initialize();
 });
