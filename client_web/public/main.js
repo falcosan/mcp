@@ -1,58 +1,10 @@
 document.addEventListener("DOMContentLoaded", function () {
   const MCP_SERVER_URL = "http://localhost:3000";
-  const LLM_SERVER_URL = "";
 
   const resultsDiv = document.getElementById("results");
   const searchInput = document.getElementById("searchInput");
 
   let sessionId = null;
-  let llmConnected = false;
-
-  async function llmTestConnection() {
-    try {
-      const response = await fetch(LLM_SERVER_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt: "Test connection",
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`LLM connection failed: ${response}`);
-      }
-      console.log("LLM connection successful");
-      llmConnected = true;
-      return true;
-    } catch (error) {
-      console.error("Failed to connect to LLM:", error);
-      return false;
-    }
-  }
-
-  async function enhanceQuery(userQuery) {
-    try {
-      const prompt = `I want to search a Meilisearch database with this query: "${userQuery}"
-      Please improve this search query to make it more effective for retrieving relevant documents.
-      Only return the improved search query, nothing else.`;
-
-      const response = await fetch(LLM_SERVER_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      });
-
-      if (!response.ok)
-        throw new Error(`LLM processing failed: ${response.status}`);
-
-      const result = await response.json();
-      const enhancedQuery = result.response.trim();
-      return enhancedQuery;
-    } catch (error) {
-      console.error("Error processing query with LLM:", error);
-      return userQuery;
-    }
-  }
 
   async function initializeMcpSession() {
     try {
@@ -185,12 +137,10 @@ document.addEventListener("DOMContentLoaded", function () {
       const query = searchInput.value;
       if (!query.trim()) return;
 
-      resultsDiv.innerHTML = "<p>Processing query with LLM...</p>";
+      resultsDiv.innerHTML = "<p>Processing query...</p>";
 
       try {
         let searchQuery = query;
-
-        if (llmConnected) searchQuery = await enhanceQuery(query);
 
         const searchResults = await callTool("search-across-all-indexes", {
           q: searchQuery,
@@ -256,5 +206,4 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   initializeMcpSession();
-  llmTestConnection();
 });

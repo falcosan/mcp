@@ -220,7 +220,7 @@ export const registerSearchTools = (server: McpServer) => {
         );
         const indexesResponse = await apiClient.get("/indexes", {
           params: { limit: 1000 },
-        }); // Adjust limit if you have more indexes
+        });
         const indexUids: string[] = indexesResponse.data.results.map(
           (index: any) => index.uid
         );
@@ -254,16 +254,15 @@ export const registerSearchTools = (server: McpServer) => {
                 limit,
               }
             );
-            // Augment hits with index UID for context
             return searchResult.data.hits.map((hit: any) => ({
-              _indexUid: uid, // Add source index to each hit
+              _indexUid: uid,
               ...hit,
             }));
           } catch (searchError: any) {
             console.error(
               `[Tool:search-across-all-indexes] Error searching in index ${uid} for query "${q}": ${searchError.message}`
             );
-            return []; // Return empty for this index on error
+            return [];
           }
         });
 
