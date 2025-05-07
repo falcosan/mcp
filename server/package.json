@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "node --env-file=.env build/index.js",
-    "build": "tsc && chmod 755 build/index.js"
+    "dev": "node --env-file=.env dist/index.js",
+    "build": "tsc && chmod 755 dist/index.js"
   }
 }
