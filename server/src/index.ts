@@ -19,8 +19,9 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 
 const JSON_RPC = "2.0";
 const SESSION_ID_HEADER_NAME = "mcp-session-id";
+const SERVER_SUITE = new McpServer({ name: "mcp-server", version: "1.0.0" });
 
-export class MCPServer {
+class MCPServer {
   server: McpServer;
   transports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
   toolsRegistered: boolean = false;
@@ -28,9 +29,6 @@ export class MCPServer {
   constructor(server: McpServer) {
     this.server = server;
     this.toolsRegistered = this.setupTools(this.server);
-    console.log(
-      `MCP Server initialized with tools registered: ${this.toolsRegistered}`
-    );
   }
 
   async handleGetRequest(req: Request, res: Response) {
@@ -183,3 +181,5 @@ export class MCPServer {
     return isInitial(body);
   }
 }
+
+export const server = new MCPServer(SERVER_SUITE);

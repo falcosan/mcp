@@ -20,9 +20,9 @@ export interface ServerConfig {
  */
 export const loadConfig = (): ServerConfig => {
   return {
-    host: process.env.MEILISEARCH_HOST || "http://localhost:7700",
-    apiKey: process.env.MEILISEARCH_API_KEY || "",
-    timeout: parseInt(process.env.MEILISEARCH_TIMEOUT || "5000", 10),
+    host: "https://babilonia.penumbracosmica.earth",
+    apiKey: "b42f7058-e00a-4c2b-9d03-7b0b68f694e5",
+    timeout: 10000,
   };
 };
 

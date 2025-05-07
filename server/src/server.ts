@@ -1,15 +1,7 @@
-import { MCPServer } from "./index.js";
+import { server } from "./index.js";
 import express, { Request, Response, NextFunction } from "express";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 console.log("Starting MCP Server...");
-
-const mcpServer = new McpServer({
-  name: "mcp-server",
-  version: "1.0.0",
-});
-
-const server = new MCPServer(mcpServer);
 
 const app = express();
 app.use(express.json());
