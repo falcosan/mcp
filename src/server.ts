@@ -5,7 +5,6 @@ import {
   InitializeRequestSchema,
   ToolListChangedNotification,
 } from "@modelcontextprotocol/sdk/types.js";
-import { Request, Response } from "express";
 import registerTaskTools from "./tools/task-tools.js";
 import registerIndexTools from "./tools/index-tools.js";
 import registerSearchTools from "./tools/search-tools.js";
@@ -14,14 +13,15 @@ import registerVectorTools from "./tools/vector-tools.js";
 import registerDocumentTools from "./tools/document-tools.js";
 import registerSettingsTools from "./tools/settings-tools.js";
 import { createErrorResponse } from "./utils/error-handler.js";
+import express, { Request, Response, NextFunction } from "express";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 
-const JSON_RPC = "2.0";
-const SESSION_ID_HEADER_NAME = "mcp-session-id";
-const SERVER_SUITE = new McpServer({ name: "mcp-server", version: "1.0.0" });
-
 class MCPServer {
+  private readonly JSON_RPC = "2.0";
+  private readonly SESSION_ID_HEADER_NAME = "mcp-session-id";
+
   server: McpServer;
   transports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
   toolsRegistered: boolean = false;
@@ -58,7 +58,9 @@ class MCPServer {
   }
 
   async handlePostRequest(req: Request, res: Response) {
-    const sessionId = req.headers[SESSION_ID_HEADER_NAME] as string | undefined;
+    const sessionId = req.headers[this.SESSION_ID_HEADER_NAME] as
+      | string
+      | undefined;
 
     try {
       if (sessionId) {
@@ -82,8 +84,11 @@ class MCPServer {
 
         await this.server.connect(transport);
 
-        res.setHeader(SESSION_ID_HEADER_NAME, newSessionId);
-        res.setHeader("Access-Control-Expose-Headers", SESSION_ID_HEADER_NAME);
+        res.setHeader(this.SESSION_ID_HEADER_NAME, newSessionId);
+        res.setHeader(
+          "Access-Control-Expose-Headers",
+          this.SESSION_ID_HEADER_NAME
+        );
 
         await transport.handleRequest(req, res, req.body);
 
@@ -148,7 +153,7 @@ class MCPServer {
     try {
       const rpcNotification: JSONRPCNotification = {
         ...notification,
-        jsonrpc: JSON_RPC,
+        jsonrpc: this.JSON_RPC,
       };
       await transport.send(rpcNotification);
       console.log(`Sent notification: ${notification.method}`);
@@ -168,4 +173,86 @@ class MCPServer {
   }
 }
 
-export const serverInit = () => new MCPServer(SERVER_SUITE);
+const initServerHTTPTransport = () => {
+  const PORT = 8080;
+  const MCP_ENDPOINT = "/mcp";
+
+  const serverInstance = new McpServer({
+    name: "mcp-server",
+    version: "1.0.0",
+  });
+  const server = new MCPServer(serverInstance);
+
+  const app = express();
+  app.use(express.json());
+
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept, mcp-session-id"
+    );
+    if (req.method === "OPTIONS") {
+      res.sendStatus(200);
+      return;
+    }
+    next();
+  });
+
+  const router = express.Router();
+
+  router.post(MCP_ENDPOINT, async (req: Request, res: Response) => {
+    console.log("Received POST request to /mcp");
+    await server.handlePostRequest(req, res);
+  });
+
+  router.get(MCP_ENDPOINT, async (req: Request, res: Response) => {
+    console.log("Received GET request to /mcp");
+    await server.handleGetRequest(req, res);
+  });
+
+  app.use("/", router);
+
+  app.listen(PORT, () => {
+    console.log(
+      "Meilisearch MCP Server is running on http transport:",
+      `http://localhost:${PORT}${MCP_ENDPOINT}`
+    );
+  });
+
+  process.on("SIGINT", async () => {
+    console.log("Shutting down server...");
+    process.exit(0);
+  });
+};
+
+const initServerStdioTransport = async () => {
+  const server = new McpServer({
+    name: "meilisearch",
+    version: "1.0.0",
+  });
+
+  registerIndexTools(server);
+  registerDocumentTools(server);
+  registerSearchTools(server);
+  registerSettingsTools(server);
+  registerVectorTools(server);
+  registerSystemTools(server);
+  registerTaskTools(server);
+
+  const transport = new StdioServerTransport();
+  await server.connect(transport);
+
+  console.log("Meilisearch MCP Server is running on stdio transport");
+};
+
+export const initServer = (transport: "stdio" | "http") => {
+  if (transport === "stdio") {
+    return initServerStdioTransport().catch((error) => {
+      console.error("Fatal error:", error);
+      process.exit(1);
+    });
+  }
+  return initServerHTTPTransport();
+};
