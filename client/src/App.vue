@@ -100,11 +100,10 @@ onUnmounted(() => client.value?.close());
         <div v-else-if="result.error" style="color: red">
           Error: {{ result.error }}
         </div>
-        <pre style="white-space: pre-wrap">{{
-          JSON.stringify(result.data || result, null, 2)
-        }}</pre>
+        <pre style="white-space: pre-wrap">
+        {{ JSON.stringify(result.data || result, null, 2) }}
+        </pre>
       </div>
-
       <h3>Available Tools</h3>
       <ul v-if="tools.length">
         <li v-for="tool in tools" :key="tool.name">
