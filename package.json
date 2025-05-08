@@ -5,25 +5,28 @@
   "main": "index.js",
   "type": "module",
   "workspaces": [
-    "client_cmd",
-    "client_web"
+    "client"
   ],
   "scripts": {
-    "build": "tsc && chmod 755 dist/index.js",
-    "dev:server": "npm run build && node --env-file=.env dist/index.js",
-    "dev:cmd": "npm run dev:server & npm run dev --workspace=client_cmd",
-    "dev:web": "npm run dev:server & npm run dev --workspace=client_web"
+    "build:server": "tsc && chmod 755 dist/index.js",
+    "build:client": "npm run build --workspace=client",
+    "dev:server": "npm run build:server && node --env-file=.env dist/index.js",
+    "dev:client": "npm run dev:server & npm run preview --workspace=client"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.1",
     "axios": "^1.9.0",
     "express": "^5.1.0",
+    "vue": "^3.5.13",
     "zod": "^3.24.4"
   },
   "devDependencies": {
     "@types/express": "^5.0.1",
     "@types/node": "^22.14.0",
-    "typescript": "^5.8.3"
+    "@vitejs/plugin-vue": "^5.2.3",
+    "@vue/tsconfig": "^0.7.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
   },
   "engines": {
     "node": ">=20.12.2",

@@ -89,7 +89,7 @@ class MCPServer {
       return;
     }
 
-    console.log(`Establishing HTTP+SSE stream for session ${sessionId}`);
+    console.log(`Establishing HTTP stream for session ${sessionId}`);
     const sessionInfo = this.sessions.get(sessionId)!;
     const transport = sessionInfo.transport;
 
@@ -99,7 +99,7 @@ class MCPServer {
 
       this.sendNotification(transport, {
         method: "notifications/message",
-        params: { level: "info", data: "HTTP+SSE Connection established" },
+        params: { level: "info", data: "HTTP Connection established" },
       });
     } catch (error) {
       console.error(

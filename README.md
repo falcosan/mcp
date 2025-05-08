@@ -103,5 +103,4 @@ This project uses:
   - `tools/`: Implementation of Meilisearch API tools
   - `utils/`: Utility functions for API communication and error handling
   - `server.ts`: StreamableHTTP MCP server implementation
-- `client_web/`: Web demo client
-- `client_cmd/`: Command line client for testing
+- `client/`: MCP custom client
