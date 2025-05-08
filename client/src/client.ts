@@ -110,14 +110,16 @@ export class MCPClient {
     console.log("✅ Notification handlers set up");
   }
 
-  async callTool(name: string): Promise<{
+  async callTool(
+    name: string,
+    args?: Record<string, any>
+  ): Promise<{
     success: boolean;
     data?: any;
     error?: string;
   }> {
     try {
       console.log(`\n🔧 Calling tool: ${name}`);
-      const args = this.getToolArguments(name);
       console.log("With arguments:", JSON.stringify(args, null, 2));
 
       const result = await this.client.callTool({ name, arguments: args });
@@ -151,48 +153,6 @@ export class MCPClient {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       return { success: false, error: errorMessage };
-    }
-  }
-
-  private getToolArguments(toolName: string): Record<string, any> {
-    switch (toolName) {
-      case "health":
-      case "version":
-      case "info":
-      case "enable-vector-search":
-      case "get-experimental-features":
-        return {};
-      case "list-indexes":
-        return { limit: 20 };
-      case "create-index":
-        return { indexUid: "test-index", primaryKey: "id" };
-      case "get-index":
-        return { indexUid: this.meilisearchIndexUid };
-      case "delete-index":
-        return { indexUid: "test-index" };
-      case "search":
-        return { indexUid: this.meilisearchIndexUid, q: "action" };
-      case "get-documents":
-        return { indexUid: this.meilisearchIndexUid, limit: 5 };
-      case "add-documents":
-        return {
-          indexUid: this.meilisearchIndexUid,
-          documents: JSON.stringify([
-            { id: "1", title: "Test Document 1" },
-            { id: "2", title: "Test Document 2" },
-          ]),
-        };
-      case "get-settings":
-      case "get-searchable-attributes":
-      case "get-displayed-attributes":
-      case "get-embedders":
-      case "stats":
-        return { indexUid: this.meilisearchIndexUid };
-      default:
-        console.log(
-          `⚠️ No specific arguments defined for tool ${toolName}, using empty object`
-        );
-        return {};
     }
   }
 

@@ -3,12 +3,13 @@ import { MCPClient } from "./client";
 import { ref, onMounted, onUnmounted } from "vue";
 
 const result = ref<any>(null);
+const searchQuery = ref<string>("");
 const error = ref<string | null>(null);
 const client = ref<MCPClient | null>(null);
 const loading = ref({ client: true, tool: false });
 const tools = ref<{ name: string; description: string }[]>([]);
 
-const callTool = async (name: string) => {
+const callTool = async (name: string, params: Record<string, any> = {}) => {
   if (!client.value) {
     error.value = "Client not connected";
     result.value = { success: false, error: error.value };
@@ -20,9 +21,10 @@ const callTool = async (name: string) => {
   error.value = null;
 
   try {
-    result.value = await client.value.callTool(name);
-    if (!result.value.success)
+    result.value = await client.value.callTool(name, params);
+    if (!result.value.success) {
       error.value = `Tool failed: ${result.value.error}`;
+    }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     result.value = { success: false, error: msg };
@@ -30,6 +32,14 @@ const callTool = async (name: string) => {
   } finally {
     loading.value.tool = false;
   }
+};
+
+const searchAcrossAllIndexes = async () => {
+  if (!searchQuery.value.trim()) {
+    error.value = "Search query cannot be empty";
+    return;
+  }
+  await callTool("search-across-all-indexes", { q: searchQuery.value });
 };
 
 onMounted(async () => {
@@ -51,7 +61,7 @@ onUnmounted(() => client.value?.close());
 
 <template>
   <div>
-    <h1>MCP Client Interface</h1>
+    <h1>MCP Client</h1>
     <div v-if="loading.client && !client">Connecting to MCP Server...</div>
     <div v-if="error" style="color: red; margin-bottom: 1em">
       <strong>Error:</strong> {{ error }}
@@ -60,13 +70,21 @@ onUnmounted(() => client.value?.close());
     <div v-if="client">
       <h2>Connection Status: <span style="color: green">Connected</span></h2>
 
-      <button
-        @click="callTool('list-indexes')"
-        :disabled="loading.tool"
-        style="margin: 10px 0"
-      >
-        {{ loading.tool ? "Calling..." : "List Indexes" }}
-      </button>
+      <div style="margin: 20px 0">
+        <input
+          v-model="searchQuery"
+          type="text"
+          placeholder="Search across all indexes"
+          style="padding: 0.5em; width: 80%; margin-right: 10px"
+        />
+        <button
+          @click="searchAcrossAllIndexes"
+          :disabled="loading.tool"
+          style="padding: 0.5em"
+        >
+          {{ loading.tool ? "Searching..." : "Search" }}
+        </button>
+      </div>
 
       <div
         v-if="result"
@@ -77,7 +95,6 @@ onUnmounted(() => client.value?.close());
           background-color: #f9f9f9;
         "
       >
-        <h3>Last Tool Call Result:</h3>
         <div v-if="result.success" style="color: green">Success!</div>
         <div v-else-if="result.error" style="color: red">
           Error: {{ result.error }}
