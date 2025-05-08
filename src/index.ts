@@ -1,3 +1,3 @@
 import { initServer } from "./server.js";
 
-initServer("http");
+initServer(process.env.TRANSPORT_TYPE as "http" | "stdio");

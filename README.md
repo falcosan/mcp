@@ -79,8 +79,8 @@ MEILISEARCH_API_KEY=your_master_key_here
 To start the server:
 
 ```bash
-npm run dev:server  # Start the MCP server
-npm run dev:client  # Start the web client
+npm run start:server  # Start the MCP server
+npm run start:client  # Start the web client
 ```
 
 ### Accessing the Web Interface

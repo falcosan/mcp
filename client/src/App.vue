@@ -76,11 +76,12 @@ onUnmounted(() => client.value?.close());
           type="text"
           placeholder="Search across all indexes"
           style="padding: 0.5em; width: 80%; margin-right: 10px"
+          @keyup.enter="searchAcrossAllIndexes"
         />
         <button
-          @click="searchAcrossAllIndexes"
           :disabled="loading.tool"
           style="padding: 0.5em"
+          @click="searchAcrossAllIndexes"
         >
           {{ loading.tool ? "Searching..." : "Search" }}
         </button>

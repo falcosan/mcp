@@ -8,10 +8,11 @@
     "client"
   ],
   "scripts": {
-    "build:server": "tsc && chmod 755 dist/index.js",
-    "build:client": "npm run build --workspace=client",
-    "dev:server": "npm run build:server && node --env-file=.env dist/index.js",
-    "dev:client": "npm run dev:server & npm run preview --workspace=client"
+    "build": "tsc && node dist/index.js",
+    "start:server": "npm run compile:stdio",
+    "start:client": "npm run compile:http & npm run preview --workspace=client",
+    "compile:http": "npm run build && TRANSPORT_TYPE=http node --env-file=.env dist/index.js",
+    "compile:stdio": "npm run build && TRANSPORT_TYPE=stdio node --env-file=.env dist/index.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.1",
