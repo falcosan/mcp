@@ -10,9 +10,9 @@
   ],
   "scripts": {
     "build": "tsc && chmod 755 dist/index.js",
+    "dev:server": "npm run build && node --env-file=.env dist/index.js",
     "dev:cmd": "npm run dev:server & npm run dev --workspace=client_cmd",
-    "dev:web": "npm run dev:server & npm run dev --workspace=client_web",
-    "dev:server": "npm run build && node --env-file=.env dist/server.js"
+    "dev:web": "npm run dev:server & npm run dev --workspace=client_web"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.1",
