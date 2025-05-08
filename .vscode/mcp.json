@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "meilisearch-mcp": {
+      "command": "node",
+      "args": ["${workspaceFolder}/dist/stdio.js"],
+      "envFile": "${workspaceFolder}/.env"
+    }
+  }
+}
