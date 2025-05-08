@@ -4,6 +4,9 @@ import express, { Request, Response, NextFunction } from "express";
 
 console.log("Starting MCP Server...");
 
+const MCP_ENDPOINT = "/mcp";
+const PORT = process.env.PORT || 8080;
+
 const app = express();
 let server: ReturnType<typeof app.listen>;
 
@@ -29,8 +32,6 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
 
 const mcpServer = serverInit();
 const router = express.Router();
-
-const MCP_ENDPOINT = "/mcp";
 
 router.get("/health", (_, res: Response) => {
   res.status(200).json({ status: "healthy" });
@@ -61,8 +62,6 @@ router.get(
 );
 
 app.use("/", router);
-
-const PORT = process.env.PORT || 3000;
 
 async function killPort(port: number): Promise<void> {
   return new Promise((resolve) => {
