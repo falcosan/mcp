@@ -63,7 +63,7 @@ The MCP server exposes Meilisearch APIs organized into these functional categori
 npm install
 ```
 
-3. Create a `.env` file in the server directory with your Meilisearch configuration:
+3. Create a `.env` with your Meilisearch configuration:
 
 ```
 MEILISEARCH_HOST=http://localhost:7700
@@ -99,9 +99,9 @@ This project uses:
 
 ## Project Structure
 
-- `server/`: MCP server implementation
-  - `src/tools/`: Implementation of Meilisearch API tools
-  - `src/utils/`: Utility functions for API communication and error handling
-  - `src/server.ts`: StreamableHTTP MCP server implementation
+- `src/`: MCP server implementation
+  - `tools/`: Implementation of Meilisearch API tools
+  - `utils/`: Utility functions for API communication and error handling
+  - `server.ts`: StreamableHTTP MCP server implementation
 - `client_web/`: Web demo client
 - `client_cmd/`: Command line client for testing
