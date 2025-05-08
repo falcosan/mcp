@@ -376,7 +376,7 @@ class MCPServer {
 /**
  * Initialize the MCP server with HTTP transport
  */
-const initServerHTTPTransport = (): MCPServer => {
+const initServerHTTPTransport = () => {
   const config = DEFAULT_CONFIG;
 
   const serverInstance = new McpServer({
@@ -444,14 +444,12 @@ const initServerHTTPTransport = (): MCPServer => {
       process.exit(1);
     }, 5000);
   });
-
-  return server;
 };
 
 /**
  * Initialize the MCP server with stdio transport
  */
-const initServerStdioTransport = async (): Promise<void> => {
+const initServerStdioTransport = async () => {
   const config = DEFAULT_CONFIG;
 
   const server = new McpServer({
@@ -483,16 +481,21 @@ const initServerStdioTransport = async (): Promise<void> => {
 
 /**
  * Initialize the MCP server with the specified transport
- * @param transport The transport type to use
+ * @param transport The transport type to use ("stdio" or "http")
+ * @throws Error if the transport type is unsupported
  */
-export const initServer = (
-  transport: "stdio" | "http"
-): MCPServer | Promise<void> => {
-  if (transport === "stdio") {
-    return initServerStdioTransport().catch((error) => {
-      console.error("Fatal error initializing stdio transport:", error);
-      process.exit(1);
-    });
+export const initServer = (transport: "stdio" | "http"): void => {
+  switch (transport) {
+    case "stdio":
+      initServerStdioTransport().catch((error) => {
+        console.error("Fatal error initializing stdio transport:", error);
+        process.exit(1);
+      });
+      break;
+    case "http":
+      initServerHTTPTransport();
+      break;
+    default:
+      throw new Error(`Unsupported transport type: ${transport}`);
   }
-  return initServerHTTPTransport();
 };

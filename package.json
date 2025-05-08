@@ -1,17 +1,16 @@
 {
   "name": "mcp",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "mcp",
   "type": "module",
   "workspaces": [
     "client"
   ],
   "scripts": {
-    "build": "tsc && node dist/index.js",
-    "serve": "node --env-file=.env dist/index.js",
-    "start:server": "TRANSPORT_TYPE=stdio npm run build && npm run serve",
-    "start:client": "TRANSPORT_TYPE=http npm run build && npm run serve & npm run preview --workspace=client"
+    "build:http": "tsc && chmod 755 dist/http.js",
+    "build:stdio": "tsc && chmod 755 dist/stdio.js",
+    "server": "npm run build:stdio && node --env-file=.env dist/stdio.js",
+    "client": "npm run build:http && node --env-file=.env dist/http.js & npm run preview --workspace=client"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.1",
