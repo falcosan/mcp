@@ -2,90 +2,74 @@
 import { MCPClient } from "./client";
 import { ref, onMounted, onUnmounted } from "vue";
 
-const isLoadingClient = ref(true);
-const isLoadingToolCall = ref(false);
-const toolCallResult = ref<any>(null);
-const clientError = ref<string | null>(null);
-const mcpClient = ref<MCPClient | null>(null);
-const availableTools = ref<{ name: string; description: string }[]>([]);
+const result = ref<any>(null);
+const error = ref<string | null>(null);
+const client = ref<MCPClient | null>(null);
+const loading = ref({ client: true, tool: false });
+const tools = ref<{ name: string; description: string }[]>([]);
 
-onMounted(async () => {
-  isLoadingClient.value = true;
-  clientError.value = null;
-  const client = new MCPClient("meilisearch-vue-client");
-
-  client.setOnToolsUpdatedCallback((updatedTools) => {
-    availableTools.value = updatedTools;
-  });
-
-  try {
-    await client.connectToServer("http://localhost:8080/mcp");
-    mcpClient.value = client;
-  } catch (e) {
-    console.error("❌ Fatal error during MCP client setup:", e);
-    clientError.value = e instanceof Error ? e.message : String(e);
-  } finally {
-    isLoadingClient.value = false;
-  }
-});
-
-onUnmounted(async () => {
-  if (mcpClient.value) {
-    console.log("🔌 Component unmounting, closing MCP client...");
-    await mcpClient.value.close();
-  }
-});
-
-const callTool = async (toolName: string) => {
-  if (!mcpClient.value) {
-    clientError.value = "Client not connected. Cannot call tool.";
-    toolCallResult.value = { success: false, error: clientError.value };
+const callTool = async (name: string) => {
+  if (!client.value) {
+    error.value = "Client not connected";
+    result.value = { success: false, error: error.value };
     return;
   }
-  isLoadingToolCall.value = true;
-  toolCallResult.value = null;
-  clientError.value = null;
+
+  loading.value.tool = true;
+  result.value = null;
+  error.value = null;
 
   try {
-    const result = await mcpClient.value.callTool(toolName);
-    toolCallResult.value = result;
-    if (!result.success) {
-      console.warn(`Tool call '${toolName}' failed: ${result.error}`);
-    }
+    result.value = await client.value.callTool(name);
+    if (!result.value.success)
+      error.value = `Tool failed: ${result.value.error}`;
   } catch (e) {
-    console.error(`❌ Error calling tool ${toolName}:`, e);
-    const errorMessage = e instanceof Error ? e.message : String(e);
-    toolCallResult.value = { success: false, error: errorMessage };
-    clientError.value = `Error calling tool '${toolName}': ${errorMessage}`;
+    const msg = e instanceof Error ? e.message : String(e);
+    result.value = { success: false, error: msg };
+    error.value = `Error: ${msg}`;
   } finally {
-    isLoadingToolCall.value = false;
+    loading.value.tool = false;
   }
 };
+
+onMounted(async () => {
+  const mcp = new MCPClient("meilisearch-vue-client");
+  mcp.setOnToolsUpdatedCallback((t) => (tools.value = t));
+
+  try {
+    await mcp.connectToServer("http://localhost:8080/mcp");
+    client.value = mcp;
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : String(e);
+  } finally {
+    loading.value.client = false;
+  }
+});
+
+onUnmounted(() => client.value?.close());
 </script>
 
 <template>
   <div>
     <h1>MCP Client Interface</h1>
-    <div v-if="isLoadingClient && !mcpClient">Connecting to MCP Server...</div>
-    <div
-      v-if="clientError"
-      style="color: red; white-space: pre-wrap; margin-bottom: 1em"
-    >
-      <strong>Error:</strong> {{ clientError }}
+    <div v-if="loading.client && !client">Connecting to MCP Server...</div>
+    <div v-if="error" style="color: red; margin-bottom: 1em">
+      <strong>Error:</strong> {{ error }}
     </div>
-    <div v-if="mcpClient">
+
+    <div v-if="client">
       <h2>Connection Status: <span style="color: green">Connected</span></h2>
-      <div style="margin-bottom: 1em">
-        <button
-          @click="callTool('list-indexes')"
-          :disabled="isLoadingToolCall || !mcpClient"
-          style="margin-left: 10px"
-        >
-          {{ isLoadingToolCall ? "Calling..." : "List Indexes" }}
-        </button>
-      </div>
+
+      <button
+        @click="callTool('list-indexes')"
+        :disabled="loading.tool"
+        style="margin: 10px 0"
+      >
+        {{ loading.tool ? "Calling..." : "List Indexes" }}
+      </button>
+
       <div
-        v-if="toolCallResult"
+        v-if="result"
         style="
           padding: 1em;
           margin-top: 1em;
@@ -94,26 +78,22 @@ const callTool = async (toolName: string) => {
         "
       >
         <h3>Last Tool Call Result:</h3>
-        <div v-if="toolCallResult.success" style="color: green">Success!</div>
-        <div
-          v-if="!toolCallResult.success && toolCallResult.error"
-          style="color: red"
-        >
-          Error: {{ toolCallResult.error }}
+        <div v-if="result.success" style="color: green">Success!</div>
+        <div v-else-if="result.error" style="color: red">
+          Error: {{ result.error }}
         </div>
-        <pre style="white-space: pre-wrap; word-break: break-all">
-          {{ JSON.stringify(toolCallResult.data || toolCallResult, null, 2) }}
-        </pre>
+        <pre style="white-space: pre-wrap">{{
+          JSON.stringify(result.data || result, null, 2)
+        }}</pre>
       </div>
-      <div style="margin-bottom: 1em">
-        <h3>Available Tools</h3>
-        <ul v-if="availableTools.length">
-          <li v-for="tool in availableTools" :key="tool.name">
-            <strong>{{ tool.name }}</strong
-            >: {{ tool.description }}
-          </li>
-        </ul>
-      </div>
+
+      <h3>Available Tools</h3>
+      <ul v-if="tools.length">
+        <li v-for="tool in tools" :key="tool.name">
+          <strong>{{ tool.name }}</strong
+          >: {{ tool.description }}
+        </li>
+      </ul>
     </div>
   </div>
 </template>
