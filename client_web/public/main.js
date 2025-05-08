@@ -155,7 +155,7 @@ class SearchUI {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const client = new MCPDisplay("http://localhost:8080");
+  const client = new MCPDisplay("http://localhost:3000");
   new SearchUI(client, "searchInput", "results");
   client.initialize();
 });

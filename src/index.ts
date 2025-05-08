@@ -61,7 +61,7 @@ router.get(
 
 app.use("/", router);
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3000;
 
 function gracefulShutdown(signal: string) {
   console.log(`Received ${signal}. Starting graceful shutdown...`);

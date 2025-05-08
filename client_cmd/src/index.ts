@@ -294,7 +294,7 @@ async function main() {
   try {
     console.log("🚀 Starting MCP client for Meilisearch...");
 
-    await client.connectToServer("http://localhost:8080/mcp");
+    await client.connectToServer("http://localhost:3000/mcp");
 
     if (!client.tools.length) {
       console.error(
