@@ -12,16 +12,16 @@ This project provides a MCP server that enables AI models to interact directly w
 ## Architecture
 
 ```
-┌──────────────┐      ┌──────────────┐     ┌───────────────┐
-│  Web Client  │      │  MCP Server  │     │  Meilisearch  │
-│  (Browser)   │ <--> │   (Node.js)  │ <-> │   Instance    │
-└──────────────┘      └──────────────┘     └───────────────┘
-                                                    ^
-                                                    │
-                                            ┌───────────────┐
-                                            │ Document Data │
-                                            │   Sources     │
-                                            └───────────────┘
+┌───────────────┐      ┌───────────────┐      ┌───────────────┐
+│  Meilisearch  │      │   MCP Server  │      │   Web Client  │
+│   Instance    │ <--> │   (Node.js)   │ <--> │   (Browser)   │
+└───────────────┘      └───────────────┘      └───────────────┘
+        ^
+        │
+┌───────────────┐
+│ Document Data │
+│    Sources    │
+└───────────────┘
 ```
 
 ## Key Features
