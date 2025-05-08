@@ -1,14 +1,13 @@
 # MCP Meilisearch API Server
 
-A comprehensive Model Context Protocol (MCP) server implementation that provides a bridge between AI models and the Meilisearch search engine using the StreamableHTTP transport. This project enables seamless integration of Meilisearch's powerful search capabilities within AI workflows.
+A Model Context Protocol (MCP) server implementation that provides a bridge between AI models and the Meilisearch search engine using the StreamableHTTP transport. This project enables seamless integration of Meilisearch's powerful search capabilities within AI workflows.
 
-## Project Overview
+## Updated Overview
 
-This project implements an MCP (Model Context Protocol) server that provides AI models with direct access to Meilisearch's functionalities. The implementation follows a client-server architecture with these key components:
+This project provides a MCP server that enables AI models to interact directly with Meilisearch functionalities. The architecture includes:
 
-- **MCP Server**: Implements the Model Context Protocol to expose Meilisearch APIs as tools
-- **Web Client**: Simple demo interface for testing the search functionality
-- **Command Line Client**: Utility client for testing and development
+- **MCP Server**: Exposes Meilisearch APIs as tools using the Model Context Protocol.
+- **Web Client**: A demo interface showcasing search functionalities.
 
 ## Architecture
 
@@ -17,73 +16,76 @@ This project implements an MCP (Model Context Protocol) server that provides AI 
 │  Web Client  │      │  MCP Server  │     │  Meilisearch  │
 │  (Browser)   │ <--> │   (Node.js)  │ <-> │   Instance    │
 └──────────────┘      └──────────────┘     └───────────────┘
-       ^                                            ^
-       │                                            │
-┌──────────────┐                          ┌───────────────┐
-│ Command Line │                          │ Document Data │
-│    Client    │                          │   Sources     │
-└──────────────┘                          └───────────────┘
+                                                    ^
+                                                    │
+                                            ┌───────────────┐
+                                            │ Document Data │
+                                            │   Sources     │
+                                            └───────────────┘
 ```
 
 ## Key Features
 
-- **StreamableHTTP Transport**: Implements the StreamableHTTP transport for MCP, enabling real-time communication between clients and server
-- **Full Meilisearch API Support**: Exposes all Meilisearch functionalities as MCP tools
-- **Category-based Organization**: Tools are organized by functional categories
-- **Error Handling**: Comprehensive error handling for API requests
-- **Web Client Demo**: Simple web interface to demonstrate search capabilities
-- **Command Line Client**: For testing and development
+- **StreamableHTTP Transport**: Real-time communication between clients and the server.
+- **Meilisearch API Support**: Full access to Meilisearch functionalities.
+- **Enhanced Error Handling**: Improved error management for API requests.
+- **Web Client Demo**: Updated interface for demonstrating search capabilities.
 
-## Available Tool Categories
+## Tool Categories
 
-The MCP server exposes Meilisearch APIs organized into these functional categories:
+The MCP server organizes Meilisearch APIs into these categories:
 
-1. **System Tools**: Health checks, version information, server stats
-2. **Index Tools**: Managing indexes (create, update, delete, list)
-3. **Document Tools**: Document operations (add, update, delete, retrieve)
-4. **Search Tools**: Advanced search capabilities including vector search
-5. **Settings Tools**: Configuration management for indexes
-6. **Task Tools**: Asynchronous task management
-7. **Vector Tools**: Vector search capabilities (experimental feature)
+1. **System Tools**: Health checks, version info, server stats.
+2. **Index Tools**: Manage indexes (create, update, delete, list).
+3. **Document Tools**: Add, update, delete, and retrieve documents.
+4. **Search Tools**: Advanced search, including vector search.
+5. **Settings Tools**: Configure index settings.
+6. **Task Tools**: Manage asynchronous tasks.
+7. **Vector Tools**: Experimental vector search capabilities.
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js v20 or higher
-- Meilisearch instance running locally or remotely
-- API key for Meilisearch (if required by your Meilisearch configuration)
+- Node.js v20 or higher.
+- A running Meilisearch instance (local or remote).
+- API key for Meilisearch (if required).
 
-### Setup
+### Setup Instructions
 
-1. Clone the repository
+1. Clone the repository:
+
+```bash
+git clone <repository-url>
+```
+
 2. Install dependencies:
 
 ```bash
 npm install
 ```
 
-3. Create a `.env` with your Meilisearch configuration:
+3. Configure the environment:
+
+Create a `.env` file with the following content:
 
 ```
 MEILISEARCH_HOST=http://localhost:7700
 MEILISEARCH_API_KEY=your_master_key_here
-MEILISEARCH_TIMEOUT=5000
 ```
 
 ### Running the Server
 
-Build and start the server:
+To start the server:
 
 ```bash
-npm run dev:cmd  # For command line testing
-# OR
-npm run dev:web  # For web interface testing
+npm run dev:server  # Start the MCP server
+npm run dev:client  # Start the web client
 ```
 
 ### Accessing the Web Interface
 
-Once running, the web demo is available at:
+Visit the following URL in your browser:
 
 ```
 http://localhost:8000
@@ -93,14 +95,14 @@ http://localhost:8000
 
 This project uses:
 
-- TypeScript for type safety
-- Express for the web server
-- Model Context Protocol SDK for AI integration
+- **TypeScript**: Ensures type safety.
+- **Express**: Powers the web server.
+- **Model Context Protocol SDK**: Facilitates AI integration.
 
 ## Project Structure
 
-- `src/`: MCP server implementation
-  - `tools/`: Implementation of Meilisearch API tools
-  - `utils/`: Utility functions for API communication and error handling
-  - `server.ts`: StreamableHTTP MCP server implementation
-- `client/`: MCP custom client
+- `src/`: Core MCP server implementation.
+  - `tools/`: Meilisearch API tools.
+  - `utils/`: Utility functions for API communication and error handling.
+  - `server.ts`: Main MCP server implementation.
+- `client/`: Web client for testing and demonstration.
