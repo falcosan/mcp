@@ -1,3 +1,4 @@
+import { exec } from "node:child_process";
 import { serverInit } from "./server.js";
 import express, { Request, Response, NextFunction } from "express";
 
@@ -63,6 +64,15 @@ app.use("/", router);
 
 const PORT = process.env.PORT || 3000;
 
+async function killPort(port: number): Promise<void> {
+  return new Promise((resolve) => {
+    exec(
+      `lsof -i tcp:${port} | grep LISTEN | awk '{print $2}' | xargs kill -9`,
+      () => resolve()
+    );
+  });
+}
+
 function gracefulShutdown(signal: string) {
   console.log(`Received ${signal}. Starting graceful shutdown...`);
 
@@ -88,13 +98,15 @@ function startServer() {
       console.log(`Server endpoint: http://localhost:${PORT}${MCP_ENDPOINT}`);
     });
 
-    server.on("error", (error: NodeJS.ErrnoException) => {
+    server.on("error", async (error: NodeJS.ErrnoException) => {
       if (error.code === "EADDRINUSE") {
-        console.error(`Port ${PORT} is already in use`);
+        console.log(`Port ${PORT} is busy, killing process and restarting...`);
+        await killPort(Number(PORT));
+        setTimeout(startServer, 1000);
       } else {
         console.error("Server error:", error);
+        process.exit(1);
       }
-      process.exit(1);
     });
 
     server.keepAliveTimeout = 65000;
