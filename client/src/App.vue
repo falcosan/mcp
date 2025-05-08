@@ -36,7 +36,7 @@ onUnmounted(async () => {
   }
 });
 
-const generalCallTool = async (toolName: string) => {
+const callTool = async (toolName: string) => {
   if (!mcpClient.value) {
     clientError.value = "Client not connected. Cannot call tool.";
     toolCallResult.value = { success: false, error: clientError.value };
@@ -76,23 +76,8 @@ const generalCallTool = async (toolName: string) => {
     <div v-if="mcpClient">
       <h2>Connection Status: <span style="color: green">Connected</span></h2>
       <div style="margin-bottom: 1em">
-        <h3>Available Tools</h3>
-        <ul v-if="availableTools.length > 0">
-          <li v-for="tool in availableTools" :key="tool.name">
-            <strong>{{ tool.name }}</strong
-            >: {{ tool.description }}
-          </li>
-        </ul>
-        <p v-else-if="!isLoadingClient">
-          No tools currently available. Try refreshing.
-        </p>
-        <p v-if="isLoadingClient && availableTools.length === 0">
-          Loading tools...
-        </p>
-      </div>
-      <div style="margin-bottom: 1em">
         <button
-          @click="generalCallTool('list-indexes')"
+          @click="callTool('list-indexes')"
           :disabled="isLoadingToolCall || !mcpClient"
           style="margin-left: 10px"
         >
@@ -120,11 +105,15 @@ const generalCallTool = async (toolName: string) => {
           {{ JSON.stringify(toolCallResult.data || toolCallResult, null, 2) }}
         </pre>
       </div>
-    </div>
-    <div v-else-if="!isLoadingClient && !clientError">
-      <p>
-        Client not connected. Ensure the MCP server is running and accessible.
-      </p>
+      <div style="margin-bottom: 1em">
+        <h3>Available Tools</h3>
+        <ul v-if="availableTools.length">
+          <li v-for="tool in availableTools" :key="tool.name">
+            <strong>{{ tool.name }}</strong
+            >: {{ tool.description }}
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 </template>
