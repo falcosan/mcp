@@ -9,10 +9,9 @@
   ],
   "scripts": {
     "build": "tsc && node dist/index.js",
-    "start:server": "npm run compile:stdio",
-    "start:client": "npm run compile:http & npm run preview --workspace=client",
-    "compile:http": "npm run build && TRANSPORT_TYPE=http node --env-file=.env dist/index.js",
-    "compile:stdio": "npm run build && TRANSPORT_TYPE=stdio node --env-file=.env dist/index.js"
+    "serve": "node --env-file=.env dist/index.js",
+    "start:server": "TRANSPORT_TYPE=stdio npm run build && npm run serve",
+    "start:client": "TRANSPORT_TYPE=http npm run build && npm run serve & npm run preview --workspace=client"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.1",
