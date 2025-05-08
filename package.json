@@ -6,13 +6,13 @@
   "type": "module",
   "workspaces": [
     "client_cmd",
-    "client_web",
-    "server"
+    "client_web"
   ],
   "scripts": {
-    "dev:cmd": "lerna run build && lerna run --ignore client_web dev",
-    "dev:web": "npm run build --workspace=server && lerna run --ignore client_cmd dev",
-    "postinstall": "lerna run install"
+    "build": "tsc && chmod 755 dist/index.js",
+    "dev:cmd": "npm run dev:server & npm run dev --workspace=client_cmd",
+    "dev:web": "npm run dev:server & npm run dev --workspace=client_web",
+    "dev:server": "npm run build && node --env-file=.env dist/server.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.1",
@@ -23,7 +23,6 @@
   "devDependencies": {
     "@types/express": "^5.0.1",
     "@types/node": "^22.14.0",
-    "lerna": "^8.2.2",
     "typescript": "^5.8.3"
   },
   "engines": {

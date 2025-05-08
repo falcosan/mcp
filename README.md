@@ -94,7 +94,6 @@ http://localhost:8000
 This project uses:
 
 - TypeScript for type safety
-- Lerna for workspace management
 - Express for the web server
 - Model Context Protocol SDK for AI integration
 
