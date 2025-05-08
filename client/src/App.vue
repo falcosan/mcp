@@ -287,10 +287,6 @@ async function generalCallTool(toolName: string) {
   }
 }
 
-async function callHealthTool() {
-  await generalCallTool("health");
-}
-
 async function refreshToolsList() {
   if (mcpClient.value) {
     isLoadingClient.value = true;
@@ -338,7 +334,6 @@ async function refreshToolsList() {
         </p>
       </div>
       <div style="margin-bottom: 1em">
-        <h3>Call Specific Tool</h3>
         <button
           @click="generalCallTool('list-indexes')"
           :disabled="isLoadingToolCall || !mcpClient"
@@ -364,9 +359,9 @@ async function refreshToolsList() {
         >
           Error: {{ toolCallResult.error }}
         </div>
-        <pre style="white-space: pre-wrap; word-break: break-all">{{
-          JSON.stringify(toolCallResult.data || toolCallResult, null, 2)
-        }}</pre>
+        <pre style="white-space: pre-wrap; word-break: break-all">
+          {{ JSON.stringify(toolCallResult.data || toolCallResult, null, 2) }}
+        </pre>
       </div>
     </div>
     <div v-else-if="!isLoadingClient && !clientError">
