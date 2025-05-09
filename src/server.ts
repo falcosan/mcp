@@ -361,7 +361,22 @@ class MCPServer {
  * Initialize the MCP server with HTTP transport using Vite
  */
 const initServerHTTPTransport = async () => {
-  const config = DEFAULT_CONFIG;
+  const config = {
+    ...DEFAULT_CONFIG,
+    httpPort: process.env.MCP_HTTP_PORT
+      ? parseInt(process.env.MCP_HTTP_PORT, 10)
+      : DEFAULT_CONFIG.httpPort,
+    mcpEndpoint: process.env.MCP_ENDPOINT || DEFAULT_CONFIG.mcpEndpoint,
+    serverName: process.env.MCP_SERVER_NAME || DEFAULT_CONFIG.serverName,
+    serverVersion:
+      process.env.MCP_SERVER_VERSION || DEFAULT_CONFIG.serverVersion,
+    sessionTimeout: process.env.MCP_SESSION_TIMEOUT
+      ? parseInt(process.env.MCP_SESSION_TIMEOUT, 10)
+      : DEFAULT_CONFIG.sessionTimeout,
+    sessionCleanupInterval: process.env.MCP_SESSION_CLEANUP_INTERVAL
+      ? parseInt(process.env.MCP_SESSION_CLEANUP_INTERVAL, 10)
+      : DEFAULT_CONFIG.sessionCleanupInterval,
+  };
 
   const serverInstance = new McpServer({
     name: config.serverName,
@@ -379,105 +394,124 @@ const initServerHTTPTransport = async () => {
 
   const server = new MCPServer(serverInstance, config);
 
-  // Create Vite dev server
-  const vite = await createViteServer({
-    server: {
-      port: config.httpPort,
-      middlewareMode: true,
-    },
-  });
+  const isPluginMode = process.env.VITE_MCP_PLUGIN_ID !== undefined;
+  let vite: Awaited<ReturnType<typeof createViteServer>> | undefined;
 
-  // Add CORS middleware
-  vite.middlewares.use((req, res, next) => {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    res.setHeader(
-      "Access-Control-Allow-Headers",
-      `Origin, X-Requested-With, Content-Type, Accept, ${server["SESSION_ID_HEADER_NAME"]}`
-    );
+  if (!isPluginMode) {
+    vite = await createViteServer({
+      server: {
+        port: config.httpPort,
+        middlewareMode: true,
+      },
+    });
 
-    if (req.method === "OPTIONS") {
-      res.statusCode = 200;
-      res.end();
-      return;
-    }
+    // Add CORS middleware
+    vite.middlewares.use((req, res, next) => {
+      res.setHeader("Access-Control-Allow-Origin", "*");
+      res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+      res.setHeader(
+        "Access-Control-Allow-Headers",
+        `Origin, X-Requested-With, Content-Type, Accept, ${server["SESSION_ID_HEADER_NAME"]}`
+      );
 
-    next();
-  });
+      if (req.method === "OPTIONS") {
+        res.statusCode = 200;
+        res.end();
+        return;
+      }
 
-  // Handle MCP requests
-  vite.middlewares.use(async (req, res, next) => {
-    const url = req.url || "/";
+      next();
+    });
 
-    if (url.startsWith(config.mcpEndpoint)) {
-      if (req.method === "GET") {
-        await server.handleGetRequest(req, res);
-      } else if (req.method === "POST") {
-        let body = "";
-        req.on("data", (chunk) => {
-          body += chunk.toString();
-        });
+    vite.middlewares.use(async (req, res, next) => {
+      const url = req.url || "/";
 
-        req.on("end", async () => {
-          try {
-            const jsonBody = JSON.parse(body);
-            await server.handlePostRequest(req, res, jsonBody);
-          } catch (error) {
-            console.error("Error parsing request body:", error);
-            res.statusCode = 400;
-            res.end(JSON.stringify(createErrorResponse("Invalid JSON body")));
-          }
-        });
+      if (url.startsWith(config.mcpEndpoint)) {
+        if (req.method === "GET") {
+          await server.handleGetRequest(req, res);
+        } else if (req.method === "POST") {
+          let body = "";
+          req.on("data", (chunk) => {
+            body += chunk.toString();
+          });
+
+          req.on("end", async () => {
+            try {
+              const jsonBody = JSON.parse(body);
+              await server.handlePostRequest(req, res, jsonBody);
+            } catch (error) {
+              console.error("Error parsing request body:", error);
+              res.statusCode = 400;
+              res.end(JSON.stringify(createErrorResponse("Invalid JSON body")));
+            }
+          });
+        } else {
+          next();
+        }
       } else {
         next();
       }
-    } else {
-      next();
-    }
-  });
+    });
 
-  // Start listening
+    console.log(
+      "Meilisearch MCP Server is running on Vite HTTP transport (standalone mode):",
+      `http://localhost:${config.httpPort}${config.mcpEndpoint}`
+    );
 
-  console.log(
-    "Meilisearch MCP Server is running on Vite HTTP transport:",
-    `http://localhost:${config.httpPort}${config.mcpEndpoint}`
-  );
+    // Handle server shutdown in standalone mode
+    process.on("SIGINT", async () => {
+      console.log("Received SIGINT signal");
+      server.shutdown();
+      if (vite) {
+        await vite.close();
+        console.log("Vite server closed");
+      }
+      process.exit(0);
+    });
+  } else {
+    console.log(
+      "Meilisearch MCP Server is running on Vite HTTP transport (plugin mode):",
+      `${config.mcpEndpoint}`
+    );
+  }
 
-  // Handle server shutdown
-  process.on("SIGINT", async () => {
-    console.log("Received SIGINT signal");
-    server.shutdown();
-    await vite.close();
-    console.log("Vite server closed");
-    process.exit(0);
-  });
-
-  return vite;
+  // Return both server instances for proper cleanup
+  return { mcpServer: server, viteServer: vite };
 };
 
 /**
  * Initialize the MCP server with stdio transport
+ * @returns MCP server instance
  */
-const initServerStdioTransport = async () => {
-  const config = DEFAULT_CONFIG;
+const initServerStdioTransport = async (): Promise<MCPServer | undefined> => {
+  // Use environment variables if available, otherwise use defaults
+  const config = {
+    ...DEFAULT_CONFIG,
+    serverName: process.env.MCP_SERVER_NAME || DEFAULT_CONFIG.serverName,
+    serverVersion:
+      process.env.MCP_SERVER_VERSION || DEFAULT_CONFIG.serverVersion,
+  };
 
-  const server = new McpServer({
+  const serverInstance = new McpServer({
     name: config.serverName,
     version: config.serverVersion,
   });
 
   // Register all tools
-  registerIndexTools(server);
-  registerDocumentTools(server);
-  registerSearchTools(server);
-  registerSettingsTools(server);
-  registerVectorTools(server);
-  registerSystemTools(server);
-  registerTaskTools(server);
+  registerIndexTools(serverInstance);
+  registerDocumentTools(serverInstance);
+  registerSearchTools(serverInstance);
+  registerSettingsTools(serverInstance);
+  registerVectorTools(serverInstance);
+  registerSystemTools(serverInstance);
+  registerTaskTools(serverInstance);
+
+  // Create MCPServer instance
+  const server = new MCPServer(serverInstance, config);
 
   // Connect stdio transport
   const transport = new StdioServerTransport();
-  await server.connect(transport);
+  await serverInstance.connect(transport);
 
   console.log("Meilisearch MCP Server is running on stdio transport");
 
@@ -486,31 +520,39 @@ const initServerStdioTransport = async () => {
     console.log("Shutting down stdio server...");
     process.exit(0);
   });
+
+  return server;
 };
+
+/**
+ * Return type for the initServer function
+ */
+export interface ServerInstances {
+  mcpServer?: MCPServer;
+  viteServer?: any;
+}
 
 /**
  * Initialize the MCP server with the specified transport
  * @param transport The transport type to use ("stdio" or "http")
+ * @returns A promise that resolves to the server instances
  * @throws Error if the transport type is unsupported
  */
-export const initServer = (transport: "stdio" | "http"): void => {
-  switch (transport) {
-    case "stdio":
-      initServerStdioTransport().catch((error) => {
-        console.error("Fatal error initializing stdio transport:", error);
-        process.exit(1);
-      });
-      break;
-    case "http":
-      initServerHTTPTransport().catch((error) => {
-        console.error(
-          "Fatal error initializing HTTP transport with Vite:",
-          error
-        );
-        process.exit(1);
-      });
-      break;
-    default:
-      throw new Error(`Unsupported transport type: ${transport}`);
+export const initServer = async (
+  transport: "stdio" | "http"
+): Promise<ServerInstances> => {
+  try {
+    switch (transport) {
+      case "stdio":
+        const stdioServer = await initServerStdioTransport();
+        return { mcpServer: stdioServer };
+      case "http":
+        return await initServerHTTPTransport();
+      default:
+        throw new Error(`Unsupported transport type: ${transport}`);
+    }
+  } catch (error) {
+    console.error(`Fatal error initializing ${transport} transport:`, error);
+    throw error;
   }
 };
