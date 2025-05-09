@@ -1,4 +1,5 @@
 import { Plugin } from "vite";
+import { MCPClient } from "./client.js";
 import { initServer } from "./server.js";
 import { randomUUID } from "node:crypto";
 import { createErrorResponse } from "./utils/error-handler.js";
@@ -194,6 +195,9 @@ export function mcpPlugin(options: MCPPluginOptions = {}): Plugin {
     },
   };
 }
+
+// Export the MCPClient class for external use
+export { MCPClient };
 
 /**
  * Default export for convenience
