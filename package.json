@@ -5,12 +5,6 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
-  },
   "files": [
     "dist",
     "README.md"
@@ -19,10 +13,7 @@
     "client"
   ],
   "scripts": {
-    "clean": "rm -rf dist",
-    "build": "npm run clean && tsc && npm run build:types",
-    "build:watch": "tsc --watch",
-    "build:types": "tsc --project tsconfig.types.json",
+    "build": "tsc && tsc --project tsconfig.types.json",
     "serve:http": "npm run build && chmod 755 dist/http.js",
     "serve:stdio": "npm run build && chmod 755 dist/stdio.js",
     "server": "npm run serve:stdio && node --env-file=.env dist/stdio.js",

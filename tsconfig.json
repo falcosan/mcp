@@ -8,13 +8,7 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "noImplicitAny": false,
-    "composite": true,
-    "removeComments": false
+    "forceConsistentCasingInFileNames": true
   },
   "include": ["src/**/*", "node_modules/@modelcontextprotocol"],
   "exclude": ["node_modules"]
