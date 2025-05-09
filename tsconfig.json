@@ -2,12 +2,12 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "nodenext",
-    "moduleResolution": "nodenext",
     "outDir": "./dist",
     "rootDir": "./src",
     "strict": true,
-    "esModuleInterop": true,
     "skipLibCheck": true,
+    "esModuleInterop": true,
+    "moduleResolution": "nodenext",
     "forceConsistentCasingInFileNames": true
   },
   "include": ["src/**/*", "node_modules/@modelcontextprotocol"],
