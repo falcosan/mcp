@@ -10,12 +10,12 @@
     "README.md"
   ],
   "workspaces": [
-    "client"
+    "demo"
   ],
   "scripts": {
     "build": "tsc && tsc --project tsconfig.types.json",
-    "server": "npm run build && node --env-file=.env dist/index.js",
-    "client": "npm run server & npm run dev --workspace=client",
+    "server": "npm run build && node --env-file=.env dist/standalone.js",
+    "demo": "npm run build && node --env-file=.env dist/index.js & npm run dev --workspace=demo",
     "prepare": "npm version patch",
     "prepublishOnly": "npm run build"
   },

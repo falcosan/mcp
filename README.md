@@ -7,22 +7,7 @@ A Model Context Protocol (MCP) server implementation that provides a bridge betw
 This project provides a MCP server that enables AI models to interact directly with Meilisearch functionalities. The architecture includes:
 
 - **MCP Server**: Exposes Meilisearch APIs as tools using the Model Context Protocol.
-- **Web Client**: A demo interface showcasing search functionalities.
-
-## Architecture
-
-```
-┌───────────────┐      ┌───────────────┐      ┌───────────────┐
-│  Meilisearch  │      │   MCP Server  │      │   Web Client  │
-│   Instance    │ <--> │   (Node.js)   │ <--> │   (Browser)   │
-└───────────────┘      └───────────────┘      └───────────────┘
-        ^
-        │
-┌───────────────┐
-│ Document Data │
-│    Sources    │
-└───────────────┘
-```
+- **Web Client Demo**: A demo interface showcasing search functionalities.
 
 ## Key Features
 
@@ -79,8 +64,8 @@ MEILISEARCH_API_KEY=your_master_key_here
 To start the server:
 
 ```bash
-npm run start:server  # Start the MCP server
-npm run start:client  # Start the web client
+npm run server  # Start the MCP server
+npm run demo  # Start the Web client demo
 ```
 
 ### Accessing the Web Interface
@@ -98,14 +83,6 @@ This project uses:
 - **TypeScript**: Ensures type safety.
 - **Express**: Powers the web server.
 - **Model Context Protocol SDK**: Facilitates AI integration.
-
-## Project Structure
-
-- `src/`: Core MCP server implementation.
-  - `tools/`: Meilisearch API tools.
-  - `utils/`: Utility functions for API communication and error handling.
-  - `server.ts`: Main MCP server implementation.
-- `client/`: Web client for testing and demonstration.
 
 ## Vite Plugin Integration
 
@@ -164,8 +141,7 @@ const client = new MCPClient("meilisearch");
 await client.connectToServer("http://localhost:3000/mcp");
 
 // Call a tool
-const result = await client.callTool("search", {
-  indexUid: "movies",
-  q: "star wars",
+const result = await client.callTool("search-across-all-indexes", {
+  q: "search kiosco antonio",
 });
 ```
