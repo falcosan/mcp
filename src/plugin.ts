@@ -1,54 +1,8 @@
 import { Plugin } from "vite";
 import { initServer } from "./server.js";
+import { ServerOptions } from "./types/options.js";
 import { configHandler } from "./utils/config-handler.js";
 import { createErrorResponse } from "./utils/error-handler.js";
-
-/**
- * Options for the MCP Vite plugin
- */
-export interface MCPPluginOptions {
-  /**
-   * The URL of the Meilisearch instance
-   * @required
-   * @example "http://localhost:7700"
-   */
-  meilisearchHost: string;
-
-  /**
-   * The API key for authenticating with Meilisearch
-   * @required
-   */
-  meilisearchApiKey: string;
-  /**
-   * Transport type for MCP server ("http" | "stdio")
-   * @default "http"
-   */
-  transport?: "http" | "stdio";
-
-  /**
-   * HTTP port for MCP server
-   * @default 8080
-   */
-  httpPort?: number;
-
-  /**
-   * MCP endpoint path
-   * @default "/mcp"
-   */
-  mcpEndpoint?: string;
-
-  /**
-   * Session timeout in milliseconds
-   * @default 3600000 (1 hour)
-   */
-  sessionTimeout?: number;
-
-  /**
-   * Session cleanup interval in milliseconds
-   * @default 60000 (1 minute)
-   */
-  sessionCleanupInterval?: number;
-}
 
 /**
  * Creates a Vite plugin that integrates with the MCP server
@@ -56,7 +10,7 @@ export interface MCPPluginOptions {
  * @returns A Vite plugin
  */
 export function mcpPlugin(
-  options: MCPPluginOptions = {
+  options: ServerOptions = {
     meilisearchApiKey: "",
     meilisearchHost: "http://localhost:7700",
   }

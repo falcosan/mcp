@@ -2,54 +2,17 @@ import http from "node:http";
 import { createServer } from "node:http";
 import { initServer } from "./server.js";
 import { parse as parseUrl } from "node:url";
+import { ServerOptions } from "./types/options.js";
 import { configHandler } from "./utils/config-handler.js";
 import { createErrorResponse } from "./utils/error-handler.js";
 
-interface StandaloneServerOptions {
-  /**
-   * HTTP port for MCP server
-   * @default 8080
-   */
-  httpPort?: number;
-
-  /**
-   * MCP endpoint path
-   * @default "/mcp"
-   */
-  mcpEndpoint?: string;
-
-  /**
-   * Session timeout in milliseconds
-   * @default 3600000 (1 hour)
-   */
-  sessionTimeout?: number;
-
-  /**
-   * Session cleanup interval in milliseconds
-   * @default 60000 (1 minute)
-   */
-  sessionCleanupInterval?: number;
-
-  /**
-   * The URL of the Meilisearch instance
-   * @default "http://localhost:7700"
-   */
-  meilisearchHost: string;
-
-  /**
-   * The API key for authenticating with Meilisearch
-   * @default ""
-   */
-  meilisearchApiKey: string;
-}
-
 /**
- * Start a standalone MCP server (without Vite)
+ * Start a standalone MCP server
  * @param options Configuration options for the MCP server
  * @returns A promise that resolves to the HTTP server instance
  */
 export async function mcpStandalone(
-  options: StandaloneServerOptions = {
+  options: ServerOptions = {
     meilisearchApiKey: "",
     meilisearchHost: "http://localhost:7700",
   }
@@ -60,6 +23,7 @@ export async function mcpStandalone(
   let mcpServerInstance: any = null;
 
   const httpPort = options.httpPort || 8080;
+  const transport = options.transport || "http";
   const mcpEndpoint = options.mcpEndpoint || "/mcp";
   const server = createServer(async (req, res) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
@@ -127,7 +91,7 @@ export async function mcpStandalone(
 
   try {
     console.log("Initializing MCP server...");
-    const serverInstances = await initServer("http", options);
+    const serverInstances = await initServer(transport, options);
     mcpServerInstance = serverInstances.mcpServer;
     console.log("MCP server initialized successfully");
   } catch (error) {
@@ -156,7 +120,7 @@ export async function mcpStandalone(
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const args = process.argv.slice(2);
-  const options: StandaloneServerOptions = {
+  const options: ServerOptions = {
     meilisearchHost: "http://localhost:7700",
     meilisearchApiKey: "",
   };
