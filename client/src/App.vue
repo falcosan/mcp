@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MCPClient } from "./client";
+import { MCPClient } from "../../dist/index.js";
 import { ref, onMounted, onUnmounted } from "vue";
 
 const result = ref<any>(null);
