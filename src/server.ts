@@ -25,19 +25,23 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 interface ServerConfig {
   httpPort: number;
   mcpEndpoint: string;
-  serverName: string;
-  serverVersion: string;
   sessionTimeout: number;
   sessionCleanupInterval: number;
+}
+
+/**
+ * Return type for the initServer function
+ */
+export interface ServerInstances {
+  mcpServer?: MCPServer;
+  viteServer?: any;
 }
 
 const DEFAULT_CONFIG: ServerConfig = {
   httpPort: 8080,
   mcpEndpoint: "/mcp",
-  serverName: "meilisearch",
-  serverVersion: "1.0.0",
-  sessionCleanupInterval: 60000, // 1 minute
-  sessionTimeout: 3600000, // 1 hour
+  sessionTimeout: 3600000,
+  sessionCleanupInterval: 60000,
 };
 
 /**
@@ -56,9 +60,9 @@ class MCPServer {
   private readonly SESSION_ID_HEADER_NAME = "mcp-session-id";
 
   private server: McpServer;
+  private config: ServerConfig;
   private cleanupInterval: NodeJS.Timeout | null = null;
   private sessions: Map<string, SessionInfo> = new Map();
-  private config: ServerConfig;
 
   /**
    * Creates a new MCP server instance
@@ -360,27 +364,17 @@ class MCPServer {
 /**
  * Initialize the MCP server with HTTP transport using Vite
  */
-const initServerHTTPTransport = async () => {
+const initServerHTTPTransport = async (
+  customConfig?: Partial<ServerConfig>
+) => {
   const config = {
     ...DEFAULT_CONFIG,
-    httpPort: process.env.MCP_HTTP_PORT
-      ? parseInt(process.env.MCP_HTTP_PORT, 10)
-      : DEFAULT_CONFIG.httpPort,
-    mcpEndpoint: process.env.MCP_ENDPOINT || DEFAULT_CONFIG.mcpEndpoint,
-    serverName: process.env.MCP_SERVER_NAME || DEFAULT_CONFIG.serverName,
-    serverVersion:
-      process.env.MCP_SERVER_VERSION || DEFAULT_CONFIG.serverVersion,
-    sessionTimeout: process.env.MCP_SESSION_TIMEOUT
-      ? parseInt(process.env.MCP_SESSION_TIMEOUT, 10)
-      : DEFAULT_CONFIG.sessionTimeout,
-    sessionCleanupInterval: process.env.MCP_SESSION_CLEANUP_INTERVAL
-      ? parseInt(process.env.MCP_SESSION_CLEANUP_INTERVAL, 10)
-      : DEFAULT_CONFIG.sessionCleanupInterval,
+    ...customConfig,
   };
 
   const serverInstance = new McpServer({
-    name: config.serverName,
-    version: config.serverVersion,
+    version: "1.0.0",
+    name: "mcp-meilisearch",
   });
 
   // Register all tools
@@ -484,17 +478,16 @@ const initServerHTTPTransport = async () => {
  * @returns MCP server instance
  */
 const initServerStdioTransport = async (): Promise<MCPServer | undefined> => {
-  // Use environment variables if available, otherwise use defaults
   const config = {
     ...DEFAULT_CONFIG,
-    serverName: process.env.MCP_SERVER_NAME || DEFAULT_CONFIG.serverName,
-    serverVersion:
-      process.env.MCP_SERVER_VERSION || DEFAULT_CONFIG.serverVersion,
+    host: process.env.MEILISEARCH_HOST,
+    apiKey: process.env.MEILISEARCH_API_KEY,
   };
+  // Use environment variables if available, otherwise use defaults
 
   const serverInstance = new McpServer({
-    name: config.serverName,
-    version: config.serverVersion,
+    version: "1.0.0",
+    name: "mcp-meilisearch",
   });
 
   // Register all tools
@@ -525,21 +518,14 @@ const initServerStdioTransport = async (): Promise<MCPServer | undefined> => {
 };
 
 /**
- * Return type for the initServer function
- */
-export interface ServerInstances {
-  mcpServer?: MCPServer;
-  viteServer?: any;
-}
-
-/**
  * Initialize the MCP server with the specified transport
  * @param transport The transport type to use ("stdio" or "http")
  * @returns A promise that resolves to the server instances
  * @throws Error if the transport type is unsupported
  */
 export const initServer = async (
-  transport: "stdio" | "http"
+  transport: "stdio" | "http",
+  config?: Partial<ServerConfig>
 ): Promise<ServerInstances> => {
   try {
     switch (transport) {
@@ -547,7 +533,7 @@ export const initServer = async (
         const stdioServer = await initServerStdioTransport();
         return { mcpServer: stdioServer };
       case "http":
-        return await initServerHTTPTransport();
+        return await initServerHTTPTransport(config);
       default:
         throw new Error(`Unsupported transport type: ${transport}`);
     }

@@ -1,6 +1,7 @@
 import { Plugin } from "vite";
 import { initServer } from "./server.js";
 import { randomUUID } from "node:crypto";
+import { setApiKey, setHost } from "./utils/api-handler.js";
 import { createErrorResponse } from "./utils/error-handler.js";
 
 /**
@@ -26,18 +27,6 @@ export interface MCPPluginOptions {
   mcpEndpoint?: string;
 
   /**
-   * Server name
-   * @default "meilisearch"
-   */
-  serverName?: string;
-
-  /**
-   * Server version
-   * @default "1.0.0"
-   */
-  serverVersion?: string;
-
-  /**
    * Session timeout in milliseconds
    * @default 3600000 (1 hour)
    */
@@ -48,6 +37,18 @@ export interface MCPPluginOptions {
    * @default 60000 (1 minute)
    */
   sessionCleanupInterval?: number;
+
+  /**
+   * The URL of the Meilisearch instance
+   * @default "http://localhost:7700"
+   */
+  meilisearchHost: string;
+
+  /**
+   * The API key for authenticating with Meilisearch
+   * @default ""
+   */
+  meilisearchApiKey: string;
 }
 
 /**
@@ -55,36 +56,23 @@ export interface MCPPluginOptions {
  * @param options Configuration options for the MCP server
  * @returns A Vite plugin
  */
-export function mcpPlugin(options: MCPPluginOptions = {}): Plugin {
+export function mcpPlugin(
+  options: MCPPluginOptions = {
+    meilisearchApiKey: "",
+    meilisearchHost: "http://localhost:7700",
+  }
+): Plugin {
   const pluginId = `mcp-plugin-${randomUUID().slice(0, 8)}`;
   let mcpServerInstance: any = null;
 
-  // Set default options
   const transport = options.transport || "http";
 
   return {
     name: "vite:mcp-plugin",
-    apply: "serve", // Only apply this plugin during development
-
     configureServer(server) {
-      // Store the custom config in Vite's server context for sharing
+      setHost(options.meilisearchHost);
+      setApiKey(options.meilisearchApiKey);
       server.config.env.VITE_MCP_PLUGIN_ID = pluginId;
-
-      // Configure process.env variables with MCP server options
-      if (options.httpPort)
-        process.env.MCP_HTTP_PORT = String(options.httpPort);
-      if (options.mcpEndpoint) process.env.MCP_ENDPOINT = options.mcpEndpoint;
-      if (options.serverName) process.env.MCP_SERVER_NAME = options.serverName;
-      if (options.serverVersion)
-        process.env.MCP_SERVER_VERSION = options.serverVersion;
-      if (options.sessionTimeout)
-        process.env.MCP_SESSION_TIMEOUT = String(options.sessionTimeout);
-      if (options.sessionCleanupInterval)
-        process.env.MCP_SESSION_CLEANUP_INTERVAL = String(
-          options.sessionCleanupInterval
-        );
-
-      // Add CORS middleware
       server.middlewares.use((req, res, next) => {
         res.setHeader("Access-Control-Allow-Origin", "*");
         res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -102,13 +90,11 @@ export function mcpPlugin(options: MCPPluginOptions = {}): Plugin {
         next();
       });
 
-      // Handle MCP endpoint requests
       server.middlewares.use(async (req, res, next) => {
         const mcpEndpoint = options.mcpEndpoint || "/mcp";
         const url = req.url || "/";
 
         if (url.startsWith(mcpEndpoint)) {
-          // Only proceed if MCP server is initialized
           if (!mcpServerInstance) {
             console.error("MCP server not initialized yet");
             res.statusCode = 503;
@@ -156,8 +142,7 @@ export function mcpPlugin(options: MCPPluginOptions = {}): Plugin {
         );
 
         try {
-          // Initialize the MCP server
-          const serverInstances = await initServer(transport);
+          const serverInstances = await initServer(transport, options);
           mcpServerInstance = serverInstances.mcpServer;
         } catch (error) {
           console.error("Failed to initialize MCP server:", error);
@@ -166,7 +151,6 @@ export function mcpPlugin(options: MCPPluginOptions = {}): Plugin {
     },
 
     closeBundle() {
-      // Clean up resources when Vite is shutting down
       if (mcpServerInstance) {
         try {
           console.log("Shutting down MCP server...");
@@ -181,7 +165,4 @@ export function mcpPlugin(options: MCPPluginOptions = {}): Plugin {
   };
 }
 
-/**
- * Default export for convenience
- */
 export default mcpPlugin;

@@ -14,10 +14,8 @@
   ],
   "scripts": {
     "build": "tsc && tsc --project tsconfig.types.json",
-    "serve:http": "npm run build && chmod 755 dist/http.js",
-    "serve:stdio": "npm run build && chmod 755 dist/stdio.js",
-    "server": "npm run serve:stdio && node --env-file=.env dist/stdio.js",
-    "client": "npm run serve:http && node --env-file=.env dist/http.js & npm run preview --workspace=client",
+    "server": "npm run build && node --env-file=.env dist/index.js",
+    "client": "npm run server & npm run dev --workspace=client",
     "prepare": "npm version patch",
     "prepublishOnly": "npm run build"
   },

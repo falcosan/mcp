@@ -88,7 +88,7 @@ npm run start:client  # Start the web client
 Visit the following URL in your browser:
 
 ```
-http://localhost:8000
+http://localhost:8080
 ```
 
 ## Development
@@ -106,3 +106,66 @@ This project uses:
   - `utils/`: Utility functions for API communication and error handling.
   - `server.ts`: Main MCP server implementation.
 - `client/`: Web client for testing and demonstration.
+
+## Vite Plugin Integration
+
+This package provides a Vite plugin for easy integration with your Vite-based applications.
+
+### Using the MCP Vite Plugin
+
+Add the plugin to your Vite configuration:
+
+```typescript
+// vite.config.ts
+import { defineConfig } from "vite";
+import { mcpPlugin } from "mcp-meilisearch";
+
+export default defineConfig({
+  plugins: [
+    // Your other plugins...
+    mcpPlugin({
+      transport: "http",
+      mcpEndpoint: "/mcp",
+      sessionTimeout: 3600000, // 1 hour
+      sessionCleanupInterval: 60000, // 1 minute
+      meilisearchApiKey: "your-api-key-here",
+      meilisearchHost: "http://localhost:7700",
+    }),
+  ],
+});
+```
+
+### Plugin Options
+
+#### MCP Server Options
+
+- `transport`: Transport type for MCP server ("http" | "stdio") (Default: "http")
+- `httpPort`: HTTP port for MCP server (Default: 8080)
+- `mcpEndpoint`: MCP endpoint path (Default: "/mcp")
+
+#### Session Options
+
+- `sessionTimeout`: Session timeout in milliseconds (Default: 3600000)
+- `sessionCleanupInterval`: Session cleanup interval in milliseconds (Default: 60000)
+
+#### Meilisearch Connection Options
+
+- `meilisearchHost`: URL of the Meilisearch instance (Default: "http://localhost:7700")
+- `meilisearchApiKey`: API key for authenticating with Meilisearch (Default: "")
+
+### Using the MCPClient
+
+The package also exports the MCPClient class for client-side integration:
+
+```typescript
+import { MCPClient } from "mcp-meilisearch";
+
+const client = new MCPClient("meilisearch");
+await client.connectToServer("http://localhost:3000/mcp");
+
+// Call a tool
+const result = await client.callTool("search", {
+  indexUid: "movies",
+  q: "star wars",
+});
+```

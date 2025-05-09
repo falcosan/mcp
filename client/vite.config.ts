@@ -6,13 +6,17 @@ export default defineConfig({
   plugins: [
     vue(),
     mcpPlugin({
+      httpPort: 8080,
       transport: "http",
       mcpEndpoint: "/mcp",
-      serverName: "meilisearch",
-      serverVersion: "1.0.0",
+      meilisearchHost: "",
+      meilisearchApiKey: "",
     }),
   ],
   preview: {
-    port: 8000,
+    port: 8080,
+  },
+  server: {
+    port: 8080,
   },
 });
