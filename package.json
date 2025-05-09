@@ -9,6 +9,16 @@
     "dist",
     "README.md"
   ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./client": {
+      "import": "./dist/client.js",
+      "types": "./dist/client.d.ts"
+    }
+  },
   "workspaces": [
     "demo"
   ],
