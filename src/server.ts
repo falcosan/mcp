@@ -55,9 +55,8 @@ class MCPServer {
   private readonly SESSION_ID_HEADER_NAME = "mcp-session-id";
 
   private server: McpServer;
-  private sessions: Map<string, SessionInfo> = new Map();
-  private toolsRegistered: boolean = false;
   private cleanupInterval: NodeJS.Timeout | null = null;
+  private sessions: Map<string, SessionInfo> = new Map();
   private config: ServerConfig;
 
   /**
@@ -68,7 +67,6 @@ class MCPServer {
   constructor(server: McpServer, config: Partial<ServerConfig> = {}) {
     this.server = server;
     this.config = { ...DEFAULT_CONFIG, ...config };
-    this.toolsRegistered = this.registerTools();
 
     // Start session cleanup if using HTTP transport
     this.startSessionCleanup();
@@ -220,32 +218,6 @@ class MCPServer {
       console.error("Error handling initialize request:", error);
       transport.close();
       this.sendErrorResponse(res, 500, `Failed to initialize: ${error}`);
-    }
-  }
-
-  /**
-   * Registers all available tools with the MCP server
-   */
-  private registerTools(): boolean {
-    try {
-      console.log("Registering MCP tools...");
-      const tools = [
-        registerSystemTools,
-        registerIndexTools,
-        registerSearchTools,
-        registerSettingsTools,
-        registerDocumentTools,
-        registerTaskTools,
-        registerVectorTools,
-      ];
-
-      tools.forEach((registerFn) => registerFn(this.server));
-
-      console.log("Successfully registered all tools");
-      return true;
-    } catch (error) {
-      console.error("Failed to register tools:", error);
-      return false;
     }
   }
 
