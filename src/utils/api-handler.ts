@@ -1,11 +1,11 @@
-import { configService } from "./config-service.js";
+import { configHandler } from "./config-handler.js";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 
 /**
  * Meilisearch API client
  *
  * This module provides a configured Axios instance for making requests to the Meilisearch API.
- * Uses request interceptors to dynamically update host and API key from the configService.
+ * Uses request interceptors to dynamically update host and API key from the configHandler.
  */
 
 /**
@@ -19,8 +19,8 @@ export const createApiClient = () => {
   });
 
   instance.interceptors.request.use((config) => {
-    config.baseURL = configService.getMeilisearchHost();
-    config.headers.Authorization = `Bearer ${configService.getMeilisearchApiKey()}`;
+    config.baseURL = configHandler.getMeilisearchHost();
+    config.headers.Authorization = `Bearer ${configHandler.getMeilisearchApiKey()}`;
 
     return config;
   });

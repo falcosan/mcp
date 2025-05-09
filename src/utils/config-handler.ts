@@ -1,7 +1,7 @@
 /**
  * Configuration service to store and retrieve Meilisearch configuration
  */
-class ConfigService {
+class ConfigHandler {
   private _meilisearchHost = "";
   private _meilisearchApiKey = "";
 
@@ -38,6 +38,6 @@ class ConfigService {
   }
 }
 
-export const configService = new ConfigService();
+export const configHandler = new ConfigHandler();
 
-export default configService;
+export default configHandler;

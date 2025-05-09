@@ -1,7 +1,7 @@
 import { Plugin } from "vite";
 import { initServer } from "./server.js";
 import { randomUUID } from "node:crypto";
-import { configService } from "./utils/config-service.js";
+import { configHandler } from "./utils/config-handler.js";
 import { createErrorResponse } from "./utils/error-handler.js";
 
 /**
@@ -62,8 +62,8 @@ export function mcpPlugin(
     meilisearchHost: "http://localhost:7700",
   }
 ): Plugin {
-  configService.setMeilisearchHost(options.meilisearchHost);
-  configService.setMeilisearchApiKey(options.meilisearchApiKey);
+  configHandler.setMeilisearchHost(options.meilisearchHost);
+  configHandler.setMeilisearchApiKey(options.meilisearchApiKey);
 
   const pluginId = `mcp-plugin-${randomUUID().slice(0, 8)}`;
   let mcpServerInstance: any = null;
