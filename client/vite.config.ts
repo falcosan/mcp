@@ -3,7 +3,7 @@ import { mcpPlugin } from "../src/index.js";
 import { loadEnv, defineConfig } from "vite";
 
 export default defineConfig(({ mode }) => {
-  process.env = { ...process.env, ...loadEnv(mode, "./") };
+  process.env = { ...process.env, ...loadEnv(mode, process.cwd()) };
   return {
     plugins: [
       vue(),
