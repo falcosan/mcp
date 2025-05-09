@@ -5,6 +5,12 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "files": [
     "dist",
     "README.md"
@@ -13,12 +19,16 @@
     "client"
   ],
   "scripts": {
-    "serve:http": "tsc && chmod 755 dist/http.js",
-    "serve:stdio": "tsc && chmod 755 dist/stdio.js",
+    "clean": "rm -rf dist",
+    "build": "npm run clean && tsc && npm run build:types",
+    "build:watch": "tsc --watch",
+    "build:types": "tsc --project tsconfig.types.json",
+    "serve:http": "npm run build && chmod 755 dist/http.js",
+    "serve:stdio": "npm run build && chmod 755 dist/stdio.js",
     "server": "npm run serve:stdio && node --env-file=.env dist/stdio.js",
     "client": "npm run serve:http && node --env-file=.env dist/http.js & npm run preview --workspace=client",
     "prepare": "npm version patch",
-    "prepublishOnly": "tsc"
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.1",

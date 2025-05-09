@@ -5,3 +5,4 @@ data.ms
 dumbs
 meili.sh
 .DS_Store
+*.tsbuildinfo

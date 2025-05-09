@@ -229,7 +229,9 @@ export const registerTaskTools = (server: McpServer) => {
           taskData = response.data;
 
           // Check if the task has completed
-          if (["succeeded", "failed", "canceled"].includes(taskData.status)) {
+          if (
+            ["succeeded", "failed", "canceled"].includes(response.statusText)
+          ) {
             taskCompleted = true;
           } else {
             // Wait for the polling interval
