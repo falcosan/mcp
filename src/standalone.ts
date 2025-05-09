@@ -1,6 +1,5 @@
 import http from "node:http";
 import { createServer } from "node:http";
-import { randomUUID } from "node:crypto";
 import { initServer } from "./server.js";
 import { createRequire } from "node:module";
 import { parse as parseUrl } from "node:url";
@@ -56,19 +55,14 @@ export async function startStandaloneServer(
     meilisearchHost: "http://localhost:7700",
   }
 ): Promise<http.Server> {
-  // Configure Meilisearch client
   configHandler.setMeilisearchHost(options.meilisearchHost);
   configHandler.setMeilisearchApiKey(options.meilisearchApiKey);
 
-  const pluginId = `standalone-mcp-${randomUUID().slice(0, 8)}`;
   let mcpServerInstance: any = null;
 
   const httpPort = options.httpPort || 8080;
   const mcpEndpoint = options.mcpEndpoint || "/mcp";
-
-  // Create HTTP server
   const server = createServer(async (req, res) => {
-    // Set CORS headers
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
     res.setHeader(
@@ -76,14 +70,12 @@ export async function startStandaloneServer(
       `Origin, X-Requested-With, Content-Type, Accept, mcp-session-id`
     );
 
-    // Handle preflight requests
     if (req.method === "OPTIONS") {
       res.statusCode = 200;
       res.end();
       return;
     }
 
-    // Parse URL
     const parsedUrl = parseUrl(req.url || "/", true);
     const pathname = parsedUrl.pathname || "/";
 
@@ -146,7 +138,6 @@ export async function startStandaloneServer(
     throw error;
   }
 
-  // Handle server close
   const shutdownHandler = () => {
     console.log("Shutting down MCP server...");
     if (mcpServerInstance && typeof mcpServerInstance.shutdown === "function") {
@@ -165,9 +156,7 @@ export async function startStandaloneServer(
   return server;
 }
 
-// Allow this module to be imported or executed directly
 if (createRequire(import.meta.url).main === module) {
-  // Parse command line arguments for configuration
   const args = process.argv.slice(2);
   const options: StandaloneServerOptions = {
     meilisearchHost: "http://localhost:7700",
@@ -194,7 +183,6 @@ if (createRequire(import.meta.url).main === module) {
     }
   }
 
-  // Start the server
   startStandaloneServer(options)
     .then(() => console.log("Standalone MCP server running"))
     .catch((err) => {
