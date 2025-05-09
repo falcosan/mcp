@@ -49,7 +49,7 @@ interface StandaloneServerOptions {
  * @param options Configuration options for the MCP server
  * @returns A promise that resolves to the HTTP server instance
  */
-export async function startStandaloneServer(
+export async function initStandaloneServer(
   options: StandaloneServerOptions = {
     meilisearchApiKey: "",
     meilisearchHost: "http://localhost:7700",
@@ -119,7 +119,6 @@ export async function startStandaloneServer(
     }
   });
 
-  // Initialize the MCP server when the HTTP server starts
   await new Promise<void>((resolve) => {
     server.listen(httpPort, () => {
       console.log(`Standalone MCP server listening on port ${httpPort}`);
@@ -156,7 +155,7 @@ export async function startStandaloneServer(
   return server;
 }
 
-if (createRequire(import.meta.url).main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   const args = process.argv.slice(2);
   const options: StandaloneServerOptions = {
     meilisearchHost: "http://localhost:7700",
@@ -183,12 +182,12 @@ if (createRequire(import.meta.url).main === module) {
     }
   }
 
-  startStandaloneServer(options)
-    .then(() => console.log("Standalone MCP server running"))
+  initStandaloneServer(options)
+    .then(() => console.log("MCP server running"))
     .catch((err) => {
-      console.error("Failed to start standalone server:", err);
+      console.error("Failed to start server:", err);
       process.exit(1);
     });
 }
 
-export default startStandaloneServer;
+export default initStandaloneServer;
