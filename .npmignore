@@ -1,0 +1,30 @@
+# Demo client folder
+client/
+
+# Source files (will be compiled to dist/)
+src/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary data
+dumps/
+data.ms/
+
+# Environment files
+*.env*
+
+# Configuration files
+.vscode/
+tsconfig.*
+*.tgz
+
+# Git files
+.git/
+.gitignore
+
+# Other development files
+node_modules/

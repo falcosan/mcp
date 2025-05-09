@@ -1,8 +1,14 @@
 {
-  "name": "mcp",
+  "name": "mcp-meilisearch",
   "version": "1.0.0",
-  "description": "mcp",
+  "description": "Model Context Protocol (MCP) implementation for Meilisearch",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "type": "module",
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "workspaces": [
     "client"
   ],
@@ -10,7 +16,9 @@
     "build:http": "tsc && chmod 755 dist/http.js",
     "build:stdio": "tsc && chmod 755 dist/stdio.js",
     "server": "npm run build:stdio && node --env-file=.env dist/stdio.js",
-    "client": "npm run build:http && node --env-file=.env dist/http.js & npm run preview --workspace=client"
+    "client": "npm run build:http && node --env-file=.env dist/http.js & npm run preview --workspace=client",
+    "prepare": "tsc && npm run build",
+    "prepublishOnly": "npm run build:http && npm run build:stdio"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.1",

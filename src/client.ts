@@ -12,14 +12,13 @@ export class MCPClient {
   private client: Client;
   private tries: number = 0;
   private transport: StreamableHTTPClientTransport | null = null;
-  private readonly meilisearchIndexUid: string = "movies";
   private onToolsUpdatedCallback:
     | ((tools: Array<{ name: string; description: string }>) => void)
     | null = null;
 
   constructor(serverName: string) {
     this.client = new Client({
-      name: `mcp-client-for-${serverName}`,
+      name: serverName,
       version: "1.0.0",
     });
   }
