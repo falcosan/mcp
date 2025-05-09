@@ -101,19 +101,3 @@ This project uses:
 
 - `sessionTimeout`: Session timeout in milliseconds (Default: 3600000)
 - `sessionCleanupInterval`: Session cleanup interval in milliseconds (Default: 60000)
-
-### Using the MCPClient
-
-The package also exports the MCPClient class for client-side integration:
-
-```typescript
-import { MCPClient } from "mcp-meilisearch";
-
-const client = new MCPClient("meilisearch");
-await client.connectToServer("http://localhost:3000/mcp");
-
-// Call a tool
-const result = await client.callTool("search-across-all-indexes", {
-  q: "search kiosco antonio",
-});
-```
