@@ -22,7 +22,7 @@ export const loadConfig = (): ServerConfig => {
   return {
     host: process.env.MEILISEARCH_HOST || "http://localhost:7700",
     apiKey: process.env.MEILISEARCH_API_KEY || "",
-    timeout: parseInt(process.env.MEILISEARCH_TIMEOUT || "5000", 10),
+    timeout: parseInt("5000", 10),
   };
 };
 
