@@ -1,5 +1,5 @@
 import vue from "@vitejs/plugin-vue";
-import { mcpPlugin } from "../src/index.js";
+import builder from "vite-plugin-builder";
 import { loadEnv, defineConfig } from "vite";
 
 export default defineConfig(({ mode }) => {
@@ -7,11 +7,19 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [
       vue(),
-      mcpPlugin({
-        meilisearchHost: process.env.VITE_MEILISEARCH_HOST as string,
-        meilisearchApiKey: process.env.VITE_MEILISEARCH_API_KEY as string,
+      builder({
+        serverEntry: "mcp/index.js",
+        serverConfig: {
+          outDir: "dist/mcp",
+          output: {
+            entryFileNames: "index.js",
+          },
+        },
       }),
     ],
+    build: {
+      outDir: "dist/public",
+    },
     preview: {
       port: 8080,
     },

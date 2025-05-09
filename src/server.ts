@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 import { IncomingMessage, ServerResponse } from "http";
-import { createServer as createViteServer } from "vite";
 import {
   Notification,
   JSONRPCNotification,
@@ -73,7 +72,6 @@ class MCPServer {
     this.server = server;
     this.config = { ...DEFAULT_CONFIG, ...config };
 
-    // Start session cleanup if using HTTP transport
     this.startSessionCleanup();
   }
 
@@ -130,7 +128,6 @@ class MCPServer {
     const sessionId = this.extractSessionId(req);
 
     try {
-      // Case 1: Existing session
       if (sessionId && this.sessions.has(sessionId)) {
         console.log(`POST request for existing session ${sessionId}`);
         const sessionInfo = this.sessions.get(sessionId)!;
@@ -139,13 +136,11 @@ class MCPServer {
         return;
       }
 
-      // Case 2: Initialize request
       if (!sessionId && this.isInitializeRequest(body)) {
         await this.handleInitializeRequest(req, res, body);
         return;
       }
 
-      // Case 3: Invalid request
       console.error(
         "Invalid request: missing session ID or not an initialize request"
       );
@@ -171,7 +166,6 @@ class MCPServer {
       this.cleanupInterval = null;
     }
 
-    // Close all active sessions
     for (const [sessionId, sessionInfo] of this.sessions.entries()) {
       try {
         console.log(`Closing session ${sessionId}`);
@@ -206,26 +200,21 @@ class MCPServer {
     transport.sessionId = newSessionId;
 
     try {
-      // Connect the transport to the MCP server
       await this.server.connect(transport);
 
-      // Set response headers
       res.setHeader(this.SESSION_ID_HEADER_NAME, newSessionId);
       res.setHeader(
         "Access-Control-Expose-Headers",
         this.SESSION_ID_HEADER_NAME
       );
 
-      // Handle the initialize request
       await transport.handleRequest(req, res, body);
 
-      // Register the session
       this.sessions.set(newSessionId, {
         transport,
         lastActivity: Date.now(),
       });
 
-      // Notify client about available tools
       this.sendToolListChangedNotification(transport);
 
       console.log(`New session established: ${newSessionId}`);
@@ -335,14 +324,12 @@ class MCPServer {
     const now = Date.now();
     const expiredIds: string[] = [];
 
-    // Find expired sessions
     for (const [sessionId, info] of this.sessions.entries()) {
       if (now - info.lastActivity > this.config.sessionTimeout) {
         expiredIds.push(sessionId);
       }
     }
 
-    // Remove expired sessions
     if (expiredIds.length) {
       console.log(`Cleaning up ${expiredIds.length} expired sessions`);
 
@@ -377,7 +364,6 @@ const initServerHTTPTransport = async (
     name: "mcp-meilisearch",
   });
 
-  // Register all tools
   registerIndexTools(serverInstance);
   registerDocumentTools(serverInstance);
   registerSearchTools(serverInstance);
@@ -388,30 +374,25 @@ const initServerHTTPTransport = async (
 
   const server = new MCPServer(serverInstance, config);
 
-  let vite: Awaited<ReturnType<typeof createViteServer>> | undefined;
-
-  // Return both server instances for proper cleanup
-  return { mcpServer: server, viteServer: vite };
+  return { mcpServer: server };
 };
 
 /**
  * Initialize the MCP server with stdio transport
  * @returns MCP server instance
  */
-const initServerStdioTransport = async (): Promise<MCPServer | undefined> => {
+const initServerStdioTransport = async () => {
   const config = {
     ...DEFAULT_CONFIG,
     host: process.env.MEILISEARCH_HOST,
     apiKey: process.env.MEILISEARCH_API_KEY,
   };
-  // Use environment variables if available, otherwise use defaults
 
   const serverInstance = new McpServer({
     version: "1.0.0",
     name: "mcp-meilisearch",
   });
 
-  // Register all tools
   registerIndexTools(serverInstance);
   registerDocumentTools(serverInstance);
   registerSearchTools(serverInstance);
@@ -420,22 +401,19 @@ const initServerStdioTransport = async (): Promise<MCPServer | undefined> => {
   registerSystemTools(serverInstance);
   registerTaskTools(serverInstance);
 
-  // Create MCPServer instance
   const server = new MCPServer(serverInstance, config);
 
-  // Connect stdio transport
   const transport = new StdioServerTransport();
   await serverInstance.connect(transport);
 
   console.log("Meilisearch MCP Server is running on stdio transport");
 
-  // Handle process termination
   process.on("SIGINT", () => {
     console.log("Shutting down stdio server...");
     process.exit(0);
   });
 
-  return server;
+  return { mcpServer: server };
 };
 
 /**
@@ -451,8 +429,7 @@ export const initServer = async (
   try {
     switch (transport) {
       case "stdio":
-        const stdioServer = await initServerStdioTransport();
-        return { mcpServer: stdioServer };
+        return await initServerStdioTransport();
       case "http":
         return await initServerHTTPTransport(config);
       default:

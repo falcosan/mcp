@@ -84,35 +84,12 @@ This project uses:
 - **Express**: Powers the web server.
 - **Model Context Protocol SDK**: Facilitates AI integration.
 
-## Vite Plugin Integration
+### Options
 
-This package provides a Vite plugin for easy integration with your Vite-based applications.
+#### Meilisearch Connection Options
 
-### Using the MCP Vite Plugin
-
-Add the plugin to your Vite configuration:
-
-```typescript
-// vite.config.ts
-import { defineConfig } from "vite";
-import { mcpPlugin } from "mcp-meilisearch";
-
-export default defineConfig({
-  plugins: [
-    // Your other plugins...
-    mcpPlugin({
-      transport: "http",
-      mcpEndpoint: "/mcp",
-      sessionTimeout: 3600000, // 1 hour
-      sessionCleanupInterval: 60000, // 1 minute
-      meilisearchApiKey: "your-api-key-here",
-      meilisearchHost: "http://localhost:7700",
-    }),
-  ],
-});
-```
-
-### Plugin Options
+- `meilisearchHost`: URL of the Meilisearch instance (Default: "http://localhost:7700")
+- `meilisearchApiKey`: API key for authenticating with Meilisearch (Default: "")
 
 #### MCP Server Options
 
@@ -124,11 +101,6 @@ export default defineConfig({
 
 - `sessionTimeout`: Session timeout in milliseconds (Default: 3600000)
 - `sessionCleanupInterval`: Session cleanup interval in milliseconds (Default: 60000)
-
-#### Meilisearch Connection Options
-
-- `meilisearchHost`: URL of the Meilisearch instance (Default: "http://localhost:7700")
-- `meilisearchApiKey`: API key for authenticating with Meilisearch (Default: "")
 
 ### Using the MCPClient
 
