@@ -1,4 +1,6 @@
 import { randomUUID } from "node:crypto";
+import { IncomingMessage, ServerResponse } from "http";
+import { createServer as createViteServer } from "vite";
 import {
   Notification,
   JSONRPCNotification,
@@ -13,7 +15,6 @@ import registerVectorTools from "./tools/vector-tools.js";
 import registerDocumentTools from "./tools/document-tools.js";
 import registerSettingsTools from "./tools/settings-tools.js";
 import { createErrorResponse } from "./utils/error-handler.js";
-import express, { Request, Response, NextFunction } from "express";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
@@ -26,8 +27,8 @@ interface ServerConfig {
   mcpEndpoint: string;
   serverName: string;
   serverVersion: string;
-  sessionCleanupInterval: number; // milliseconds
-  sessionTimeout: number; // milliseconds
+  sessionTimeout: number;
+  sessionCleanupInterval: number;
 }
 
 const DEFAULT_CONFIG: ServerConfig = {
@@ -77,7 +78,10 @@ class MCPServer {
    * @param req The HTTP request
    * @param res The HTTP response
    */
-  async handleGetRequest(req: Request, res: Response): Promise<void> {
+  async handleGetRequest(
+    req: IncomingMessage,
+    res: ServerResponse
+  ): Promise<void> {
     console.log("GET request received");
 
     const sessionId = this.extractSessionId(req);
@@ -112,8 +116,13 @@ class MCPServer {
    * Handles an HTTP POST request (executes MCP commands)
    * @param req The HTTP request
    * @param res The HTTP response
+   * @param body The request body
    */
-  async handlePostRequest(req: Request, res: Response): Promise<void> {
+  async handlePostRequest(
+    req: IncomingMessage,
+    res: ServerResponse,
+    body: any
+  ): Promise<void> {
     const sessionId = this.extractSessionId(req);
 
     try {
@@ -121,14 +130,14 @@ class MCPServer {
       if (sessionId && this.sessions.has(sessionId)) {
         console.log(`POST request for existing session ${sessionId}`);
         const sessionInfo = this.sessions.get(sessionId)!;
-        await sessionInfo.transport.handleRequest(req, res, req.body);
+        await sessionInfo.transport.handleRequest(req, res, body);
         this.updateSessionActivity(sessionId);
         return;
       }
 
       // Case 2: Initialize request
-      if (!sessionId && this.isInitializeRequest(req.body)) {
-        await this.handleInitializeRequest(req, res);
+      if (!sessionId && this.isInitializeRequest(body)) {
+        await this.handleInitializeRequest(req, res, body);
         return;
       }
 
@@ -176,10 +185,12 @@ class MCPServer {
    * Handles the initial connection request
    * @param req The HTTP request
    * @param res The HTTP response
+   * @param body The request body
    */
   private async handleInitializeRequest(
-    req: Request,
-    res: Response
+    req: IncomingMessage,
+    res: ServerResponse,
+    body: any
   ): Promise<void> {
     console.log("Handling initialize request");
     const newSessionId = randomUUID();
@@ -202,7 +213,7 @@ class MCPServer {
       );
 
       // Handle the initialize request
-      await transport.handleRequest(req, res, req.body);
+      await transport.handleRequest(req, res, body);
 
       // Register the session
       this.sessions.set(newSessionId, {
@@ -276,10 +287,9 @@ class MCPServer {
   /**
    * Extracts session ID from request headers
    */
-  private extractSessionId(req: Request): string | undefined {
-    return req.headers[this.SESSION_ID_HEADER_NAME.toLowerCase()] as
-      | string
-      | undefined;
+  private extractSessionId(req: IncomingMessage): string | undefined {
+    const headerValue = req.headers[this.SESSION_ID_HEADER_NAME.toLowerCase()];
+    return Array.isArray(headerValue) ? headerValue[0] : headerValue;
   }
 
   /**
@@ -296,11 +306,13 @@ class MCPServer {
    * Sends an error response with the specified status code and message
    */
   private sendErrorResponse(
-    res: Response,
+    res: ServerResponse,
     status: number,
     message: string
   ): void {
-    res.status(status).json(createErrorResponse(message));
+    res.statusCode = status;
+    res.setHeader("Content-Type", "application/json");
+    res.end(JSON.stringify(createErrorResponse(message)));
   }
 
   /**
@@ -346,9 +358,9 @@ class MCPServer {
 }
 
 /**
- * Initialize the MCP server with HTTP transport
+ * Initialize the MCP server with HTTP transport using Vite
  */
-const initServerHTTPTransport = () => {
+const initServerHTTPTransport = async () => {
   const config = DEFAULT_CONFIG;
 
   const serverInstance = new McpServer({
@@ -356,66 +368,91 @@ const initServerHTTPTransport = () => {
     version: config.serverVersion,
   });
 
+  // Register all tools
+  registerIndexTools(serverInstance);
+  registerDocumentTools(serverInstance);
+  registerSearchTools(serverInstance);
+  registerSettingsTools(serverInstance);
+  registerVectorTools(serverInstance);
+  registerSystemTools(serverInstance);
+  registerTaskTools(serverInstance);
+
   const server = new MCPServer(serverInstance, config);
 
-  const app = express();
-  app.use(express.json());
+  // Create Vite dev server
+  const vite = await createViteServer({
+    server: {
+      port: config.httpPort,
+      middlewareMode: true,
+    },
+  });
 
-  // Configure CORS and preflight handling
-  app.use((req: Request, res: Response, next: NextFunction) => {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    res.header(
+  // Add CORS middleware
+  vite.middlewares.use((req, res, next) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.setHeader(
       "Access-Control-Allow-Headers",
       `Origin, X-Requested-With, Content-Type, Accept, ${server["SESSION_ID_HEADER_NAME"]}`
     );
 
     if (req.method === "OPTIONS") {
-      res.sendStatus(200);
+      res.statusCode = 200;
+      res.end();
       return;
     }
 
     next();
   });
 
-  // Set up routes
-  const router = express.Router();
+  // Handle MCP requests
+  vite.middlewares.use(async (req, res, next) => {
+    const url = req.url || "/";
 
-  router.post(config.mcpEndpoint, async (req: Request, res: Response) => {
-    console.log(`Received POST request to ${config.mcpEndpoint}`);
-    await server.handlePostRequest(req, res);
+    if (url.startsWith(config.mcpEndpoint)) {
+      if (req.method === "GET") {
+        await server.handleGetRequest(req, res);
+      } else if (req.method === "POST") {
+        let body = "";
+        req.on("data", (chunk) => {
+          body += chunk.toString();
+        });
+
+        req.on("end", async () => {
+          try {
+            const jsonBody = JSON.parse(body);
+            await server.handlePostRequest(req, res, jsonBody);
+          } catch (error) {
+            console.error("Error parsing request body:", error);
+            res.statusCode = 400;
+            res.end(JSON.stringify(createErrorResponse("Invalid JSON body")));
+          }
+        });
+      } else {
+        next();
+      }
+    } else {
+      next();
+    }
   });
 
-  router.get(config.mcpEndpoint, async (req: Request, res: Response) => {
-    console.log(`Received GET request to ${config.mcpEndpoint}`);
-    await server.handleGetRequest(req, res);
-  });
+  // Start listening
 
-  app.use("/", router);
-
-  // Start the server
-  const httpServer = app.listen(config.httpPort, () => {
-    console.log(
-      "Meilisearch MCP Server is running on http transport:",
-      `http://localhost:${config.httpPort}${config.mcpEndpoint}`
-    );
-  });
+  console.log(
+    "Meilisearch MCP Server is running on Vite HTTP transport:",
+    `http://localhost:${config.httpPort}${config.mcpEndpoint}`
+  );
 
   // Handle server shutdown
   process.on("SIGINT", async () => {
     console.log("Received SIGINT signal");
     server.shutdown();
-    httpServer.close(() => {
-      console.log("HTTP server closed");
-      process.exit(0);
-    });
-
-    // Force exit after timeout
-    setTimeout(() => {
-      console.log("Forcing process exit");
-      process.exit(1);
-    }, 5000);
+    await vite.close();
+    console.log("Vite server closed");
+    process.exit(0);
   });
+
+  return vite;
 };
 
 /**
@@ -465,7 +502,13 @@ export const initServer = (transport: "stdio" | "http"): void => {
       });
       break;
     case "http":
-      initServerHTTPTransport();
+      initServerHTTPTransport().catch((error) => {
+        console.error(
+          "Fatal error initializing HTTP transport with Vite:",
+          error
+        );
+        process.exit(1);
+      });
       break;
     default:
       throw new Error(`Unsupported transport type: ${transport}`);
