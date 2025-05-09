@@ -1,7 +1,7 @@
 import { Plugin } from "vite";
 import { initServer } from "./server.js";
 import { randomUUID } from "node:crypto";
-import { setApiKey, setHost } from "./utils/api-handler.js";
+import { configService } from "./utils/config-service.js";
 import { createErrorResponse } from "./utils/error-handler.js";
 
 /**
@@ -62,16 +62,16 @@ export function mcpPlugin(
     meilisearchHost: "http://localhost:7700",
   }
 ): Plugin {
+  configService.setMeilisearchHost(options.meilisearchHost);
+  configService.setMeilisearchApiKey(options.meilisearchApiKey);
+
   const pluginId = `mcp-plugin-${randomUUID().slice(0, 8)}`;
   let mcpServerInstance: any = null;
 
   const transport = options.transport || "http";
-
   return {
     name: "vite:mcp-plugin",
     configureServer(server) {
-      setHost(options.meilisearchHost);
-      setApiKey(options.meilisearchApiKey);
       server.config.env.VITE_MCP_PLUGIN_ID = pluginId;
       server.middlewares.use((req, res, next) => {
         res.setHeader("Access-Control-Allow-Origin", "*");
