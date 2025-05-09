@@ -1,5 +1,4 @@
 import { Plugin } from "vite";
-import { MCPClient } from "./client.js";
 import { initServer } from "./server.js";
 import { randomUUID } from "node:crypto";
 import { createErrorResponse } from "./utils/error-handler.js";
@@ -160,20 +159,6 @@ export function mcpPlugin(options: MCPPluginOptions = {}): Plugin {
           // Initialize the MCP server
           const serverInstances = await initServer(transport);
           mcpServerInstance = serverInstances.mcpServer;
-
-          const hostConfig = server.config.server;
-          const protocol = hostConfig.https ? "https" : "http";
-          const host =
-            hostConfig.host === true
-              ? "localhost"
-              : hostConfig.host || "localhost";
-          const port = hostConfig.port || 3000;
-          const mcpEndpoint = options.mcpEndpoint || "/mcp";
-
-          console.log(`MCP server initialized with ${transport} transport`);
-          console.log(
-            `MCP endpoint available at: ${protocol}://${host}:${port}${mcpEndpoint}`
-          );
         } catch (error) {
           console.error("Failed to initialize MCP server:", error);
         }
@@ -195,9 +180,6 @@ export function mcpPlugin(options: MCPPluginOptions = {}): Plugin {
     },
   };
 }
-
-// Export the MCPClient class for external use
-export { MCPClient };
 
 /**
  * Default export for convenience

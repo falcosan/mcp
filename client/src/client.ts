@@ -135,7 +135,7 @@ export class MCPClient {
         return { success: true, data: [] };
       }
 
-      const processedContent = content.reduce((acc: any, item: any) => {
+      const processedContent = content.reduce((_, item: any) => {
         const parse = TextContentSchema.safeParse(item);
         if (parse.success) {
           try {
