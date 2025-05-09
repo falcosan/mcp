@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MCPClient } from "./client";
+import { MCPClient } from "../../dist/client.js";
 import { ref, onMounted, onUnmounted } from "vue";
 
 const result = ref<any>(null);
@@ -56,7 +56,7 @@ onMounted(async () => {
   }
 });
 
-onUnmounted(() => client.value?.close());
+onUnmounted(client.value?.cleanup);
 </script>
 
 <template>

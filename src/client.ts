@@ -17,10 +17,7 @@ export class MCPClient {
     | null = null;
 
   constructor(serverName: string) {
-    this.client = new Client({
-      name: serverName,
-      version: "1.0.0",
-    });
+    this.client = new Client({ name: serverName, version: "1.0.0" });
   }
 
   public setOnToolsUpdatedCallback(
@@ -32,10 +29,8 @@ export class MCPClient {
   async connectToServer(serverUrl: string): Promise<void> {
     const url = new URL(serverUrl);
     try {
-      console.log(`Connecting to MCP server at ${serverUrl}...`);
       this.transport = new StreamableHTTPClientTransport(url);
       await this.client.connect(this.transport);
-      console.log("✅ Successfully connected to server");
 
       this.setUpTransport();
       this.setUpNotifications();
@@ -44,10 +39,8 @@ export class MCPClient {
     } catch (e) {
       this.tries++;
       if (this.tries > 5) {
-        console.error("❌ Failed to connect to MCP server: ", e);
         throw e;
       }
-      console.info(`⚠️ Retry attempt ${this.tries} to connect to server`);
       await new Promise((resolve) => setTimeout(resolve, this.tries * 1000));
       await this.connectToServer(serverUrl);
     }
@@ -55,11 +48,9 @@ export class MCPClient {
 
   async listTools(): Promise<void> {
     try {
-      console.log("📋 Fetching available tools...");
       const toolsResult = await this.client.listTools();
 
       if (!toolsResult) {
-        console.error("❌ Received null or undefined tools result");
         this.tools = [];
       } else if (toolsResult.tools && Array.isArray(toolsResult.tools)) {
         this.tools = toolsResult.tools.map((tool: any) => ({
@@ -67,24 +58,11 @@ export class MCPClient {
           description: tool.description ?? "",
         }));
       } else {
-        console.error("❌ Invalid tools response format:", toolsResult);
         this.tools = [];
       }
-
-      if (this.onToolsUpdatedCallback) {
-        this.onToolsUpdatedCallback([...this.tools]);
-      }
-
-      if (this.tools.length) {
-        console.log(`✅ Successfully loaded ${this.tools.length} tools`);
-      } else {
-        console.warn(
-          "⚠️ No tools were returned from the server or an error occurred."
-        );
-      }
     } catch (error) {
-      console.error(`❌ Error fetching tools: ${error}`);
       this.tools = [];
+    } finally {
       if (this.onToolsUpdatedCallback) {
         this.onToolsUpdatedCallback([...this.tools]);
       }
@@ -92,21 +70,14 @@ export class MCPClient {
   }
 
   private setUpNotifications(): void {
-    console.log("Setting up notification handlers...");
     this.client.setNotificationHandler(
       LoggingMessageNotificationSchema,
-      (notification) => {
-        console.log("📢 LoggingMessage received:", notification);
-      }
+      console.info
     );
     this.client.setNotificationHandler(
       ToolListChangedNotificationSchema,
-      async (notification) => {
-        console.log("🔄 ToolListChanged notification received:", notification);
-        await this.listTools();
-      }
+      this.listTools
     );
-    console.log("✅ Notification handlers set up");
   }
 
   async callTool(
@@ -118,9 +89,6 @@ export class MCPClient {
     error?: string;
   }> {
     try {
-      console.log(`\n🔧 Calling tool: ${name}`);
-      console.log("With arguments:", JSON.stringify(args, null, 2));
-
       const result = await this.client.callTool({ name, arguments: args });
 
       if (!result) {
@@ -157,26 +125,10 @@ export class MCPClient {
 
   private setUpTransport(): void {
     if (this.transport === null) return;
-    this.transport.onclose = () => {
-      console.log("🔌 Transport closed");
-    };
-    this.transport.onerror = async (error) => {
-      console.log("❌ Transport error:", error);
-      await this.cleanup();
-    };
+    this.transport.onerror = this.cleanup;
   }
 
   async cleanup(): Promise<void> {
-    console.log("Cleaning up resources...");
-    try {
-      await this.client.close();
-      console.log("✅ Client closed successfully");
-    } catch (error) {
-      console.error("❌ Error during cleanup:", error);
-    }
-  }
-
-  async close(): Promise<void> {
-    await this.cleanup();
+    await this.client.close();
   }
 }
