@@ -32,7 +32,7 @@ interface ServerConfig {
 /**
  * Return type for the initServer function
  */
-export interface ServerInstances {
+interface ServerInstances {
   mcpServer?: MCPServer;
   viteServer?: any;
 }
@@ -343,7 +343,7 @@ class MCPServer {
     }
 
     // Remove expired sessions
-    if (expiredIds.length > 0) {
+    if (expiredIds.length) {
       console.log(`Cleaning up ${expiredIds.length} expired sessions`);
 
       for (const sessionId of expiredIds) {
@@ -388,86 +388,12 @@ const initServerHTTPTransport = async (
 
   const server = new MCPServer(serverInstance, config);
 
-  const isPluginMode = process.env.VITE_MCP_PLUGIN_ID !== undefined;
   let vite: Awaited<ReturnType<typeof createViteServer>> | undefined;
 
-  if (!isPluginMode) {
-    vite = await createViteServer({
-      server: {
-        port: config.httpPort,
-        middlewareMode: true,
-      },
-    });
-
-    // Add CORS middleware
-    vite.middlewares.use((req, res, next) => {
-      res.setHeader("Access-Control-Allow-Origin", "*");
-      res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-      res.setHeader(
-        "Access-Control-Allow-Headers",
-        `Origin, X-Requested-With, Content-Type, Accept, ${server["SESSION_ID_HEADER_NAME"]}`
-      );
-
-      if (req.method === "OPTIONS") {
-        res.statusCode = 200;
-        res.end();
-        return;
-      }
-
-      next();
-    });
-
-    vite.middlewares.use(async (req, res, next) => {
-      const url = req.url || "/";
-
-      if (url.startsWith(config.mcpEndpoint)) {
-        if (req.method === "GET") {
-          await server.handleGetRequest(req, res);
-        } else if (req.method === "POST") {
-          let body = "";
-          req.on("data", (chunk) => {
-            body += chunk.toString();
-          });
-
-          req.on("end", async () => {
-            try {
-              const jsonBody = JSON.parse(body);
-              await server.handlePostRequest(req, res, jsonBody);
-            } catch (error) {
-              console.error("Error parsing request body:", error);
-              res.statusCode = 400;
-              res.end(JSON.stringify(createErrorResponse("Invalid JSON body")));
-            }
-          });
-        } else {
-          next();
-        }
-      } else {
-        next();
-      }
-    });
-
-    console.log(
-      "Meilisearch MCP Server is running on Vite HTTP transport (standalone mode):",
-      `http://localhost:${config.httpPort}${config.mcpEndpoint}`
-    );
-
-    // Handle server shutdown in standalone mode
-    process.on("SIGINT", async () => {
-      console.log("Received SIGINT signal");
-      server.shutdown();
-      if (vite) {
-        await vite.close();
-        console.log("Vite server closed");
-      }
-      process.exit(0);
-    });
-  } else {
-    console.log(
-      "Meilisearch MCP Server is running on Vite HTTP transport (plugin mode):",
-      `${config.mcpEndpoint}`
-    );
-  }
+  console.log(
+    "Meilisearch MCP Server is running on Vite HTTP transport (plugin mode):",
+    `${config.mcpEndpoint}`
+  );
 
   // Return both server instances for proper cleanup
   return { mcpServer: server, viteServer: vite };

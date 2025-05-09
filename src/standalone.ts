@@ -1,7 +1,6 @@
 import http from "node:http";
 import { createServer } from "node:http";
 import { initServer } from "./server.js";
-import { createRequire } from "node:module";
 import { parse as parseUrl } from "node:url";
 import { configHandler } from "./utils/config-handler.js";
 import { createErrorResponse } from "./utils/error-handler.js";
@@ -49,7 +48,7 @@ interface StandaloneServerOptions {
  * @param options Configuration options for the MCP server
  * @returns A promise that resolves to the HTTP server instance
  */
-export async function initStandaloneServer(
+export async function mcpStandalone(
   options: StandaloneServerOptions = {
     meilisearchApiKey: "",
     meilisearchHost: "http://localhost:7700",
@@ -182,7 +181,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     }
   }
 
-  initStandaloneServer(options)
+  mcpStandalone(options)
     .then(() => console.log("MCP server running"))
     .catch((err) => {
       console.error("Failed to start server:", err);
@@ -190,4 +189,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     });
 }
 
-export default initStandaloneServer;
+export default mcpStandalone;
