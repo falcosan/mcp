@@ -9,6 +9,18 @@ import { createErrorResponse } from "./utils/error-handler.js";
  */
 export interface MCPPluginOptions {
   /**
+   * The URL of the Meilisearch instance
+   * @required
+   * @example "http://localhost:7700"
+   */
+  meilisearchHost: string;
+
+  /**
+   * The API key for authenticating with Meilisearch
+   * @required
+   */
+  meilisearchApiKey: string;
+  /**
    * Transport type for MCP server ("http" | "stdio")
    * @default "http"
    */
@@ -37,18 +49,6 @@ export interface MCPPluginOptions {
    * @default 60000 (1 minute)
    */
   sessionCleanupInterval?: number;
-
-  /**
-   * The URL of the Meilisearch instance
-   * @default "http://localhost:7700"
-   */
-  meilisearchHost: string;
-
-  /**
-   * The API key for authenticating with Meilisearch
-   * @default ""
-   */
-  meilisearchApiKey: string;
 }
 
 /**
