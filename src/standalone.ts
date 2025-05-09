@@ -84,13 +84,12 @@ export async function mcpStandalone(
 
   await new Promise<void>((resolve) => {
     server.listen(httpPort, () => {
-      console.log(`Standalone MCP server listening on port ${httpPort}`);
+      console.log(`MCP server listening on port ${httpPort}`);
       resolve();
     });
   });
 
   try {
-    console.log("Initializing MCP server...");
     const serverInstances = await initServer(transport, options);
     mcpServerInstance = serverInstances.mcpServer;
     console.log("MCP server initialized successfully");

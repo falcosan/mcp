@@ -47,7 +47,7 @@ onMounted(async () => {
   mcp.setOnToolsUpdatedCallback((t) => (tools.value = t));
 
   try {
-    await mcp.connectToServer("http://localhost:8080/mcp");
+    await mcp.connectToServer("http://localhost:3000/mcp");
     client.value = mcp;
   } catch (e) {
     error.value = e instanceof Error ? e.message : String(e);

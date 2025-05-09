@@ -86,10 +86,9 @@ export function mcpPlugin(
         }
       });
 
-      // Start the MCP server when Vite server is ready
       server.httpServer?.on("listening", async () => {
         console.log(
-          `Vite server is ready, initializing MCP server with ${transport} transport`
+          `Meilisearch MCP Server is running on ${transport} transport`
         );
 
         try {

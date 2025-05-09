@@ -8,9 +8,6 @@ export default defineConfig(({ mode }) => {
     plugins: [
       vue(),
       mcpPlugin({
-        httpPort: 8080,
-        transport: "http",
-        mcpEndpoint: "/mcp",
         meilisearchHost: process.env.VITE_MEILISEARCH_HOST as string,
         meilisearchApiKey: process.env.VITE_MEILISEARCH_API_KEY as string,
       }),
