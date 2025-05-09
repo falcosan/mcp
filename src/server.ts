@@ -391,7 +391,7 @@ const initServerHTTPTransport = async (
   let vite: Awaited<ReturnType<typeof createViteServer>> | undefined;
 
   console.log(
-    "Meilisearch MCP Server is running on Vite HTTP transport (plugin mode):",
+    "Meilisearch MCP Server is running on HTTP transport:",
     `${config.mcpEndpoint}`
   );
 
