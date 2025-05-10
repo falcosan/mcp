@@ -6,8 +6,8 @@ export const mcpBuilderPlugin = (): Plugin => ({
   apply: "build",
   enforce: "post",
   closeBundle: {
-    sequential: true,
     order: "post",
+    sequential: true,
     handler: async () => {
       await build({
         logLevel: "info",
