@@ -1,62 +1,14 @@
 <script setup lang="ts">
-import { MCPClient } from "mcp-meilisearch/client";
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref } from "vue";
+import useMCPMeilisearch from "../composables/useMCPMeilisearch";
 
-const result = ref<any>(null);
 const searchQuery = ref<string>("");
-const error = ref<string | null>(null);
-const client = ref<MCPClient | null>(null);
-const loading = ref({ client: true, tool: false });
-const tools = ref<{ name: string; description: string }[]>([]);
+const { error, tools, result, client, loading, searchAcrossAllIndexes } =
+  useMCPMeilisearch();
 
-const callTool = async (name: string, params: Record<string, any> = {}) => {
-  if (!client.value) {
-    error.value = "Client not connected";
-    result.value = { success: false, error: error.value };
-    return;
-  }
-
-  loading.value.tool = true;
-  result.value = null;
-  error.value = null;
-
-  try {
-    result.value = await client.value.callTool(name, params);
-    if (!result.value.success) {
-      error.value = `Tool failed: ${result.value.error}`;
-    }
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    result.value = { success: false, error: msg };
-    error.value = `Error: ${msg}`;
-  } finally {
-    loading.value.tool = false;
-  }
+const handleSearch = () => {
+  searchAcrossAllIndexes(searchQuery.value);
 };
-
-const searchAcrossAllIndexes = async () => {
-  if (!searchQuery.value.trim()) {
-    error.value = "Search query cannot be empty";
-    return;
-  }
-  await callTool("search-across-all-indexes", { q: searchQuery.value });
-};
-
-onMounted(async () => {
-  const mcp = new MCPClient("meilisearch-vue-client");
-  mcp.setOnToolsUpdatedCallback((t) => (tools.value = t));
-
-  try {
-    await mcp.connectToServer("http://localhost:3000/mcp");
-    client.value = mcp;
-  } catch (e) {
-    error.value = e instanceof Error ? e.message : String(e);
-  } finally {
-    loading.value.client = false;
-  }
-});
-
-onUnmounted(client.value?.cleanup);
 </script>
 
 <template>
@@ -76,12 +28,12 @@ onUnmounted(client.value?.cleanup);
           type="text"
           placeholder="Search across all indexes"
           style="padding: 0.5em; width: 80%; margin-right: 10px"
-          @keyup.enter="searchAcrossAllIndexes"
+          @keyup.enter="handleSearch"
         />
         <button
           :disabled="loading.tool"
           style="padding: 0.5em"
-          @click="searchAcrossAllIndexes"
+          @click="handleSearch"
         >
           {{ loading.tool ? "Searching..." : "Search" }}
         </button>
