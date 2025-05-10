@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MCPClient } from "../../dist/client.js";
+import { MCPClient } from "mcp-meilisearch/client";
 import { ref, onMounted, onUnmounted } from "vue";
 
 const result = ref<any>(null);

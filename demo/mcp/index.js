@@ -1,4 +1,4 @@
-import { mcpMeilisearchServer } from "../../dist/index.js";
+import { mcpMeilisearchServer } from "mcp-meilisearch";
 
 mcpMeilisearchServer({
   httpPort: process.env.VITE_MCP_PORT,
