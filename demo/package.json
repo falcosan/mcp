@@ -15,7 +15,6 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.4",
-    "@vue/tsconfig": "^0.7.0",
-    "vite-plugin-builder": "^1.0.0"
+    "@vue/tsconfig": "^0.7.0"
   }
 }
