@@ -110,7 +110,7 @@ The package also exports the MCPClient class for client-side integration:
 import { MCPClient } from "mcp-meilisearch/client";
 
 const client = new MCPClient("mcp-meilisearch-client");
-await client.connectToServer("http://localhost:3000/mcp");
+await client.connectToServer("http://localhost:4995/mcp");
 
 // Call a tool
 const result = await client.callTool("search-across-all-indexes", {
