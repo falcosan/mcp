@@ -7,6 +7,7 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 
 export class MCPClient {
+  isConnected: boolean = false;
   tools: { name: string; description: string }[] = [];
 
   private client: Client;
@@ -36,9 +37,11 @@ export class MCPClient {
       this.setUpNotifications();
 
       await this.listTools();
+      this.isConnected = true;
     } catch (e) {
       this.tries++;
       if (this.tries > 5) {
+        this.isConnected = false;
         throw e;
       }
       await new Promise((resolve) => setTimeout(resolve, this.tries * 1000));
@@ -124,11 +127,12 @@ export class MCPClient {
   }
 
   private setUpTransport(): void {
-    if (this.transport === null) return;
+    if (this.transport == null) return;
     this.transport.onerror = this.cleanup;
   }
 
   async cleanup(): Promise<void> {
     await this.client.close();
+    this.isConnected = false;
   }
 }
