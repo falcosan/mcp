@@ -21,16 +21,16 @@ export async function mcpMeilisearchServer(
   configHandler.setMeilisearchApiKey(options.meilisearchApiKey);
 
   let mcpServerInstance: any = null;
-
   const httpPort = options.httpPort || 4995;
   const transport = options.transport || "http";
   const mcpEndpoint = options.mcpEndpoint || "/mcp";
+
   const server = createServer(async (req, res) => {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
     res.setHeader(
       "Access-Control-Allow-Headers",
-      `Origin, X-Requested-With, Content-Type, Accept, mcp-session-id`
+      "Origin, X-Requested-With, Content-Type, Accept, mcp-session-id"
     );
 
     if (req.method === "OPTIONS") {
@@ -42,44 +42,46 @@ export async function mcpMeilisearchServer(
     const parsedUrl = parseUrl(req.url || "/", true);
     const pathname = parsedUrl.pathname || "/";
 
-    if (pathname.startsWith(mcpEndpoint)) {
-      if (!mcpServerInstance) {
-        console.error("MCP server not initialized yet");
-        res.statusCode = 503;
-        res.setHeader("Content-Type", "application/json");
-        res.end(
-          JSON.stringify(createErrorResponse("MCP server not initialized yet"))
-        );
-        return;
-      }
-
-      if (req.method === "GET") {
-        await mcpServerInstance.handleGetRequest(req, res);
-      } else if (req.method === "POST") {
-        let body = "";
-
-        req.on("data", (chunk) => {
-          body += chunk.toString();
-        });
-
-        req.on("end", async () => {
-          try {
-            const jsonBody = JSON.parse(body);
-            await mcpServerInstance.handlePostRequest(req, res, jsonBody);
-          } catch (error) {
-            console.error("Error parsing request body:", error);
-            res.statusCode = 400;
-            res.end(JSON.stringify(createErrorResponse("Invalid JSON body")));
-          }
-        });
-      } else {
-        res.statusCode = 405;
-        res.end(JSON.stringify(createErrorResponse("Method not allowed")));
-      }
-    } else {
+    if (!pathname.startsWith(mcpEndpoint)) {
       res.statusCode = 404;
       res.end(JSON.stringify({ error: "Not found" }));
+      return;
     }
+
+    if (!mcpServerInstance) {
+      console.error("MCP server not initialized yet");
+      res.statusCode = 503;
+      res.setHeader("Content-Type", "application/json");
+      res.end(
+        JSON.stringify(createErrorResponse("MCP server not initialized yet"))
+      );
+      return;
+    }
+
+    if (req.method === "GET") {
+      await mcpServerInstance.handleGetRequest(req, res);
+      return;
+    }
+
+    if (req.method === "POST") {
+      let body = "";
+      req.on("data", (chunk) => {
+        body += chunk.toString();
+      });
+      req.on("end", async () => {
+        try {
+          const jsonBody = JSON.parse(body);
+          await mcpServerInstance.handlePostRequest(req, res, jsonBody);
+        } catch {
+          res.statusCode = 400;
+          res.end(JSON.stringify(createErrorResponse("Invalid JSON body")));
+        }
+      });
+      return;
+    }
+
+    res.statusCode = 405;
+    res.end(JSON.stringify(createErrorResponse("Method not allowed")));
   });
 
   await new Promise<void>((resolve) => {
@@ -123,11 +125,9 @@ if (import.meta.url === `file://${process.argv?.[1]}`) {
     meilisearchHost: "http://localhost:7700",
     meilisearchApiKey: "",
   };
-
   for (let i = 0; i < args.length; i += 2) {
     const key = args[i].replace("--", "");
     const value = args[i + 1];
-
     switch (key) {
       case "port":
         options.httpPort = parseInt(value, 10);
@@ -143,7 +143,6 @@ if (import.meta.url === `file://${process.argv?.[1]}`) {
         break;
     }
   }
-
   mcpMeilisearchServer(options)
     .then(() => console.log("MCP server running"))
     .catch((err) => {
