@@ -1,9 +1,9 @@
 import { IncomingMessage } from "http";
 import { randomUUID } from "node:crypto";
-import { initServer } from "./server.js";
-import type { ServerOptions } from "./types/options.js";
-import { configHandler } from "./utils/config-handler.js";
-import { createErrorResponse } from "./utils/error-handler.js";
+import { initServer } from "../server.js";
+import type { ServerOptions } from "../types/options.js";
+import { configHandler } from "../utils/config-handler.js";
+import { createErrorResponse } from "../utils/error-handler.js";
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
 
 const SESSION_ID_HEADER_NAME = "mcp-session-id";

@@ -4,24 +4,24 @@ TARGET_DIR=${1:-.}
 
 mkdir -p "$TARGET_DIR/api/mcp"
 
-cp "$(dirname "$0")/../template/host.json" "$TARGET_DIR/api/host.json"
-cp "$(dirname "$0")/../template/function.json" "$TARGET_DIR/api/mcp/function.json"
-cp "$(dirname "$0")/../template/local.settings.json" "$TARGET_DIR/api/local.settings.json"
+cp "$(dirname "$0")/template/host.json" "$TARGET_DIR/api/host.json"
+cp "$(dirname "$0")/template/function.json" "$TARGET_DIR/api/mcp/function.json"
+cp "$(dirname "$0")/template/local.settings.json" "$TARGET_DIR/api/local.settings.json"
 
-if [ -d "$(dirname "$0")/../dist" ]; then
-  SOURCE_DIR="$(dirname "$0")/../dist"
-elif [ -d "node_modules/mcp-meilisearch/dist" ]; then
-  SOURCE_DIR="node_modules/mcp-meilisearch/dist"
+if [ -d "$TARGET_DIR/dist" ]; then
+  SOURCE_DIR="$TARGET_DIR/dist"
+elif [ -d "$TARGET_DIR/node_modules/mcp-meilisearch/dist" ]; then
+  SOURCE_DIR="$TARGET_DIR/node_modules/mcp-meilisearch/dist"
 else
   echo "Error: Could not find the dist directory. Run this script from your project root or the package directory."
   exit 1
 fi
 
-cp "$SOURCE_DIR/azure.js" "$TARGET_DIR/api/"
-cp "$SOURCE_DIR/server.js" "$TARGET_DIR/api/"
+cp -r "$SOURCE_DIR/azure" "$TARGET_DIR/api/"
 cp -r "$SOURCE_DIR/utils" "$TARGET_DIR/api/"
 cp -r "$SOURCE_DIR/types" "$TARGET_DIR/api/"
 cp -r "$SOURCE_DIR/tools" "$TARGET_DIR/api/"
+cp "$SOURCE_DIR/server.js" "$TARGET_DIR/api/"
 
 cat > "$TARGET_DIR/api/package.json" << EOF
 {
@@ -38,4 +38,4 @@ cat > "$TARGET_DIR/api/package.json" << EOF
 }
 EOF
 
-echo "Your MCP API will be available at: https://your-static-web-app-url/api/mcp"
+echo "Your MCP API will be available at: https://YOUR-STATIC-WEB-APP-URL/api/mcp"

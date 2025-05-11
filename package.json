@@ -5,6 +5,26 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
+  "workspaces": [
+    "demo"
+  ],
+  "scripts": {
+    "build": "tsc && tsc --project tsconfig.types.json",
+    "server": "npm run build && node --env-file=.env dist",
+    "demo": "npm run build & npm run dev --workspace=demo",
+    "prepublishOnly": "npm version patch && npm run build",
+    "azure": "npm run build && bash src/azure/0.sh && bash src/azure/1.sh"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.10.1",
+    "axios": "^1.9.0",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@azure/functions": "^3.5.1",
+    "@types/node": "^22.14.0",
+    "typescript": "^5.8.3"
+  },
   "files": [
     "dist",
     "scripts",
@@ -21,29 +41,9 @@
       "types": "./dist/client.d.ts"
     },
     "./azure": {
-      "import": "./dist/azure.js",
-      "types": "./dist/azure.d.ts"
+      "import": "./dist/azure/index.js",
+      "types": "./dist/azure/azure.d.ts"
     }
-  },
-  "workspaces": [
-    "demo"
-  ],
-  "scripts": {
-    "build": "tsc && tsc --project tsconfig.types.json",
-    "server": "npm run build && node --env-file=.env dist",
-    "demo": "npm run build & npm run dev --workspace=demo",
-    "prepublishOnly": "npm version patch && npm run build",
-    "azure": "npm run build && bash ./scripts/azure_create.sh && bash scripts/azure_run.sh"
-  },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.10.1",
-    "axios": "^1.9.0",
-    "zod": "^3.24.4"
-  },
-  "devDependencies": {
-    "@azure/functions": "^3.5.1",
-    "@types/node": "^22.14.0",
-    "typescript": "^5.8.3"
   },
   "engines": {
     "node": ">=20.12.2",

@@ -14,5 +14,5 @@
       "name": "res"
     }
   ],
-  "scriptFile": "../azure.js"
+  "scriptFile": "../azure/index.js"
 }

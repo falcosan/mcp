@@ -11,9 +11,8 @@ API_DIR="$(realpath "$TARGET_DIR/api" 2>/dev/null || readlink -f "$TARGET_DIR/ap
 
 if [ ! -d "$API_DIR" ]; then
   echo "Error: API directory not found at $API_DIR"
-  echo "Run the create-function.sh script first to set up the Azure Function."
+  echo "Run the 0.sh script first to set up the Azure Function."
   exit 1
 fi
 
-echo "Starting Azure Functions Core Tools in $API_DIR"
 cd "$API_DIR" && func start
