@@ -7,6 +7,8 @@
   "type": "module",
   "files": [
     "dist",
+    "scripts",
+    "template",
     "README.md"
   ],
   "exports": {
@@ -17,6 +19,10 @@
     "./client": {
       "import": "./dist/client.js",
       "types": "./dist/client.d.ts"
+    },
+    "./azure": {
+      "import": "./dist/azure.js",
+      "types": "./dist/azure.d.ts"
     }
   },
   "workspaces": [
@@ -26,7 +32,9 @@
     "build": "tsc && tsc --project tsconfig.types.json",
     "server": "npm run build && node --env-file=.env dist",
     "demo": "npm run build & npm run dev --workspace=demo",
-    "prepublishOnly": "npm version patch && npm run build"
+    "prepublishOnly": "npm version patch && npm run build",
+    "azure": "npm run build && bash ./scripts/create-function.sh && node scripts/run-function.js",
+    "update-api": "npm run build && cp dist/azure.js api/ && cp dist/azure.js api/"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.1",
@@ -34,6 +42,7 @@
     "zod": "^3.24.4"
   },
   "devDependencies": {
+    "@azure/functions": "^3.5.1",
     "@types/node": "^22.14.0",
     "typescript": "^5.8.3"
   },

@@ -264,7 +264,7 @@ class MCPServer {
   /**
    * Checks if the request body represents an initialize request
    */
-  private isInitializeRequest(body: any): boolean {
+  isInitializeRequest(body: any): boolean {
     const isInitial = (data: any) => {
       const result = InitializeRequestSchema.safeParse(data);
       return result.success;

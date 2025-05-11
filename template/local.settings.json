@@ -1,0 +1,11 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "MEILISEARCH_HOST": "https://babilonia.penumbracosmica.earth/",
+    "MEILISEARCH_API_KEY": "b42f7058-e00a-4c2b-9d03-7b0b68f694e5",
+    "ALLOWED_ORIGINS": "*",
+    "SESSION_TIMEOUT": "3600000"
+  }
+}
