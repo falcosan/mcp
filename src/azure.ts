@@ -20,6 +20,67 @@ const SESSION_TIMEOUT = Number(process.env.SESSION_TIMEOUT) || 3600000;
 /**
  * Azure Function handler for MCP server requests
  */
+function createResponseObject(
+  context: Context,
+  additionalHeaders: Record<string, string> = {}
+) {
+  const baseHeaders = {
+    "Access-Control-Allow-Origin": process.env.ALLOWED_ORIGINS || "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+    "Access-Control-Allow-Headers":
+      "Origin, X-Requested-With, Content-Type, Accept, mcp-session-id",
+    ...additionalHeaders,
+  };
+
+  return {
+    headers: new Map(),
+    statusCode: 200,
+    bodyChunks: [] as string[],
+
+    setHeader(name: string, value: string) {
+      this.headers.set(name, value);
+      return this;
+    },
+
+    writeHead(
+      statusCode: number,
+      headersObj?: Record<string, string> | string[]
+    ) {
+      this.statusCode = statusCode;
+      if (headersObj && !Array.isArray(headersObj)) {
+        Object.entries(headersObj).forEach(([key, value]) => {
+          this.headers.set(key, value);
+        });
+      }
+      return this;
+    },
+
+    write(chunk: string) {
+      if (chunk) this.bodyChunks.push(chunk);
+      return this;
+    },
+
+    end(data?: string) {
+      if (data) this.bodyChunks.push(data);
+
+      const responseHeaders: Record<string, string> = {};
+      this.headers.forEach((value, key) => {
+        responseHeaders[key] = value;
+      });
+
+      context.res = {
+        status: this.statusCode,
+        headers: {
+          ...responseHeaders,
+          ...baseHeaders,
+        },
+        body: this.bodyChunks.join(""),
+      };
+      return this;
+    },
+  };
+}
+
 const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
@@ -29,7 +90,7 @@ const httpTrigger: AzureFunction = async function (
       const options: ServerOptions = {
         httpPort: 0,
         transport: "http",
-        mcpEndpoint: "/mcp",
+        mcpEndpoint: "/api/mcp",
         meilisearchApiKey: process.env.MEILISEARCH_API_KEY || "",
         meilisearchHost:
           process.env.MEILISEARCH_HOST || "http://localhost:7700",
@@ -47,6 +108,7 @@ const httpTrigger: AzureFunction = async function (
         status: 503,
         headers: {
           "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": process.env.ALLOWED_ORIGINS || "*",
         },
         body: JSON.stringify(
           createErrorResponse("Failed to initialize MCP server")
@@ -56,7 +118,7 @@ const httpTrigger: AzureFunction = async function (
     }
   }
 
-  const headers = {
+  const baseHeaders = {
     "Access-Control-Allow-Origin": process.env.ALLOWED_ORIGINS || "*",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers":
@@ -66,7 +128,7 @@ const httpTrigger: AzureFunction = async function (
   if (req.method === "OPTIONS") {
     context.res = {
       status: 200,
-      headers,
+      headers: baseHeaders,
       body: "",
     };
     return;
@@ -81,7 +143,7 @@ const httpTrigger: AzureFunction = async function (
           status: 400,
           headers: {
             "Content-Type": "application/json",
-            ...headers,
+            ...baseHeaders,
           },
           body: JSON.stringify(
             createErrorResponse("Bad Request: invalid session ID")
@@ -97,51 +159,18 @@ const httpTrigger: AzureFunction = async function (
 
       sessionInfo.lastActivity = Date.now();
 
-      const res = {
-        headers: new Map(),
-        statusCode: 200,
-        setHeader: (name: string, value: string) => {
-          res.headers.set(name, value);
-        },
-        writeHead: (
-          statusCode: number,
-          headers?: Record<string, string> | string[]
-        ) => {
-          res.statusCode = statusCode;
-          if (headers && !Array.isArray(headers)) {
-            Object.entries(headers).forEach(([key, value]) => {
-              res.headers.set(key, value);
-            });
-          }
-        },
-        write: (chunk: string) => {
-          // In Azure Functions, we collect everything in end()
-          // This is a no-op as we'll handle all the response in end()
-        },
-        end: (data: string) => {
-          const responseHeaders: Record<string, string> = {};
-          res.headers.forEach((value, key) => {
-            responseHeaders[key] = value;
-          });
-
-          context.res = {
-            status: res.statusCode,
-            headers: {
-              ...responseHeaders,
-              ...headers,
-            },
-            body: data,
-          };
-        },
-      };
-
       try {
+        const res = createResponseObject(context);
+
         await mcpServerInstance.handleGetRequest(
           { ...req, headers: req.headers },
           res
         );
 
-        // If we haven't stored the transport yet, try to get it from mcpServerInstance
+        if (!context.res) {
+          res.end();
+        }
+
         if (
           !sessionInfo.transport &&
           mcpServerInstance.sessions?.has?.(sessionId)
@@ -160,7 +189,7 @@ const httpTrigger: AzureFunction = async function (
           status: 500,
           headers: {
             "Content-Type": "application/json",
-            ...headers,
+            ...baseHeaders,
           },
           body: JSON.stringify(
             createErrorResponse(`Error in GET request: ${error}`)
@@ -179,131 +208,86 @@ const httpTrigger: AzureFunction = async function (
 
         sessionInfo.lastActivity = Date.now();
 
-        const res = {
-          headers: new Map(),
-          statusCode: 200,
-          setHeader: (name: string, value: string) => {
-            res.headers.set(name, value);
-          },
-          writeHead: (
-            statusCode: number,
-            headers?: Record<string, string> | string[]
-          ) => {
-            res.statusCode = statusCode;
-            if (headers && !Array.isArray(headers)) {
-              Object.entries(headers).forEach(([key, value]) => {
-                res.headers.set(key, value);
-              });
-            }
-          },
-          write: (chunk: string) => {
-            // In Azure Functions, we collect everything in end()
-            // This is a no-op as we'll handle all the response in end()
-          },
-          end: (data: string) => {
-            const responseHeaders: Record<string, string> = {};
-            res.headers.forEach((value, key) => {
-              responseHeaders[key] = value;
-            });
+        try {
+          const res = createResponseObject(context);
 
-            context.res = {
-              status: res.statusCode,
-              headers: {
-                ...responseHeaders,
-                ...headers,
-              },
-              body: data,
-            };
-          },
-        };
+          await mcpServerInstance.handlePostRequest(
+            { ...req, headers: req.headers },
+            res,
+            req.body
+          );
 
-        await mcpServerInstance.handlePostRequest(
-          { ...req, headers: req.headers },
-          res,
-          req.body
-        );
+          if (!context.res) {
+            res.end();
+          }
+        } catch (error) {
+          context.log.error(
+            `Error handling POST request for session ${sessionId}:`,
+            error
+          );
+          context.res = {
+            status: 500,
+            headers: {
+              "Content-Type": "application/json",
+              ...baseHeaders,
+            },
+            body: JSON.stringify(
+              createErrorResponse(`Error in POST request: ${error}`)
+            ),
+          };
+        }
         return;
       }
 
       if (mcpServerInstance.isInitializeRequest?.(req.body)) {
         const newSessionId = randomUUID();
 
-        const res = {
-          headers: new Map(),
-          statusCode: 200,
-          setHeader: (name: string, value: string) => {
-            res.headers.set(name, value);
-          },
-          writeHead: (
-            statusCode: number,
-            headers?: Record<string, string> | string[]
-          ) => {
-            res.statusCode = statusCode;
-            if (headers && !Array.isArray(headers)) {
-              Object.entries(headers).forEach(([key, value]) => {
-                res.headers.set(key, value);
-              });
-            }
-          },
-          write: (chunk: string) => {
-            // In Azure Functions, we collect everything in end()
-            // This is a no-op as we'll handle all the response in end()
-          },
-          end: (data: string) => {
-            const responseHeaders: Record<string, string> = {};
-            res.headers.forEach((value, key) => {
-              responseHeaders[key] = value;
-            });
-
-            context.res = {
-              status: res.statusCode,
-              headers: {
-                ...responseHeaders,
-                [SESSION_ID_HEADER_NAME]: newSessionId,
-                "Access-Control-Expose-Headers": SESSION_ID_HEADER_NAME,
-                ...headers,
-              },
-              body: data,
-            };
-          },
-        };
+        sessions.set(newSessionId, {
+          transport: null,
+          lastActivity: Date.now(),
+        });
 
         try {
+          const res = createResponseObject(context, {
+            [SESSION_ID_HEADER_NAME]: newSessionId,
+            "Access-Control-Expose-Headers": SESSION_ID_HEADER_NAME,
+          });
+
           await mcpServerInstance.handleInitializeRequest(
             { ...req, headers: req.headers },
             res,
             req.body
           );
 
-          // Store the new session
-          sessions.set(newSessionId, {
-            transport: null, // We'll update this on the first GET request
-            lastActivity: Date.now(),
-          });
+          if (!context.res) {
+            res.end();
+          }
 
           context.log(`New session created: ${newSessionId}`);
-          return;
         } catch (error) {
           context.log.error("Error handling initialize request:", error);
+
+          sessions.delete(newSessionId);
+
           context.res = {
             status: 500,
             headers: {
               "Content-Type": "application/json",
-              ...headers,
+              ...baseHeaders,
             },
             body: JSON.stringify(
               createErrorResponse(`Error initializing session: ${error}`)
             ),
           };
-          return;
         }
+        return;
       }
 
       context.res = {
         status: 400,
         headers: {
           "Content-Type": "application/json",
-          ...headers,
+          ...baseHeaders,
         },
         body: JSON.stringify(
           createErrorResponse(
@@ -318,7 +302,7 @@ const httpTrigger: AzureFunction = async function (
       status: 405,
       headers: {
         "Content-Type": "application/json",
-        ...headers,
+        ...baseHeaders,
       },
       body: JSON.stringify(createErrorResponse("Method not allowed")),
     };
@@ -328,7 +312,7 @@ const httpTrigger: AzureFunction = async function (
       status: 500,
       headers: {
         "Content-Type": "application/json",
-        ...headers,
+        ...baseHeaders,
       },
       body: JSON.stringify(
         createErrorResponse(`Internal server error: ${error}`)
