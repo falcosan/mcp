@@ -33,8 +33,7 @@
     "server": "npm run build && node --env-file=.env dist",
     "demo": "npm run build & npm run dev --workspace=demo",
     "prepublishOnly": "npm version patch && npm run build",
-    "azure": "npm run build && bash ./scripts/create-function.sh && node scripts/run-function.js",
-    "update-api": "npm run build && cp dist/azure.js api/ && cp dist/azure.js api/"
+    "azure": "npm run build && bash ./scripts/azure_create.sh && bash scripts/azure_run.sh"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.1",
