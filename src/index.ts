@@ -7,7 +7,7 @@ import { configHandler } from "./utils/config-handler.js";
 import { createErrorResponse } from "./utils/error-handler.js";
 
 /**
- * Start a standalone MCP server
+ * Start a MCP server
  * @param options Configuration options for the MCP server
  * @returns A promise that resolves to the HTTP server instance
  */
@@ -117,7 +117,7 @@ export async function mcpMeilisearchServer(
   return server;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (import.meta.url === `file://${process.argv?.[1]}`) {
   const args = process.argv.slice(2);
   const options: ServerOptions = {
     meilisearchHost: "http://localhost:7700",
