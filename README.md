@@ -94,7 +94,7 @@ This project uses:
 #### MCP Server Options
 
 - `transport`: Transport type for MCP server ("http" | "stdio") (Default: "http")
-- `httpPort`: HTTP port for MCP server (Default: 8080)
+- `httpPort`: HTTP port for MCP server (Default: 4995)
 - `mcpEndpoint`: MCP endpoint path (Default: "/mcp")
 
 #### Session Options

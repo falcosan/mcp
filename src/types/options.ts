@@ -19,7 +19,7 @@ export interface ServerOptions {
 
   /**
    * HTTP port for MCP server
-   * @default 8080
+   * @default 4995
    */
   httpPort?: number;
 

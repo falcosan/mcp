@@ -37,7 +37,7 @@ interface ServerInstances {
 }
 
 const DEFAULT_CONFIG: ServerConfig = {
-  httpPort: 8080,
+  httpPort: 4995,
   mcpEndpoint: "/mcp",
   sessionTimeout: 3600000,
   sessionCleanupInterval: 60000,

@@ -22,7 +22,7 @@ export async function mcpMeilisearchServer(
 
   let mcpServerInstance: any = null;
 
-  const httpPort = options.httpPort || 8080;
+  const httpPort = options.httpPort || 4995;
   const transport = options.transport || "http";
   const mcpEndpoint = options.mcpEndpoint || "/mcp";
   const server = createServer(async (req, res) => {
