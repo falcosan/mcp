@@ -132,6 +132,7 @@ export class MCPClient {
   }
 
   async cleanup(): Promise<void> {
+    if (this.client == null) return;
     await this.client.close();
     this.isConnected = false;
   }
