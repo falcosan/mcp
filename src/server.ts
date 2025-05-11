@@ -31,9 +31,8 @@ interface ServerConfig {
 /**
  * Return type for the initServer function
  */
-interface ServerInstances {
+interface ServerInstance {
   mcpServer?: MCPServer;
-  viteServer?: any;
 }
 
 const DEFAULT_CONFIG: ServerConfig = {
@@ -425,7 +424,7 @@ const initServerStdioTransport = async () => {
 export const initServer = async (
   transport: "stdio" | "http",
   config?: Partial<ServerConfig>
-): Promise<ServerInstances> => {
+): Promise<ServerInstance> => {
   try {
     switch (transport) {
       case "stdio":

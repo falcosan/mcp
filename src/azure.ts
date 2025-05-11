@@ -1,38 +1,45 @@
+import { IncomingMessage } from "http";
 import { randomUUID } from "node:crypto";
 import { initServer } from "./server.js";
-import { configHandler } from "./utils/config-handler.js";
 import type { ServerOptions } from "./types/options.js";
+import { configHandler } from "./utils/config-handler.js";
 import { createErrorResponse } from "./utils/error-handler.js";
 import { AzureFunction, Context, HttpRequest } from "@azure/functions";
-
-let mcpServerInstance: any = null;
-const sessions = new Map<
-  string,
-  {
-    transport: any;
-    lastActivity: number;
-  }
->();
 
 const SESSION_ID_HEADER_NAME = "mcp-session-id";
 const SESSION_TIMEOUT = Number(process.env.SESSION_TIMEOUT) || 3600000;
 
-/**
- * Azure Function handler for MCP server requests
- */
-function createResponseObject(
-  context: Context,
-  additionalHeaders: Record<string, string> = {}
-) {
-  const baseHeaders = {
-    "Access-Control-Allow-Origin": process.env.ALLOWED_ORIGINS || "*",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers":
-      "Origin, X-Requested-With, Content-Type, Accept, mcp-session-id",
-    ...additionalHeaders,
-  };
+interface MCPServerAdapter {
+  handleGetRequest(req: IncomingMessage, res: any): Promise<void>;
+  handlePostRequest(req: IncomingMessage, res: any, body: any): Promise<void>;
+  isInitializeRequest(body: any): boolean;
+  shutdown(): void;
+}
 
-  return {
+let mcpServer: MCPServerAdapter | null = null;
+const sessions = new Map<string, { transport: any; lastActivity: number }>();
+
+const baseHeaders = {
+  "Access-Control-Allow-Origin": process.env.ALLOWED_ORIGINS || "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": `Origin, X-Requested-With, Content-Type, Accept, ${SESSION_ID_HEADER_NAME}`,
+};
+
+function adaptRequest(req: HttpRequest): IncomingMessage {
+  const adaptedReq = Object.create(
+    IncomingMessage.prototype
+  ) as IncomingMessage;
+  adaptedReq.headers = req.headers as any;
+  adaptedReq.method = req.method as string | undefined;
+  adaptedReq.url = req.url;
+
+  (adaptedReq as any).body = req.body;
+
+  return adaptedReq;
+}
+
+function createResponseAdapter(context: Context, extraHeaders = {}) {
+  const res = {
     headers: new Map(),
     statusCode: 200,
     bodyChunks: [] as string[],
@@ -42,15 +49,10 @@ function createResponseObject(
       return this;
     },
 
-    writeHead(
-      statusCode: number,
-      headersObj?: Record<string, string> | string[]
-    ) {
+    writeHead(statusCode: number, headers?: Record<string, string> | string[]) {
       this.statusCode = statusCode;
-      if (headersObj && !Array.isArray(headersObj)) {
-        Object.entries(headersObj).forEach(([key, value]) => {
-          this.headers.set(key, value);
-        });
+      if (headers && !Array.isArray(headers)) {
+        Object.entries(headers).forEach(([k, v]) => this.headers.set(k, v));
       }
       return this;
     },
@@ -70,14 +72,21 @@ function createResponseObject(
 
       context.res = {
         status: this.statusCode,
-        headers: {
-          ...responseHeaders,
-          ...baseHeaders,
-        },
+        headers: { ...responseHeaders, ...baseHeaders, ...extraHeaders },
         body: this.bodyChunks.join(""),
       };
       return this;
     },
+  };
+
+  return res;
+}
+
+function sendError(context: Context, status: number, message: string) {
+  context.res = {
+    status,
+    headers: { "Content-Type": "application/json", ...baseHeaders },
+    body: JSON.stringify(createErrorResponse(message)),
   };
 }
 
@@ -85,7 +94,7 @@ const httpTrigger: AzureFunction = async function (
   context: Context,
   req: HttpRequest
 ): Promise<void> {
-  if (!mcpServerInstance) {
+  if (!mcpServer) {
     try {
       const options: ServerOptions = {
         httpPort: 0,
@@ -99,38 +108,21 @@ const httpTrigger: AzureFunction = async function (
       configHandler.setMeilisearchHost(options.meilisearchHost);
       configHandler.setMeilisearchApiKey(options.meilisearchApiKey);
 
-      const serverInstances = await initServer("http", options);
-      mcpServerInstance = serverInstances.mcpServer;
-      context.log("MCP server initialized successfully");
+      const server = await initServer("http", options);
+      if (server.mcpServer) {
+        mcpServer = server.mcpServer;
+        context.log("MCP server initialized successfully");
+      } else {
+        throw new Error("Failed to initialize MCP server");
+      }
     } catch (error) {
-      context.log.error("Failed to initialize MCP server:", error);
-      context.res = {
-        status: 503,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": process.env.ALLOWED_ORIGINS || "*",
-        },
-        body: JSON.stringify(
-          createErrorResponse("Failed to initialize MCP server")
-        ),
-      };
+      sendError(context, 503, "Failed to initialize MCP server");
       return;
     }
   }
 
-  const baseHeaders = {
-    "Access-Control-Allow-Origin": process.env.ALLOWED_ORIGINS || "*",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers":
-      "Origin, X-Requested-With, Content-Type, Accept, mcp-session-id",
-  };
-
   if (req.method === "OPTIONS") {
-    context.res = {
-      status: 200,
-      headers: baseHeaders,
-      body: "",
-    };
+    context.res = { status: 200, headers: baseHeaders, body: "" };
     return;
   }
 
@@ -139,207 +131,90 @@ const httpTrigger: AzureFunction = async function (
   try {
     if (req.method === "GET") {
       if (!sessionId || !sessions.has(sessionId)) {
-        context.res = {
-          status: 400,
-          headers: {
-            "Content-Type": "application/json",
-            ...baseHeaders,
-          },
-          body: JSON.stringify(
-            createErrorResponse("Bad Request: invalid session ID")
-          ),
-        };
+        sendError(context, 400, "Bad Request: invalid session ID");
         return;
       }
 
-      const sessionInfo = sessions.get(sessionId);
-      if (!sessionInfo) {
-        throw new Error("Session info not found");
-      }
-
-      sessionInfo.lastActivity = Date.now();
+      const session = sessions.get(sessionId)!;
+      session.lastActivity = Date.now();
 
       try {
-        const res = createResponseObject(context);
-
-        await mcpServerInstance.handleGetRequest(
-          { ...req, headers: req.headers },
-          res
-        );
-
-        if (!context.res) {
-          res.end();
-        }
-
-        if (
-          !sessionInfo.transport &&
-          mcpServerInstance.sessions?.has?.(sessionId)
-        ) {
-          const mcpSession = mcpServerInstance.sessions.get(sessionId);
-          if (mcpSession?.transport) {
-            sessionInfo.transport = mcpSession.transport;
-          }
-        }
+        const res = createResponseAdapter(context);
+        await mcpServer.handleGetRequest(adaptRequest(req), res);
+        if (!context.res) res.end();
       } catch (error) {
-        context.log.error(
-          `Error handling GET request for session ${sessionId}:`,
-          error
-        );
-        context.res = {
-          status: 500,
-          headers: {
-            "Content-Type": "application/json",
-            ...baseHeaders,
-          },
-          body: JSON.stringify(
-            createErrorResponse(`Error in GET request: ${error}`)
-          ),
-        };
+        context.log.error(`Error handling GET request: ${error}`);
+        sendError(context, 500, `Error in GET request: ${error}`);
       }
       return;
     }
 
     if (req.method === "POST") {
       if (sessionId && sessions.has(sessionId)) {
-        const sessionInfo = sessions.get(sessionId);
-        if (!sessionInfo) {
-          throw new Error("Session info not found");
-        }
-
-        sessionInfo.lastActivity = Date.now();
+        const session = sessions.get(sessionId)!;
+        session.lastActivity = Date.now();
 
         try {
-          const res = createResponseObject(context);
-
-          await mcpServerInstance.handlePostRequest(
-            { ...req, headers: req.headers },
-            res,
-            req.body
-          );
-
-          if (!context.res) {
-            res.end();
-          }
+          const res = createResponseAdapter(context);
+          await mcpServer.handlePostRequest(adaptRequest(req), res, req.body);
+          if (!context.res) res.end();
         } catch (error) {
-          context.log.error(
-            `Error handling POST request for session ${sessionId}:`,
-            error
-          );
-          context.res = {
-            status: 500,
-            headers: {
-              "Content-Type": "application/json",
-              ...baseHeaders,
-            },
-            body: JSON.stringify(
-              createErrorResponse(`Error in POST request: ${error}`)
-            ),
-          };
+          context.log.error(`Error handling POST request: ${error}`);
+          sendError(context, 500, `Error in POST request: ${error}`);
         }
         return;
       }
 
-      if (mcpServerInstance.isInitializeRequest?.(req.body)) {
+      if (mcpServer.isInitializeRequest?.(req.body)) {
         const newSessionId = randomUUID();
-
         sessions.set(newSessionId, {
           transport: null,
           lastActivity: Date.now(),
         });
 
         try {
-          const res = createResponseObject(context, {
+          const res = createResponseAdapter(context, {
             [SESSION_ID_HEADER_NAME]: newSessionId,
             "Access-Control-Expose-Headers": SESSION_ID_HEADER_NAME,
           });
 
-          await mcpServerInstance.handleInitializeRequest(
-            { ...req, headers: req.headers },
-            res,
-            req.body
-          );
-
-          if (!context.res) {
-            res.end();
-          }
-
+          await mcpServer.handlePostRequest(adaptRequest(req), res, req.body);
+          if (!context.res) res.end();
           context.log(`New session created: ${newSessionId}`);
         } catch (error) {
-          context.log.error("Error handling initialize request:", error);
-
+          context.log.error(`Error initializing session: ${error}`);
           sessions.delete(newSessionId);
-
-          context.res = {
-            status: 500,
-            headers: {
-              "Content-Type": "application/json",
-              ...baseHeaders,
-            },
-            body: JSON.stringify(
-              createErrorResponse(`Error initializing session: ${error}`)
-            ),
-          };
+          sendError(context, 500, `Error initializing session: ${error}`);
         }
         return;
       }
 
-      context.res = {
-        status: 400,
-        headers: {
-          "Content-Type": "application/json",
-          ...baseHeaders,
-        },
-        body: JSON.stringify(
-          createErrorResponse(
-            "Invalid request: missing session ID or not an initialize request"
-          )
-        ),
-      };
+      sendError(
+        context,
+        400,
+        "Invalid request: missing session ID or not an initialize request"
+      );
       return;
     }
 
-    context.res = {
-      status: 405,
-      headers: {
-        "Content-Type": "application/json",
-        ...baseHeaders,
-      },
-      body: JSON.stringify(createErrorResponse("Method not allowed")),
-    };
+    sendError(context, 405, "Method not allowed");
   } catch (error) {
-    context.log.error("Error handling MCP request:", error);
-    context.res = {
-      status: 500,
-      headers: {
-        "Content-Type": "application/json",
-        ...baseHeaders,
-      },
-      body: JSON.stringify(
-        createErrorResponse(`Internal server error: ${error}`)
-      ),
-    };
+    context.log.error(`Error handling MCP request: ${error}`);
+    sendError(context, 500, `Internal server error: ${error}`);
   }
 };
 
 const cleanupInterval = setInterval(() => {
   const now = Date.now();
-  const expiredIds: string[] = [];
 
-  for (const [sessionId, info] of sessions.entries()) {
+  for (const [id, info] of sessions.entries()) {
     if (now - info.lastActivity > SESSION_TIMEOUT) {
-      expiredIds.push(sessionId);
-    }
-  }
-
-  for (const sessionId of expiredIds) {
-    try {
-      const sessionInfo = sessions.get(sessionId);
-      if (sessionInfo?.transport) {
-        sessionInfo.transport.close();
+      try {
+        if (info.transport) info.transport.close();
+        sessions.delete(id);
+      } catch (error) {
+        console.error(`Error cleaning up session ${id}:`, error);
       }
-      sessions.delete(sessionId);
-    } catch (error) {
-      console.error(`Error cleaning up session ${sessionId}:`, error);
     }
   }
 }, 60000);
@@ -347,11 +222,11 @@ const cleanupInterval = setInterval(() => {
 if (typeof process !== "undefined" && process.env.FUNCTIONS_WORKER_RUNTIME) {
   process.on("SIGTERM", () => {
     clearInterval(cleanupInterval);
-    if (mcpServerInstance && typeof mcpServerInstance.shutdown === "function") {
+    if (mcpServer && typeof mcpServer.shutdown === "function") {
       try {
-        mcpServerInstance.shutdown();
+        mcpServer.shutdown();
       } catch (error) {
-        console.error("Error shutting down MCP server:", error);
+        console.error(`Error shutting down MCP server: ${error}`);
       }
     }
   });
