@@ -1,6 +1,6 @@
 {
   "name": "mcp-meilisearch",
-  "version": "1.0.22",
+  "version": "1.0.23",
   "description": "Model Context Protocol (MCP) implementation for Meilisearch",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
