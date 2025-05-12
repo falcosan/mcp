@@ -95,7 +95,7 @@ class AzureIntegrationHandler {
 
   private adaptRequest(req: HttpRequest): IncomingMessage {
     const adaptedReq = Object.create(IncomingMessage.prototype);
-    adaptedReq.headers = req.headers as any;
+    adaptedReq.headers = req.headers;
     adaptedReq.method = req.method as string | undefined;
     adaptedReq.url = req.url;
     adaptedReq.body = req.body;
