@@ -7,7 +7,16 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 
 export class MCPClient {
+  /**
+   * Indicates whether the client is connected to the MCP server
+   * Used to track the connection state and control async operations
+   */
   isConnected: boolean = false;
+
+  /**
+   * List of available tools provided by the MCP server
+   * Each tool has a name and description
+   */
   tools: { name: string; description: string }[] = [];
 
   private client: Client;
@@ -21,12 +30,22 @@ export class MCPClient {
     this.client = new Client({ name: serverName, version: "1.0.0" });
   }
 
-  public onToolsUpdatedCallback(
+  /**
+   * Registers a callback to be called when the list of available tools changes
+   * @param callback The function to call when tools are updated
+   */
+  onToolsUpdatedCallback(
     callback: (tools: Array<{ name: string; description: string }>) => void
   ) {
     this.toolsUpdatedCallback = callback;
   }
 
+  /**
+   * Executes the provided callback once the client is connected to the server
+   * Waits in a loop until the connection is established
+   * @param callback The function to execute after connection is established
+   * @returns The result of the callback function
+   */
   async onConnected<T>(callback: () => T | Promise<T>): Promise<T> {
     while (!this.isConnected) {
       await new Promise((resolve) => setTimeout(resolve));
@@ -34,6 +53,11 @@ export class MCPClient {
     return callback();
   }
 
+  /**
+   * Connects to the MCP server with retry logic
+   * @param serverUrl The URL of the MCP server to connect to
+   * @throws Error if connection fails after 5 attempts
+   */
   async connectToServer(serverUrl: string): Promise<void> {
     const url = new URL(serverUrl);
     try {
@@ -90,6 +114,13 @@ export class MCPClient {
     );
   }
 
+  /**
+   * Calls a tool on the MCP server with optional arguments
+   * Parses and processes the response from the server
+   * @param name The name of the tool to call
+   * @param args Optional arguments to pass to the tool
+   * @returns Object containing success status and either data or error message
+   */
   async callTool(
     name: string,
     args?: Record<string, any>
@@ -138,6 +169,10 @@ export class MCPClient {
     this.transport.onerror = this.cleanup;
   }
 
+  /**
+   * Closes the connection to the server and resets the connection state
+   * Called automatically on transport error or can be called manually
+   */
   async cleanup(): Promise<void> {
     if (this.client == null) return;
     await this.client.close();
