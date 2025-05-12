@@ -14,11 +14,11 @@ find_root_dir() {
   echo "$PWD"
 }
 
-TARGET_DIR=${1:-.}
-ENV_FILE=${1:-$(find_root_dir)/.env}
-SCRIPT_DIR="$(dirname "$0")"
-API_DIR="$TARGET_DIR/api"
+DIR=${1:-.}
+API_DIR="$DIR/api"
 MCP_DIR="$API_DIR/mcp"
+ENV_FILE="$(find_root_dir)/.env"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 mkdir -p "$MCP_DIR"
 
@@ -29,7 +29,7 @@ cp "$SCRIPT_DIR/template/local.settings.json" "$API_DIR/local.settings.json"
 if [[ -f "$ENV_FILE" ]]; then
   export $(grep -v '^#' "$ENV_FILE" | xargs)
 else
-  echo "Warning: Environment file $ENV_FILE not found"
+  echo "Error: Environment file $ENV_FILE not found"
   exit 1
 fi
 
@@ -47,11 +47,15 @@ cat > "$API_DIR/local.settings.json" << EOF
 }
 EOF
 
-
-if [ -d "$TARGET_DIR/dist" ]; then
-  SOURCE_DIR="$TARGET_DIR/dist"
-else [ -d "$TARGET_DIR/node_modules/mcp-meilisearch/dist" ];
-  SOURCE_DIR="$TARGET_DIR/node_modules/mcp-meilisearch/dist"
+if [[ -d "$DIR/dist" ]]; then
+  SOURCE_DIR="$DIR/dist"
+  echo "Using local dist directory"
+elif [[ -d "$DIR/node_modules/mcp-meilisearch/dist" ]]; then
+  SOURCE_DIR="$DIR/node_modules/mcp-meilisearch/dist"
+  echo "Using node_modules dist directory"
+else
+  echo "Error: Could not find source directory"
+  exit 1
 fi
 
 cp -r "$SOURCE_DIR/azure" "$API_DIR/"
