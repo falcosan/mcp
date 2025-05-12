@@ -26,7 +26,7 @@
     "build": "tsc && tsc --project tsconfig.types.json",
     "server": "npm run build && node --env-file=.env dist",
     "demo": "npm run build & npm run dev --workspace=demo",
-    "prepublishOnly": "npm version patch && npm run build"
+    "prepublishOnly": "rm -rf dist && npm version minor && npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.1",
