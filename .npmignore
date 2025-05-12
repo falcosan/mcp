@@ -1,8 +1,11 @@
 # Demo client folder
-client/
+demo/
 
 # Source files (will be compiled to dist/)
 src/
+
+# Build output for desktop client
+dist/stdio.*
 
 # Logs
 *.log
