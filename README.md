@@ -41,7 +41,7 @@ The MCP server organizes Meilisearch APIs into these categories:
 1. Clone the repository:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/falcosan/mcp
 ```
 
 2. Install dependencies:

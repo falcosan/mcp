@@ -1,7 +1,7 @@
 # Demo client folder
-client/
+demo/
 
-# Source files (will be compiled to dist/)
+# Source files
 src/
 
 # Logs

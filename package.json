@@ -1,6 +1,6 @@
 {
   "name": "mcp-meilisearch",
-  "version": "1.0.27",
+  "version": "1.1.0",
   "description": "Model Context Protocol (MCP) implementation for Meilisearch",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -45,6 +45,24 @@
       "import": "./dist/azure/index.js",
       "types": "./dist/azure/azure.d.ts"
     }
+  },
+  "workspaces": [
+    "demo"
+  ],
+  "scripts": {
+    "build": "tsc && tsc --project tsconfig.types.json",
+    "demo": "npm run build & npm run dev --workspace=demo",
+    "server": "npm run build && node --env-file=.env dist/index.js",
+    "prepublishOnly": "rm -rf dist && npm version minor && npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.10.1",
+    "axios": "^1.9.0",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "typescript": "^5.8.3"
   },
   "engines": {
     "node": ">=20.12.2",
