@@ -27,6 +27,13 @@ export class MCPClient {
     this.toolsUpdatedCallback = callback;
   }
 
+  async onConnected<T>(callback: () => T | Promise<T>): Promise<T> {
+    while (!this.isConnected) {
+      await new Promise((resolve) => setTimeout(resolve));
+    }
+    return callback();
+  }
+
   async connectToServer(serverUrl: string): Promise<void> {
     const url = new URL(serverUrl);
     try {
