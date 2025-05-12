@@ -2,7 +2,20 @@
 
 set -e
 
+find_root_dir() {
+  local dir="$PWD"
+  while [[ "$dir" != "/" ]]; do
+    if [[ -d "$dir/.git" || -f "$dir/api" ]]; then
+      echo "$dir"
+      return
+    fi
+    dir="${dir%/*}"
+  done
+  echo "$PWD"
+}
+
 TARGET_DIR=${1:-.}
+ENV_FILE=${1:-$(find_root_dir)/.env}
 SCRIPT_DIR="$(dirname "$0")"
 API_DIR="$TARGET_DIR/api"
 MCP_DIR="$API_DIR/mcp"
@@ -12,6 +25,28 @@ mkdir -p "$MCP_DIR"
 cp "$SCRIPT_DIR/template/host.json" "$API_DIR/host.json"
 cp "$SCRIPT_DIR/template/function.json" "$MCP_DIR/function.json"
 cp "$SCRIPT_DIR/template/local.settings.json" "$API_DIR/local.settings.json"
+
+if [[ -f "$ENV_FILE" ]]; then
+  export $(grep -v '^#' "$ENV_FILE" | xargs)
+else
+  echo "Warning: Environment file $ENV_FILE not found"
+  exit 1
+fi
+
+cat > "$API_DIR/local.settings.json" << EOF
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "MEILISEARCH_HOST": "${VITE_MEILISEARCH_HOST}",
+    "MEILISEARCH_API_KEY": "${VITE_MEILISEARCH_API_KEY}",
+    "ALLOWED_ORIGINS": "*",
+    "SESSION_TIMEOUT": "3600000"
+  }
+}
+EOF
+
 
 if [ -d "$TARGET_DIR/dist" ]; then
   SOURCE_DIR="$TARGET_DIR/dist"
