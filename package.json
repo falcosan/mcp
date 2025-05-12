@@ -24,8 +24,8 @@
   ],
   "scripts": {
     "build": "tsc && tsc --project tsconfig.types.json",
-    "server": "npm run build && node --env-file=.env dist",
     "demo": "npm run build & npm run dev --workspace=demo",
+    "server": "npm run build && node --env-file=.env dist/index.js",
     "prepublishOnly": "rm -rf dist && npm version minor && npm run build"
   },
   "dependencies": {
