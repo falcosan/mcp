@@ -13,7 +13,7 @@ export class MCPClient {
   private client: Client;
   private tries: number = 0;
   private transport: StreamableHTTPClientTransport | null = null;
-  private onToolsUpdatedCallback:
+  private toolsUpdatedCallback:
     | ((tools: Array<{ name: string; description: string }>) => void)
     | null = null;
 
@@ -21,10 +21,10 @@ export class MCPClient {
     this.client = new Client({ name: serverName, version: "1.0.0" });
   }
 
-  public setOnToolsUpdatedCallback(
+  public onToolsUpdatedCallback(
     callback: (tools: Array<{ name: string; description: string }>) => void
   ) {
-    this.onToolsUpdatedCallback = callback;
+    this.toolsUpdatedCallback = callback;
   }
 
   async connectToServer(serverUrl: string): Promise<void> {
@@ -49,7 +49,7 @@ export class MCPClient {
     }
   }
 
-  async listTools(): Promise<void> {
+  private async listTools(): Promise<void> {
     try {
       const toolsResult = await this.client.listTools();
 
@@ -66,8 +66,8 @@ export class MCPClient {
     } catch (error) {
       this.tools = [];
     } finally {
-      if (this.onToolsUpdatedCallback) {
-        this.onToolsUpdatedCallback([...this.tools]);
+      if (this.toolsUpdatedCallback) {
+        this.toolsUpdatedCallback([...this.tools]);
       }
     }
   }
