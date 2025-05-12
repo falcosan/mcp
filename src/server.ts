@@ -32,7 +32,7 @@ export interface ServerConfig {
  * Return type for the initServer function
  */
 interface ServerInstance {
-  mcpServer?: MCPServer;
+  mcpServer: MCPServer;
 }
 
 const DEFAULT_CONFIG: ServerConfig = {

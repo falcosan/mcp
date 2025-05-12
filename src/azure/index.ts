@@ -78,7 +78,7 @@ class SessionCache {
 
 class AzureIntegrationHandler {
   private azureSessions: SessionCache;
-  private mcpCoreServer: MCPServer | null = null;
+  private mcpServerInstance: MCPServer | null = null;
   private readonly baseHeaders: Record<string, string>;
   private readonly SESSION_ID_HEADER_NAME = "mcp-session-id";
   private initializationPromise: Promise<boolean> | null = null;
@@ -161,7 +161,7 @@ class AzureIntegrationHandler {
   private async ensureCoreServerInitialized(
     context: Context
   ): Promise<boolean> {
-    if (this.mcpCoreServer) {
+    if (this.mcpServerInstance) {
       return true;
     }
 
@@ -196,7 +196,7 @@ class AzureIntegrationHandler {
 
       const serverInitResult = await initServer("http", coreServerConfig);
       if (serverInitResult.mcpServer) {
-        this.mcpCoreServer = serverInitResult.mcpServer;
+        this.mcpServerInstance = serverInitResult.mcpServer;
         context.log("MCP Core server initialized successfully");
         return true;
       } else {
@@ -231,7 +231,7 @@ class AzureIntegrationHandler {
       return;
     }
 
-    const currentCoreServer = this.mcpCoreServer!;
+    const currentCoreServer = this.mcpServerInstance!;
     const sessionId = req.headers[this.SESSION_ID_HEADER_NAME.toLowerCase()];
 
     try {
@@ -341,11 +341,11 @@ class AzureIntegrationHandler {
     this.azureSessions.stopCleanup();
 
     if (
-      this.mcpCoreServer &&
-      typeof this.mcpCoreServer.shutdown === "function"
+      this.mcpServerInstance &&
+      typeof this.mcpServerInstance.shutdown === "function"
     ) {
       try {
-        this.mcpCoreServer.shutdown();
+        this.mcpServerInstance.shutdown();
       } catch (error: any) {
         const errorMessage = error.message || String(error);
         console.error(
@@ -355,7 +355,7 @@ class AzureIntegrationHandler {
     }
 
     this.azureSessions.clear();
-    this.mcpCoreServer = null;
+    this.mcpServerInstance = null;
     this.initializationPromise = null;
 
     if (
