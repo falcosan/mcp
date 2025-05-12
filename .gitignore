@@ -7,3 +7,4 @@ meili.sh
 .DS_Store
 *.tsbuildinfo
 *.tgz
+api

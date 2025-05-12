@@ -1,8 +1,8 @@
 import http from "node:http";
 import { createServer } from "node:http";
-import { initServer } from "./server.js";
 import { parse as parseUrl } from "node:url";
 import { ServerOptions } from "./types/options.js";
+import { initServer, MCPServer } from "./server.js";
 import { configHandler } from "./utils/config-handler.js";
 import { createErrorResponse } from "./utils/error-handler.js";
 
@@ -20,9 +20,9 @@ export async function mcpMeilisearchServer(
   configHandler.setMeilisearchHost(options.meilisearchHost);
   configHandler.setMeilisearchApiKey(options.meilisearchApiKey);
 
-  let mcpServerInstance: any = null;
   const httpPort = options.httpPort || 4995;
   const transport = options.transport || "http";
+  let mcpServerInstance: MCPServer | null = null;
   const mcpEndpoint = options.mcpEndpoint || "/mcp";
 
   const server = createServer(async (req, res) => {
@@ -71,7 +71,16 @@ export async function mcpMeilisearchServer(
       req.on("end", async () => {
         try {
           const jsonBody = JSON.parse(body);
-          await mcpServerInstance.handlePostRequest(req, res, jsonBody);
+          if (mcpServerInstance) {
+            await mcpServerInstance.handlePostRequest(req, res, jsonBody);
+          } else {
+            res.statusCode = 503;
+            res.end(
+              JSON.stringify(
+                createErrorResponse("MCP server not initialized yet")
+              )
+            );
+          }
         } catch {
           res.statusCode = 400;
           res.end(JSON.stringify(createErrorResponse("Invalid JSON body")));

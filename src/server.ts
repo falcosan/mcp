@@ -31,9 +31,8 @@ interface ServerConfig {
 /**
  * Return type for the initServer function
  */
-interface ServerInstances {
-  mcpServer?: MCPServer;
-  viteServer?: any;
+interface ServerInstance {
+  mcpServer: MCPServer;
 }
 
 const DEFAULT_CONFIG: ServerConfig = {
@@ -54,7 +53,7 @@ interface SessionInfo {
 /**
  * Implementation of an MCP server for Meilisearch
  */
-class MCPServer {
+export class MCPServer {
   private readonly JSON_RPC = "2.0";
   private readonly SESSION_ID_HEADER_NAME = "mcp-session-id";
 
@@ -425,7 +424,7 @@ const initServerStdioTransport = async () => {
 export const initServer = async (
   transport: "stdio" | "http",
   config?: Partial<ServerConfig>
-): Promise<ServerInstances> => {
+): Promise<ServerInstance> => {
   try {
     switch (transport) {
       case "stdio":
