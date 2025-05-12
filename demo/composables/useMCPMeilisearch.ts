@@ -57,7 +57,7 @@ export default function useMCPMeilisearch() {
 
   onMounted(async () => {
     const mcp = new MCPClient("meilisearch-vue-client");
-    mcp.setOnToolsUpdatedCallback((t) => (tools.value = t));
+    mcp.onToolsUpdatedCallback((t) => (tools.value = t));
 
     try {
       await mcp.connectToServer("http://localhost:4995/mcp");
