@@ -278,11 +278,7 @@ class AzureIntegrationHandler {
           return;
         }
 
-        if (
-          currentCoreServer &&
-          typeof currentCoreServer.isInitializeRequest === "function" &&
-          currentCoreServer.isInitializeRequest(req.body)
-        ) {
+        if (currentCoreServer.isInitializeRequest?.(req.body)) {
           const newSessionId = randomUUID();
           this.azureSessions.set(newSessionId, null);
 
