@@ -49,10 +49,8 @@ EOF
 
 if [[ -d "$DIR/dist" ]]; then
   SOURCE_DIR="$DIR/dist"
-  echo "Using local dist directory"
 elif [[ -d "$DIR/node_modules/mcp-meilisearch/dist" ]]; then
   SOURCE_DIR="$DIR/node_modules/mcp-meilisearch/dist"
-  echo "Using node_modules dist directory"
 else
   echo "Error: Could not find source directory"
   exit 1

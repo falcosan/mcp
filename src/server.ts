@@ -21,7 +21,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 /**
  * Configuration for the MCP server
  */
-interface ServerConfig {
+export interface ServerConfig {
   httpPort: number;
   mcpEndpoint: string;
   sessionTimeout: number;
@@ -53,7 +53,7 @@ interface SessionInfo {
 /**
  * Implementation of an MCP server for Meilisearch
  */
-class MCPServer {
+export class MCPServer {
   private readonly JSON_RPC = "2.0";
   private readonly SESSION_ID_HEADER_NAME = "mcp-session-id";
 
