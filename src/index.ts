@@ -52,7 +52,9 @@ export async function mcpMeilisearchServer(
       console.error("MCP server not initialized yet");
       res.statusCode = 503;
       res.setHeader("Content-Type", "application/json");
-      res.end(createErrorResponse("MCP server not initialized yet"));
+      res.end(
+        JSON.stringify(createErrorResponse("MCP server not initialized yet"))
+      );
       return;
     }
 
@@ -81,14 +83,14 @@ export async function mcpMeilisearchServer(
           }
         } catch {
           res.statusCode = 400;
-          res.end(createErrorResponse("Invalid JSON body"));
+          res.end(JSON.stringify(createErrorResponse("Invalid JSON body")));
         }
       });
       return;
     }
 
     res.statusCode = 405;
-    res.end(createErrorResponse("Method not allowed"));
+    res.end(JSON.stringify(createErrorResponse("Method not allowed")));
   });
 
   await new Promise<void>((resolve) => {
