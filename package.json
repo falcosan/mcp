@@ -12,6 +12,7 @@
     "build": "tsc && tsc --project tsconfig.types.json",
     "server": "npm run build && node --env-file=.env dist",
     "demo": "npm run build & npm run dev --workspace=demo",
+    "demo:azure": "npm run demo & npm run azure",
     "prepublishOnly": "npm version patch && npm run build",
     "azure": "npm run build && bash src/azure/0.sh && bash src/azure/1.sh"
   },

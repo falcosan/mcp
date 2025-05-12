@@ -60,7 +60,7 @@ export default function useMCPMeilisearch() {
     mcp.setOnToolsUpdatedCallback((t) => (tools.value = t));
 
     try {
-      await mcp.connectToServer("http://localhost:4995/mcp");
+      await mcp.connectToServer("http://localhost:7071/api/mcp");
       client.value = mcp;
     } catch (e) {
       error.value = e instanceof Error ? e.message : String(e);
