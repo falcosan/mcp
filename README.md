@@ -22,6 +22,21 @@ A Model Context Protocol (MCP) server implementation that provides a bridge betw
 - A running Meilisearch instance (local or remote).
 - API key for Meilisearch (if required).
 
+### Installation
+
+Install the package:
+
+```bash
+# Using npm
+npm install mcp-meilisearch
+
+# Using yarn
+yarn add mcp-meilisearch
+
+# Using pnpm
+pnpm add mcp-meilisearch
+```
+
 ### Options
 
 #### Meilisearch Connection Options
