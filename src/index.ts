@@ -3,8 +3,8 @@ import { createServer } from "node:http";
 import { parse as parseUrl } from "node:url";
 import { ServerOptions } from "./types/options.js";
 import { initServer, MCPServer } from "./server.js";
+import { llmService } from "./utils/llm-handler.js";
 import { configHandler } from "./utils/config-handler.js";
-import { llmInferenceService } from "./utils/llm-handler.js";
 import { createErrorResponse } from "./utils/error-handler.js";
 
 /**
@@ -25,9 +25,9 @@ export async function mcpMeilisearchServer(
     const apiKey = options.openaiApiKey || configHandler.getOpenaiApiKey();
     const model = options.llmModel || configHandler.getLlmModel();
     if (apiKey) {
-      llmInferenceService.initialize(apiKey);
+      llmService.initialize(apiKey);
       if (model) {
-        llmInferenceService.setSystemPrompt(
+        llmService.setSystemPrompt(
           `You are an AI assistant that helps users interact with a Meilisearch database through MCP tools.
 Your job is to understand the user's query and select the most appropriate tool to use.
 For search queries, determine if they're looking for specific content types or need to search across all indexes.

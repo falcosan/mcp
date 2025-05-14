@@ -1,6 +1,5 @@
 import { OpenAI } from "openai";
 
-// Define types for LLM function calling
 interface LLMFunctionDefinition {
   name: string;
   description: string;
@@ -24,7 +23,7 @@ interface LLMCompletionRequest {
  * This service handles the interaction with the LLM to determine the appropriate tools
  * to use based on the user's query
  */
-export class LLMInferenceService {
+export class LLMService {
   private client: OpenAI | null = null;
   private availableTools: {
     name: string;
@@ -32,8 +31,6 @@ export class LLMInferenceService {
     parameters: Record<string, any>;
   }[] = [];
   private model: string = "gpt-3.5-turbo";
-
-  // System prompt to guide the LLM in tool selection
   private systemPrompt: string = `You are an AI assistant that helps users interact with a Meilisearch database through MCP tools.
 Your job is to understand the user's query and select the most appropriate tool to use.
 For search queries, determine if they're looking for specific content types or need to search across all indexes.
@@ -93,7 +90,6 @@ If the query mentions specific tool names directly, prioritize using those tools
       }));
     }
 
-    // Filter tools by name
     return this.availableTools
       .filter((tool) => toolNames.includes(tool.name))
       .map((tool) => ({
@@ -115,7 +111,6 @@ If the query mentions specific tool names directly, prioritize using those tools
     const mentionedTools: string[] = [];
 
     for (const tool of this.availableTools) {
-      // Check if the tool name is explicitly mentioned in the query
       const toolNameRegex = new RegExp(`\\b${tool.name}\\b`, "i");
       if (toolNameRegex.test(query)) {
         mentionedTools.push(tool.name);
@@ -150,13 +145,9 @@ If the query mentions specific tool names directly, prioritize using those tools
     }
 
     try {
-      // Check if the query mentions specific tools
       const mentionedTools = this.extractToolNames(query);
       const toolsToUse =
-        specificTools ||
-        (mentionedTools.length > 0 ? mentionedTools : undefined);
-
-      // Build the completion request
+        specificTools || (mentionedTools.length ? mentionedTools : undefined);
       const tools = this.getToolDefinitions(toolsToUse);
 
       const messages = [
@@ -167,17 +158,15 @@ If the query mentions specific tool names directly, prioritize using those tools
         { role: "user" as const, content: query },
       ];
 
-      // Call the OpenAI API
       const response = await this.client.chat.completions.create({
-        model: this.model,
-        messages,
         tools,
+        messages,
+        model: this.model,
         tool_choice: "auto",
       });
 
       const message = response.choices[0].message;
 
-      // Extract the tool call if one was made
       if (message.tool_calls && message.tool_calls.length > 0) {
         const toolCall = message.tool_calls[0];
 
@@ -204,7 +193,4 @@ If the query mentions specific tool names directly, prioritize using those tools
   }
 }
 
-/**
- * Create and export a singleton instance of the LLM inference service
- */
-export const llmInferenceService = new LLMInferenceService();
+export const llmService = new LLMService();

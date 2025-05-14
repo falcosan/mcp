@@ -5,7 +5,7 @@ import {
   LoggingMessageNotificationSchema,
   ToolListChangedNotificationSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { llmInferenceService } from "./utils/llm-handler.js";
+import { llmService } from "./utils/llm-handler.js";
 
 export class MCPClient {
   /**
@@ -97,7 +97,7 @@ export class MCPClient {
       await this.listTools();
 
       // Update LLM inference service with available tools
-      llmInferenceService.setAvailableTools(this.tools);
+      llmService.setAvailableTools(this.tools);
 
       this.isConnected = true;
     } catch (e) {
@@ -128,7 +128,7 @@ export class MCPClient {
       }
 
       // Update LLM inference service with the latest tools
-      llmInferenceService.setAvailableTools(this.tools);
+      llmService.setAvailableTools(this.tools);
     } catch (error) {
       this.tools = [];
     } finally {
@@ -166,10 +166,7 @@ export class MCPClient {
     reasoning?: string;
   }> {
     try {
-      const toolSelection = await llmInferenceService.processQuery(
-        query,
-        specificTools
-      );
+      const toolSelection = await llmService.processQuery(query, specificTools);
 
       if (!toolSelection) {
         return {
