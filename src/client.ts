@@ -3,7 +3,7 @@ import {
   LoggingMessageNotificationSchema,
   ToolListChangedNotificationSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { aiService } from "./utils/ai-handler.js";
+import { AIService } from "./utils/ai-handler.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
@@ -32,6 +32,7 @@ export class MCPClient {
 
   private client: Client;
   private tries: number = 0;
+  private aiService: AIService = AIService.getInstance();
   private transport: StreamableHTTPClientTransport | null = null;
   private toolsUpdatedCallback:
     | ((tools: Array<{ name: string; description: string }>) => void)
@@ -116,7 +117,7 @@ export class MCPClient {
         this.tools = [];
       }
 
-      aiService.setAvailableTools(this.tools);
+      this.aiService.setAvailableTools(this.tools);
     } catch (error) {
       this.tools = [];
     } finally {
@@ -211,7 +212,10 @@ export class MCPClient {
     reasoning?: string;
   }> {
     try {
-      const toolSelection = await aiService.processQuery(query, specificTools);
+      const toolSelection = await this.aiService.processQuery(
+        query,
+        specificTools
+      );
 
       if (!toolSelection) {
         return {

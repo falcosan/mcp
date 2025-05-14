@@ -1,7 +1,7 @@
 import http from "node:http";
 import { createServer } from "node:http";
 import { parse as parseUrl } from "node:url";
-import { aiService } from "./utils/ai-handler.js";
+import { AIService } from "./utils/ai-handler.js";
 import { ServerOptions } from "./types/options.js";
 import { initServer, MCPServer } from "./server.js";
 import { configHandler } from "./utils/config-handler.js";
@@ -23,6 +23,7 @@ export async function mcpMeilisearchServer(
   configHandler.setMeilisearchHost(options.meilisearchHost);
   configHandler.setMeilisearchApiKey(options.meilisearchApiKey);
 
+  const aiService = AIService.getInstance();
   const apiKey = configHandler.getOpenaiApiKey();
 
   if (apiKey) aiService.initialize(apiKey);

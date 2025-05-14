@@ -15,9 +15,12 @@ interface AITool {
  *
  * This service handles the interaction with the AI to determine the appropriate tools
  * to use based on the user's query
+ *
+ * Implemented as a singleton to ensure the same instance is used throughout the application
  */
 export class AIService {
   private client: OpenAI | null = null;
+  private static instance: AIService | null = null;
   private availableTools: {
     name: string;
     description: string;
@@ -27,10 +30,21 @@ export class AIService {
   private systemPrompt: string = generalPrompt;
 
   /**
-   * Create a new AI Inference Service
-   * The service needs to be initialized with an API key before use.
+   * Private constructor to prevent direct instantiation
+   * Use getInstance() method instead
    */
-  constructor() {}
+  private constructor() {}
+
+  /**
+   * Get the singleton instance of AIService
+   * @returns The singleton AIService instance
+   */
+  public static getInstance(): AIService {
+    if (!AIService.instance) {
+      AIService.instance = new AIService();
+    }
+    return AIService.instance;
+  }
 
   /**
    * Initialize the AI service with an API key and optionally set the model
@@ -172,5 +186,3 @@ export class AIService {
     this.systemPrompt = prompt;
   }
 }
-
-export const aiService = new AIService();
