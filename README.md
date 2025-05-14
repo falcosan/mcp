@@ -22,34 +22,38 @@ A Model Context Protocol (MCP) server implementation that provides a bridge betw
 - A running Meilisearch instance (local or remote).
 - API key for Meilisearch (if required).
 
-### Setup Instructions
+### Options
 
-1. Install the package:
+#### Meilisearch Connection Options
 
-```bash
-# Using npm
-npm install mcp-meilisearch
+- `meilisearchHost`: URL of the Meilisearch instance (Default: "http://localhost:7700")
+- `meilisearchApiKey`: API key for authenticating with Meilisearch (Default: "")
 
-# Using yarn
-yarn add mcp-meilisearch
+#### MCP Server Options
 
-# Using pnpm
-pnpm add mcp-meilisearch
-```
+- `transport`: Transport type for MCP server ("http" | "stdio") (Default: "http")
+- `httpPort`: HTTP port for MCP server (Default: 4995)
+- `mcpEndpoint`: MCP endpoint path (Default: "/mcp")
 
-2. Install dependencies:
+#### Session Options
 
-```bash
-npm install
-```
+- `sessionTimeout`: Session timeout in milliseconds (Default: 3600000)
+- `sessionCleanupInterval`: Session cleanup interval in milliseconds (Default: 60000)
 
-3. Configure the environment:
+### Using the MCPClient
 
-Create a `.env` file with the following content:
+The package also exports the MCPClient class for client-side integration:
 
-```
-MEILISEARCH_HOST=http://localhost:7700
-MEILISEARCH_API_KEY=your_api_key_here
+```typescript
+import { MCPClient } from "mcp-meilisearch/client";
+
+const client = new MCPClient("mcp-meilisearch-client");
+await client.connectToServer("http://localhost:4995/mcp");
+
+// Call a tool
+const result = await client.callTool("search-across-all-indexes", {
+  q: "search kiosco antonio",
+});
 ```
 
 ## Tools
@@ -364,37 +368,3 @@ The MCP server exposes various tools that allow you to interact with Meilisearch
   - `query` (string, optional): Text query to search for (if using 'embedder' instead of 'vector').
   - `hybrid` (boolean, optional): Whether to perform a hybrid search (combining vector and text search).
   - `hybridRatio` (number, optional): Ratio of vector vs text search in hybrid search (0-1, default: 0.5).
-
-### Options
-
-#### Meilisearch Connection Options
-
-- `meilisearchHost`: URL of the Meilisearch instance (Default: "http://localhost:7700")
-- `meilisearchApiKey`: API key for authenticating with Meilisearch (Default: "")
-
-#### MCP Server Options
-
-- `transport`: Transport type for MCP server ("http" | "stdio") (Default: "http")
-- `httpPort`: HTTP port for MCP server (Default: 4995)
-- `mcpEndpoint`: MCP endpoint path (Default: "/mcp")
-
-#### Session Options
-
-- `sessionTimeout`: Session timeout in milliseconds (Default: 3600000)
-- `sessionCleanupInterval`: Session cleanup interval in milliseconds (Default: 60000)
-
-### Using the MCPClient
-
-The package also exports the MCPClient class for client-side integration:
-
-```typescript
-import { MCPClient } from "mcp-meilisearch/client";
-
-const client = new MCPClient("mcp-meilisearch-client");
-await client.connectToServer("http://localhost:4995/mcp");
-
-// Call a tool
-const result = await client.callTool("search-across-all-indexes", {
-  q: "search kiosco antonio",
-});
-```
