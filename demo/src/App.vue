@@ -10,7 +10,7 @@ const {
   client,
   loading,
   searchAcrossAllIndexes,
-  useLLMInference,
+  useAI,
   toggleLLMInference,
 } = useMCPMeilisearch();
 
@@ -39,7 +39,7 @@ const handleToggleLLM = (event: Event) => {
         <div style="margin-bottom: 10px; display: flex; align-items: center">
           <input
             type="checkbox"
-            :checked="useLLMInference"
+            :checked="useAI"
             id="llm-toggle"
             @change="handleToggleLLM"
             style="margin-right: 5px"
@@ -75,10 +75,10 @@ const handleToggleLLM = (event: Event) => {
         <div v-if="result.success" style="color: green">Success!</div>
         <div v-else style="color: red">Error: {{ result.error }}</div>
 
-        <div v-if="useLLMInference && result.toolUsed" style="margin-top: 10px">
+        <div v-if="useAI && result.toolUsed" style="margin-top: 10px">
           <div><strong>Tool Used:</strong> {{ result.toolUsed }}</div>
           <div v-if="result.reasoning">
-            <strong>LLM Reasoning:</strong>
+            <strong>Reasoning:</strong>
             <p style="margin-top: 5px; font-style: italic">
               {{ result.reasoning }}
             </p>

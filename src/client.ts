@@ -28,7 +28,7 @@ export class MCPClient {
    * Flag to enable/disable LLM inference
    * When enabled, user queries are processed by an LLM to determine which tool to use
    */
-  useLLMInference: boolean = false;
+  useAI: boolean = false;
 
   private client: Client;
   private tries: number = 0;
@@ -45,8 +45,8 @@ export class MCPClient {
    * Set whether to use LLM inference for tool selection
    * @param use Whether to use LLM inference
    */
-  setUseLLMInference(use: boolean): void {
-    this.useLLMInference = use;
+  setUseAI(use: boolean): void {
+    this.useAI = use;
   }
 
   /**
@@ -54,7 +54,7 @@ export class MCPClient {
    * @returns Whether LLM inference is enabled
    */
   getUseLLMInference(): boolean {
-    return this.useLLMInference;
+    return this.useAI;
   }
 
   /**
@@ -96,7 +96,6 @@ export class MCPClient {
 
       await this.listTools();
 
-      // Update LLM inference service with available tools
       llmService.setAvailableTools(this.tools);
 
       this.isConnected = true;
@@ -127,7 +126,6 @@ export class MCPClient {
         this.tools = [];
       }
 
-      // Update LLM inference service with the latest tools
       llmService.setAvailableTools(this.tools);
     } catch (error) {
       this.tools = [];
@@ -155,7 +153,7 @@ export class MCPClient {
    * @param specificTools Optional array of specific tools to consider
    * @returns The result of calling the selected tool, or an error
    */
-  async processQueryWithLLM(
+  async processQueryWithAI(
     query: string,
     specificTools?: string[]
   ): Promise<{
@@ -266,13 +264,11 @@ export class MCPClient {
     toolUsed?: string;
     reasoning?: string;
   }> {
-    // If LLM inference is disabled, default to search-across-all-indexes
-    if (!this.useLLMInference) {
+    if (!this.useAI) {
       return this.callTool("search-across-all-indexes", { q: query });
     }
 
-    // Use LLM to determine the appropriate tool
-    return this.processQueryWithLLM(query, specificTools);
+    return this.processQueryWithAI(query, specificTools);
   }
 
   private setUpTransport(): void {

@@ -83,7 +83,7 @@ const result = await client.callTool("search-across-all-indexes", {
 
 // Use LLM inference to choose the most appropriate tool
 // First enable LLM inference
-client.setUseLLMInference(true);
+client.setUseAI(true);
 
 // Then process a user query
 const result = await client.processUserQuery("Find events about cucumber");
@@ -94,7 +94,7 @@ console.log(`Results: ${JSON.stringify(result.data)}`);
 
 #### LLM Inference Client Methods
 
-- `setUseLLMInference(use: boolean)`: Enable or disable LLM inference.
+- `setUseAI(use: boolean)`: Enable or disable LLM inference.
 - `getUseLLMInference(): boolean`: Check if LLM inference is enabled.
 - `processUserQuery(query: string, specificTools?: string[])`: Process a user query with LLM inference, optionally limiting to specific tools.
 

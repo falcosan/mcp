@@ -20,7 +20,7 @@ export default function useMCPMeilisearch() {
   const client = ref<MCPClient | null>(null);
   const loading = ref({ client: true, tool: false });
   const result = ref<MCPMeilisearchResult | null>(null);
-  const useLLMInference = ref<boolean>(false);
+  const useAI = ref<boolean>(false);
 
   const callTool = async (
     name: string,
@@ -90,7 +90,7 @@ export default function useMCPMeilisearch() {
       return;
     }
 
-    if (useLLMInference.value) {
+    if (useAI.value) {
       await processUserQuery(query);
     } else {
       await callTool("search-across-all-indexes", { q: query });
@@ -98,9 +98,9 @@ export default function useMCPMeilisearch() {
   };
 
   const toggleLLMInference = (value: boolean) => {
-    useLLMInference.value = value;
+    useAI.value = value;
     if (client.value) {
-      client.value.setUseLLMInference(value);
+      client.value.setUseAI(value);
     }
   };
 
@@ -111,7 +111,7 @@ export default function useMCPMeilisearch() {
     try {
       await mcp.connectToServer("http://localhost:4995/mcp");
       client.value = mcp;
-      mcp.setUseLLMInference(useLLMInference.value);
+      mcp.setUseAI(useAI.value);
     } catch (e) {
       error.value = e instanceof Error ? e.message : String(e);
     } finally {
@@ -130,7 +130,7 @@ export default function useMCPMeilisearch() {
     client,
     loading,
     callTool,
-    useLLMInference,
+    useAI,
     processUserQuery,
     toggleLLMInference,
     searchAcrossAllIndexes,
