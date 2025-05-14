@@ -139,13 +139,15 @@ export class MCPClient {
         };
       }
 
+      const success = !result.isError;
+
       if (result.isError) {
-        throw new Error("MCP Server error");
+        console.error("MCP Server error");
       }
 
       const content = result.content as object[];
       if (!content?.length) {
-        return { success: true, data: [] };
+        return { success, data: [] };
       }
 
       const processedContent = content.reduce((_, item: any) => {
@@ -160,7 +162,7 @@ export class MCPClient {
         return item;
       }, {});
 
-      return { success: true, data: processedContent };
+      return { success, data: processedContent };
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
