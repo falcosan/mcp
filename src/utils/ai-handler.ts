@@ -1,7 +1,7 @@
 import { OpenAI } from "openai";
 import { readFileSync } from "fs";
 import { fileURLToPath } from "url";
-import { dirname, resolve } from "path";
+import { resolve, dirname } from "path";
 
 interface AITool {
   type: "function";
@@ -11,6 +11,11 @@ interface AITool {
     parameters: Record<string, any>;
   };
 }
+const promptText = readFileSync(
+  resolve(dirname(fileURLToPath(import.meta.url)), "../assets/prompt.txt"),
+  "utf8"
+);
+
 /**
  * AI Inference Service
  *
@@ -25,10 +30,7 @@ export class AIService {
     parameters: Record<string, any>;
   }[] = [];
   private model: string = "gpt-3.5-turbo";
-  private systemPrompt: string = readFileSync(
-    resolve(dirname(fileURLToPath(import.meta.url)), "../assets/prompt.txt"),
-    "utf8"
-  );
+  private systemPrompt: string = promptText;
 
   /**
    * Create a new AI Inference Service
@@ -58,6 +60,12 @@ export class AIService {
     }[]
   ): void {
     this.availableTools = tools;
+    this.setSystemPrompt(
+      this.systemPrompt.replace(
+        "MCP_TOOLS",
+        JSON.stringify(this.availableTools, null, 2)
+      )
+    );
   }
 
   /**
