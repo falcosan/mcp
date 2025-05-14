@@ -84,6 +84,309 @@ This project uses:
 - **Express**: Powers the web server.
 - **Model Context Protocol SDK**: Facilitates AI integration.
 
+## Available Tools
+
+This section details all the available tools, their descriptions, and parameters.
+
+### System Tools
+
+#### health
+
+- **Description**: Check if the Meilisearch server is healthy.
+
+#### version
+
+- **Description**: Get the version information of the Meilisearch server.
+
+#### info
+
+- **Description**: Get the system information of the Meilisearch server.
+
+#### stats
+
+- **Description**: Get statistics about all indexes or a specific index.
+- **Parameters**:
+  - `indexUid` (string, optional): Unique identifier of the index.
+
+#### get-tasks
+
+- **Description**: Get information about tasks with optional filtering.
+- **Parameters**:
+  - `limit` (number, optional): Maximum number of tasks to return.
+  - `from` (number, optional): Task uid from which to start fetching.
+  - `status` (string, optional): Status of tasks to return.
+  - `type` (string, optional): Type of tasks to return.
+  - `indexUids` (string[], optional): UIDs of the indexes on which tasks were performed.
+
+#### delete-tasks
+
+- **Description**: Delete tasks based on provided filters.
+- **Parameters**:
+  - `statuses` (string[], optional): Statuses of tasks to delete.
+  - `types` (string[], optional): Types of tasks to delete.
+  - `indexUids` (string[], optional): UIDs of the indexes on which tasks to delete were performed.
+  - `uids` (number[], optional): UIDs of the tasks to delete.
+  - `canceledBy` (number[], optional): UIDs of the tasks that canceled tasks to delete.
+  - `beforeUid` (number, optional): Delete tasks whose uid is before this value.
+  - `beforeStartedAt` (string, optional): Delete tasks that started processing before this date (ISO 8601 format).
+  - `beforeFinishedAt` (string, optional): Delete tasks that finished processing before this date (ISO 8601 format).
+
+### Index Tools
+
+#### list-indexes
+
+- **Description**: List all indexes in the Meilisearch instance.
+- **Parameters**:
+  - `limit` (number, optional): Maximum number of indexes to return.
+  - `offset` (number, optional): Number of indexes to skip.
+
+#### get-index
+
+- **Description**: Get information about a specific Meilisearch index.
+- **Parameters**:
+  - `indexUid` (string, required): Unique identifier of the index.
+
+#### create-index
+
+- **Description**: Create a new Meilisearch index.
+- **Parameters**:
+  - `indexUid` (string, required): Unique identifier for the new index.
+  - `primaryKey` (string, optional): Primary key for the index.
+
+#### update-index
+
+- **Description**: Update a Meilisearch index (currently only supports updating the primary key).
+- **Parameters**:
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `primaryKey` (string, required): New primary key for the index.
+
+#### delete-index
+
+- **Description**: Delete a Meilisearch index.
+- **Parameters**:
+  - `indexUid` (string, required): Unique identifier of the index to delete.
+
+#### swap-indexes
+
+- **Description**: Swap two or more indexes in Meilisearch.
+- **Parameters**:
+  - `indexes` (string, required): JSON array of index pairs to swap, e.g. [["movies", "movies_new"]].
+
+### Document Tools
+
+#### get-documents
+
+- **Description**: Get documents from a Meilisearch index.
+- **Parameters**:
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `limit` (number, optional): Maximum number of documents to return (default: 20).
+  - `offset` (number, optional): Number of documents to skip (default: 0).
+  - `fields` (string[], optional): Fields to return in the documents.
+  - `filter` (string, optional): Filter query to apply.
+
+#### get-document
+
+- **Description**: Get a document by its ID from a Meilisearch index.
+- **Parameters**:
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `documentId` (string, required): ID of the document to retrieve.
+  - `fields` (string[], optional): Fields to return in the document.
+
+#### add-documents
+
+- **Description**: Add documents to a Meilisearch index.
+- **Parameters**:
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `documents` (string, required): JSON array of documents to add.
+  - `primaryKey` (string, optional): Primary key for the documents.
+
+#### update-documents
+
+- **Description**: Update documents in a Meilisearch index.
+- **Parameters**:
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `documents` (string, required): JSON array of documents to update.
+  - `primaryKey` (string, optional): Primary key for the documents.
+
+#### delete-document
+
+- **Description**: Delete a document by its ID from a Meilisearch index.
+- **Parameters**:
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `documentId` (string, required): ID of the document to delete.
+
+#### delete-documents
+
+- **Description**: Delete multiple documents by their IDs from a Meilisearch index.
+- **Parameters**:
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `documentIds` (string, required): JSON array of document IDs to delete.
+
+#### delete-all-documents
+
+- **Description**: Delete all documents in a Meilisearch index.
+- **Parameters**:
+  - `indexUid` (string, required): Unique identifier of the index.
+
+### Search Tools
+
+#### search
+
+- **Description**: Search for documents in a Meilisearch index.
+- **Parameters**:
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `q` (string, required): Search query.
+  - `limit` (number, optional): Maximum number of results to return (default: 20).
+  - `offset` (number, optional): Number of results to skip (default: 0).
+  - `filter` (string, optional): Filter query to apply.
+  - `sort` (string[], optional): Attributes to sort by, e.g. ["price:asc"].
+  - `facets` (string[], optional): Facets to return.
+  - `attributesToRetrieve` (string[], optional): Attributes to include in results.
+  - `attributesToCrop` (string[], optional): Attributes to crop.
+  - `cropLength` (number, optional): Length at which to crop cropped attributes.
+  - `attributesToHighlight` (string[], optional): Attributes to highlight.
+  - `highlightPreTag` (string, optional): Tag to insert before highlighted text.
+  - `highlightPostTag` (string, optional): Tag to insert after highlighted text.
+  - `showMatchesPosition` (boolean, optional): Whether to include match positions in results.
+  - `matchingStrategy` (string, optional): Matching strategy: 'all' or 'last'.
+
+#### multi-search
+
+- **Description**: Perform multiple searches in one request.
+- **Parameters**:
+  - `searches` (string, required): JSON array of search queries, each with indexUid and q fields.
+
+#### search-across-all-indexes
+
+- **Description**: Search for a term across all available Meilisearch indexes and return combined results.
+- **Parameters**:
+  - `q` (string, required): Search query.
+  - `limit` (number, optional): Maximum number of results to return per index (default: 20).
+  - `attributesToRetrieve` (string[], optional): Attributes to include in results.
+
+#### facet-search
+
+- **Description**: Search for facet values matching specific criteria.
+- **Parameters**:
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `facetName` (string, required): Name of the facet to search.
+  - `facetQuery` (string, optional): Query to match against facet values.
+  - `filter` (string, optional): Filter to apply to the base search.
+
+### Settings Tools
+
+#### get-settings
+
+- **Description**: Get all settings for a Meilisearch index.
+- **Parameters**:
+  - `indexUid` (string, required): Unique identifier of the index.
+
+#### update-settings
+
+- **Description**: Update settings for a Meilisearch index.
+- **Parameters**:
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `settings` (string, required): JSON object containing settings to update.
+
+#### reset-settings
+
+- **Description**: Reset all settings for a Meilisearch index to their default values.
+- **Parameters**:
+  - `indexUid` (string, required): Unique identifier of the index.
+
+#### get-searchable-attributes / get-displayed-attributes / get-filterable-attributes / get-sortable-attributes / get-ranking-rules / get-stop-words / get-synonyms / get-distinct-attribute / get-typo-tolerance / get-faceting / get-pagination
+
+- **Description**: Get the specific setting for an index.
+- **Parameters**:
+  - `indexUid` (string, required): Unique identifier of the index.
+
+#### update-searchable-attributes / update-displayed-attributes / update-filterable-attributes / update-sortable-attributes / update-ranking-rules / update-stop-words / update-synonyms / update-distinct-attribute / update-typo-tolerance / update-faceting / update-pagination
+
+- **Description**: Update a specific setting for an index.
+- **Parameters**:
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `value` (string, required): JSON value for the setting.
+
+### Task Tools
+
+#### list-tasks
+
+- **Description**: List tasks with optional filtering.
+- **Parameters**:
+  - `limit` (number, optional): Maximum number of tasks to return.
+  - `from` (number, optional): Task uid from which to start fetching.
+  - `statuses` (string[], optional): Statuses of tasks to return.
+  - `types` (string[], optional): Types of tasks to return.
+  - `indexUids` (string[], optional): UIDs of the indexes on which tasks were performed.
+  - `uids` (number[], optional): UIDs of specific tasks to return.
+
+#### get-task
+
+- **Description**: Get information about a specific task.
+- **Parameters**:
+  - `taskUid` (number, required): Unique identifier of the task.
+
+#### cancel-tasks
+
+- **Description**: Cancel tasks based on provided filters.
+- **Parameters**:
+  - `statuses` (string[], optional): Statuses of tasks to cancel.
+  - `types` (string[], optional): Types of tasks to cancel.
+  - `indexUids` (string[], optional): UIDs of the indexes on which tasks to cancel were performed.
+  - `uids` (number[], optional): UIDs of the tasks to cancel.
+
+#### wait-for-task
+
+- **Description**: Wait for a specific task to complete.
+- **Parameters**:
+  - `taskUid` (number, required): Unique identifier of the task to wait for.
+  - `timeoutMs` (number, optional): Maximum time to wait in milliseconds (default: 5000).
+  - `intervalMs` (number, optional): Polling interval in milliseconds (default: 500).
+
+### Vector Tools
+
+#### enable-vector-search
+
+- **Description**: Enable the vector search experimental feature in Meilisearch.
+
+#### get-experimental-features
+
+- **Description**: Get the status of experimental features in Meilisearch.
+
+#### update-embedders
+
+- **Description**: Configure embedders for vector search.
+- **Parameters**:
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `embedders` (string, required): JSON object containing embedder configurations.
+
+#### get-embedders
+
+- **Description**: Get the embedders configuration for an index.
+- **Parameters**:
+  - `indexUid` (string, required): Unique identifier of the index.
+
+#### reset-embedders
+
+- **Description**: Reset the embedders configuration for an index.
+- **Parameters**:
+  - `indexUid` (string, required): Unique identifier of the index.
+
+#### vector-search
+
+- **Description**: Perform a vector search in a Meilisearch index.
+- **Parameters**:
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `vector` (string, required): JSON array representing the vector to search for.
+  - `limit` (number, optional): Maximum number of results to return (default: 20).
+  - `offset` (number, optional): Number of results to skip (default: 0).
+  - `filter` (string, optional): Filter to apply (e.g., 'genre = horror AND year > 2020').
+  - `embedder` (string, optional): Name of the embedder to use (if omitted, a 'vector' must be provided).
+  - `attributes` (string[], optional): Attributes to include in the vector search.
+  - `query` (string, optional): Text query to search for (if using 'embedder' instead of 'vector').
+  - `hybrid` (boolean, optional): Whether to perform a hybrid search (combining vector and text search).
+  - `hybridRatio` (number, optional): Ratio of vector vs text search in hybrid search (0-1, default: 0.5).
+
 ### Options
 
 #### Meilisearch Connection Options
