@@ -1,6 +1,7 @@
 import http from "node:http";
 import { createServer } from "node:http";
 import { parse as parseUrl } from "node:url";
+import { AIService } from "./utils/ai-handler.js";
 import { ServerOptions } from "./types/options.js";
 import { initServer, MCPServer } from "./server.js";
 import { configHandler } from "./utils/config-handler.js";
@@ -13,12 +14,23 @@ import { createErrorResponse } from "./utils/error-handler.js";
  */
 export async function mcpMeilisearchServer(
   options: ServerOptions = {
-    meilisearchApiKey: "",
     meilisearchHost: "http://localhost:7700",
+    meilisearchApiKey: "",
   }
 ): Promise<http.Server> {
+  configHandler.setLlmModel(options.llmModel);
+  configHandler.setOpenaiApiKey(options.openaiApiKey);
   configHandler.setMeilisearchHost(options.meilisearchHost);
   configHandler.setMeilisearchApiKey(options.meilisearchApiKey);
+
+  const aiService = AIService.getInstance();
+  const apiKey = configHandler.getOpenaiApiKey();
+
+  if (apiKey) {
+    aiService.initialize(apiKey);
+  } else {
+    console.warn("OpenAI API key not found. AI will not be available");
+  }
 
   const httpPort = options.httpPort || 4995;
   const transport = options.transport || "http";
@@ -103,7 +115,6 @@ export async function mcpMeilisearchServer(
   try {
     const serverInstances = await initServer(transport, options);
     mcpServerInstance = serverInstances.mcpServer;
-    console.log("MCP server initialized successfully");
   } catch (error) {
     console.error("Failed to initialize MCP server:", error);
     server.close();
@@ -149,6 +160,12 @@ if (import.meta.url === `file://${process.argv?.[1]}`) {
         break;
       case "apiKey":
         options.meilisearchApiKey = value;
+        break;
+      case "openaiApiKey":
+        options.openaiApiKey = value;
+        break;
+      case "llmModel":
+        options.llmModel = value;
         break;
     }
   }

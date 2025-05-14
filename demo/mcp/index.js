@@ -1,4 +1,4 @@
-import { mcpMeilisearchServer } from "mcp-meilisearch";
+import { mcpMeilisearchServer } from "../../dist/index.js";
 
 mcpMeilisearchServer({
   meilisearchHost: process.env.VITE_MEILISEARCH_HOST,

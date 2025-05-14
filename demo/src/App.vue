@@ -1,13 +1,26 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import useMCPMeilisearch from "../composables/useMCPMeilisearch";
+import useMCPMeilisearch from "./composables/useMCPMeilisearch";
 
 const searchQuery = ref<string>("");
-const { error, tools, result, client, loading, searchAcrossAllIndexes } =
-  useMCPMeilisearch();
+const {
+  error,
+  tools,
+  result,
+  useAI,
+  client,
+  loading,
+  toggleAIInference,
+  searchAcrossAllIndexes,
+} = useMCPMeilisearch();
 
 const handleSearch = () => {
   searchAcrossAllIndexes(searchQuery.value);
+};
+
+const handleToggleAI = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  toggleAIInference(target.checked);
 };
 </script>
 
@@ -23,6 +36,17 @@ const handleSearch = () => {
       <h2>Connection Status: <span style="color: green">Connected</span></h2>
 
       <div style="margin: 20px 0">
+        <div style="margin-bottom: 10px; display: flex; align-items: center">
+          <input
+            type="checkbox"
+            :checked="useAI"
+            id="ai-toggle"
+            @change="handleToggleAI"
+            style="margin-right: 5px"
+          />
+          <label for="ai-toggle">Use AI</label>
+        </div>
+
         <input
           v-model="searchQuery"
           type="text"
@@ -49,15 +73,25 @@ const handleSearch = () => {
         "
       >
         <div v-if="result.success" style="color: green">Success!</div>
-        <div v-else-if="result.error" style="color: red">
-          Error: {{ result.error }}
+        <div v-else style="color: red">Error: {{ result.error }}</div>
+
+        <div v-if="useAI && result.toolUsed" style="margin-top: 10px">
+          <div><strong>Tool Used:</strong> {{ result.toolUsed }}</div>
+          <div v-if="result.reasoning">
+            <strong>Reasoning:</strong>
+            <p style="margin-top: 5px; font-style: italic">
+              {{ result.reasoning }}
+            </p>
+          </div>
         </div>
-        <pre style="white-space: pre-wrap">
-        {{ JSON.stringify(result.data || result, null, 2) }}
-        </pre>
+
+        <pre style="margin-top: 1em; overflow: auto; max-height: 400px">{{
+          result.data
+        }}</pre>
       </div>
-      <h3>Available Tools</h3>
-      <ul v-if="tools.length">
+
+      <h3 style="margin-top: 2em">Available Tools</h3>
+      <ul>
         <li v-for="tool in tools" :key="tool.name">
           <strong>{{ tool.name }}</strong
           >: {{ tool.description }}

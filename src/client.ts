@@ -1,12 +1,18 @@
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 import {
   TextContentSchema,
   LoggingMessageNotificationSchema,
   ToolListChangedNotificationSchema,
 } from "@modelcontextprotocol/sdk/types.js";
+import { Client } from "@modelcontextprotocol/sdk/client/index.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
 export class MCPClient {
+  /**
+   * Flag to enable/disable AI inference
+   * When enabled, user queries are processed by an AI to determine which tool to use
+   */
+  useAI: boolean = false;
+
   /**
    * Indicates whether the client is connected to the MCP server
    * Used to track the connection state and control async operations
@@ -17,7 +23,11 @@ export class MCPClient {
    * List of available tools provided by the MCP server
    * Each tool has a name and description
    */
-  tools: { name: string; description: string }[] = [];
+  tools: {
+    name: string;
+    description: string;
+    parameters: Record<string, any>;
+  }[] = [];
 
   private client: Client;
   private tries: number = 0;
@@ -28,6 +38,14 @@ export class MCPClient {
 
   constructor(serverName: string) {
     this.client = new Client({ name: serverName, version: "1.0.0" });
+  }
+
+  /**
+   * Set whether to use AI inference for tool selection
+   * @param use Whether to use AI inference
+   */
+  setUseAI(use: boolean): void {
+    this.useAI = use;
   }
 
   /**
@@ -68,6 +86,7 @@ export class MCPClient {
       this.setUpNotifications();
 
       await this.listTools();
+
       this.isConnected = true;
     } catch (e) {
       this.tries++;
@@ -90,6 +109,7 @@ export class MCPClient {
         this.tools = toolsResult.tools.map((tool: any) => ({
           name: tool.name,
           description: tool.description ?? "",
+          parameters: tool.parameters || {},
         }));
       } else {
         this.tools = [];
@@ -168,6 +188,56 @@ export class MCPClient {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
       return { success: false, error: errorMessage };
+    }
+  }
+
+  /**
+   * Process a user query through the AI to determine which tool to use
+   * @param query The user's query
+   * @param specificTools Optional array of specific tools to consider
+   * @returns The result of calling the selected tool, or an error
+   */
+  async callToolWithAI(
+    query: string,
+    specificTools?: string[]
+  ): Promise<{
+    success: boolean;
+    data?: any;
+    error?: string;
+    toolUsed?: string;
+    reasoning?: string;
+  }> {
+    try {
+      const result = await this.callTool("process-ai-query", {
+        query,
+        specificTools,
+      });
+
+      if (!result.success) return result;
+
+      const { toolName, parameters, reasoning } = result.data;
+
+      if (!toolName) {
+        return {
+          success: false,
+          error: "AI could not determine which tool to use for this query",
+        };
+      }
+
+      const toolResult = await this.callTool(toolName, parameters);
+
+      return {
+        ...toolResult,
+        reasoning,
+        toolUsed: toolName,
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      return {
+        success: false,
+        error: `AI inference error: ${errorMessage}`,
+      };
     }
   }
 

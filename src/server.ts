@@ -6,6 +6,7 @@ import {
   InitializeRequestSchema,
   ToolListChangedNotification,
 } from "@modelcontextprotocol/sdk/types.js";
+import registerAITools from "./tools/ai-tools.js";
 import registerTaskTools from "./tools/task-tools.js";
 import registerIndexTools from "./tools/index-tools.js";
 import registerSearchTools from "./tools/search-tools.js";
@@ -189,7 +190,6 @@ export class MCPServer {
     res: ServerResponse,
     body: any
   ): Promise<void> {
-    console.log("Handling initialize request");
     const newSessionId = randomUUID();
 
     const transport = new StreamableHTTPServerTransport({
@@ -370,6 +370,7 @@ const initServerHTTPTransport = async (
   registerVectorTools(serverInstance);
   registerSystemTools(serverInstance);
   registerTaskTools(serverInstance);
+  registerAITools(serverInstance);
 
   const server = new MCPServer(serverInstance, config);
 
@@ -399,6 +400,7 @@ const initServerStdioTransport = async () => {
   registerVectorTools(serverInstance);
   registerSystemTools(serverInstance);
   registerTaskTools(serverInstance);
+  registerAITools(serverInstance);
 
   const server = new MCPServer(serverInstance, config);
 

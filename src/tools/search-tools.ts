@@ -221,7 +221,7 @@ export const registerSearchTools = (server: McpServer) => {
           (index: any) => index.uid
         );
 
-        if (!indexUids || indexUids.length === 0) {
+        if (!indexUids?.length) {
           return {
             content: [
               {
