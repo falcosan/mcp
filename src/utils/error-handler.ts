@@ -17,7 +17,7 @@ export const handleApiError = (error: any): string => {
   }
 
   // If it's a network error or other error
-  return `Error connecting to Meilisearch: ${error.message}`;
+  return `MCP Server error: ${JSON.stringify(error)}`;
 };
 
 /**
