@@ -22,6 +22,8 @@ export default function useMCPMeilisearch() {
   const loading = ref({ client: true, tool: false });
   const result = ref<MCPMeilisearchResult | null>(null);
 
+  const mcp = new MCPClient("meilisearch-vue-client");
+
   const callTool = async (
     name: string,
     params: Record<string, unknown> = {}
@@ -44,7 +46,7 @@ export default function useMCPMeilisearch() {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       result.value = { success: false, error: msg };
-      error.value = `Error: ${msg}`;
+      error.value = msg;
     } finally {
       loading.value.tool = false;
     }
@@ -70,7 +72,7 @@ export default function useMCPMeilisearch() {
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       result.value = { success: false, error: msg };
-      error.value = `Error: ${msg}`;
+      error.value = msg;
     } finally {
       loading.value.tool = false;
     }
@@ -97,7 +99,6 @@ export default function useMCPMeilisearch() {
   };
 
   onMounted(async () => {
-    const mcp = new MCPClient("meilisearch-vue-client");
     mcp.onToolsUpdatedCallback((t) => (tools.value = t));
 
     try {
@@ -122,7 +123,6 @@ export default function useMCPMeilisearch() {
     useAI,
     client,
     loading,
-    callTool,
     toggleAIInference,
     searchAcrossAllIndexes,
   };

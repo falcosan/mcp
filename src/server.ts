@@ -190,7 +190,6 @@ export class MCPServer {
     res: ServerResponse,
     body: any
   ): Promise<void> {
-    console.log("Handling initialize request");
     const newSessionId = randomUUID();
 
     const transport = new StreamableHTTPServerTransport({

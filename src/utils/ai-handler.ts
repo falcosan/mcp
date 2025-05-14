@@ -17,7 +17,7 @@ interface AITool {
  * to use based on the user's query
  */
 export class AIService {
-  private client: OpenAI | null = null;
+  client: OpenAI | null = null;
   private static instance: AIService | null = null;
   private availableTools: {
     name: string;
@@ -145,6 +145,8 @@ export class AIService {
     reasoning?: string;
   } | null> {
     try {
+      if (!this.client) return null;
+
       const mentionedTools = this.extractToolNames(query);
       const toolsToUse =
         specificTools || (mentionedTools.length ? mentionedTools : undefined);
@@ -154,8 +156,8 @@ export class AIService {
         { role: "user" as const, content: query },
         { role: "system" as const, content: this.systemPrompt },
       ];
-      const client = this.client as OpenAI;
-      const response = await client.chat.completions.create({
+
+      const response = await this.client.chat.completions.create({
         tools,
         messages,
         model: this.model,

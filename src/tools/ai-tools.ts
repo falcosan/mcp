@@ -43,6 +43,18 @@ export const registerAITools = (server: McpServer) => {
 
         const result = await aiService.processQuery(query, specificTools);
 
+        if (!aiService.client) {
+          return {
+            isError: true,
+            content: [
+              {
+                type: "text",
+                text: "AI service not initialized. Please provide an API key.",
+              },
+            ],
+          };
+        }
+
         if (!result) {
           return {
             content: [

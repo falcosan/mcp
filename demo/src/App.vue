@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import useMCPMeilisearch from "../composables/useMCPMeilisearch";
+import useMCPMeilisearch from "./composables/useMCPMeilisearch";
 
 const searchQuery = ref<string>("");
 const {
@@ -10,8 +10,8 @@ const {
   useAI,
   client,
   loading,
-  searchAcrossAllIndexes,
   toggleAIInference,
+  searchAcrossAllIndexes,
 } = useMCPMeilisearch();
 
 const handleSearch = () => {
