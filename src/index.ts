@@ -1,9 +1,9 @@
 import http from "node:http";
 import { createServer } from "node:http";
 import { parse as parseUrl } from "node:url";
+import { aiService } from "./utils/ai-handler.js";
 import { ServerOptions } from "./types/options.js";
 import { initServer, MCPServer } from "./server.js";
-import { aiService } from "./utils/ai-handler.js";
 import { configHandler } from "./utils/config-handler.js";
 import { createErrorResponse } from "./utils/error-handler.js";
 

@@ -1,20 +1,12 @@
 import { OpenAI } from "openai";
 
-interface AIFunctionDefinition {
-  name: string;
-  description: string;
-  parameters: Record<string, any>;
-}
-
 interface AITool {
   type: "function";
-  function: AIFunctionDefinition;
-}
-
-interface AICompletionRequest {
-  model: string;
-  messages: Array<{ role: "system" | "user" | "assistant"; content: string }>;
-  tools?: AITool[];
+  function: {
+    name: string;
+    description: string;
+    parameters: Record<string, any>;
+  };
 }
 
 /**
