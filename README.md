@@ -1,32 +1,18 @@
 # MCP Meilisearch API Server
 
-A Model Context Protocol (MCP) server implementation that provides a bridge between AI models and the Meilisearch search engine using the StreamableHTTP transport. This project enables seamless integration of Meilisearch's powerful search capabilities within AI workflows.
+A Model Context Protocol (MCP) server implementation that provides a bridge between AI models and the Meilisearch search engine.
 
-## Updated Overview
-
-This project provides a MCP server that enables AI models to interact directly with Meilisearch functionalities. The architecture includes:
+## Overview
 
 - **MCP Server**: Exposes Meilisearch APIs as tools using the Model Context Protocol.
 - **Web Client Demo**: A demo interface showcasing search functionalities.
 
 ## Key Features
 
-- **StreamableHTTP Transport**: Real-time communication between clients and the server.
+- **Multiple Transport Options**: Supports both STDIO and StreamableHTTP transports.
+- **Real-time Communication**: Enables seamless interaction between clients and the server.
 - **Meilisearch API Support**: Full access to Meilisearch functionalities.
-- **Enhanced Error Handling**: Improved error management for API requests.
 - **Web Client Demo**: Updated interface for demonstrating search capabilities.
-
-## Tool Categories
-
-The MCP server organizes Meilisearch APIs into these categories:
-
-1. **System Tools**: Health checks, version info, server stats.
-2. **Index Tools**: Manage indexes (create, update, delete, list).
-3. **Document Tools**: Add, update, delete, and retrieve documents.
-4. **Search Tools**: Advanced search, including vector search.
-5. **Settings Tools**: Configure index settings.
-6. **Task Tools**: Manage asynchronous tasks.
-7. **Vector Tools**: Experimental vector search capabilities.
 
 ## Getting Started
 
@@ -38,10 +24,17 @@ The MCP server organizes Meilisearch APIs into these categories:
 
 ### Setup Instructions
 
-1. Clone the repository:
+1. Install the package:
 
 ```bash
-git clone https://github.com/falcosan/mcp
+# Using npm
+npm install mcp-meilisearch
+
+# Using yarn
+yarn add mcp-meilisearch
+
+# Using pnpm
+pnpm add mcp-meilisearch
 ```
 
 2. Install dependencies:
@@ -59,34 +52,19 @@ MEILISEARCH_HOST=http://localhost:7700
 MEILISEARCH_API_KEY=your_master_key_here
 ```
 
-### Running the Server
+## Tools
 
-To start the server:
+The MCP server exposes various tools that allow you to interact with Meilisearch functionalities. Each tool corresponds to a specific Meilisearch API endpoint, enabling you to perform operations such as searching, indexing, and managing documents.
 
-```bash
-npm run server  # Start the MCP server
-npm run demo  # Start the Web client demo
-```
+### Tool Categories
 
-### Accessing the Web Interface
-
-Visit the following URL in your browser:
-
-```
-http://localhost:8080
-```
-
-## Development
-
-This project uses:
-
-- **TypeScript**: Ensures type safety.
-- **Express**: Powers the web server.
-- **Model Context Protocol SDK**: Facilitates AI integration.
-
-## Available Tools
-
-This section details all the available tools, their descriptions, and parameters.
+1. **System Tools**: Health checks, version info, server stats.
+2. **Index Tools**: Manage indexes (create, update, delete, list).
+3. **Document Tools**: Add, update, delete, and retrieve documents.
+4. **Search Tools**: Advanced search, including vector search.
+5. **Settings Tools**: Configure index settings.
+6. **Task Tools**: Manage asynchronous tasks.
+7. **Vector Tools**: Experimental vector search capabilities.
 
 ### System Tools
 
