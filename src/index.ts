@@ -5,6 +5,7 @@ import { ServerOptions } from "./types/options.js";
 import { initServer, MCPServer } from "./server.js";
 import { configHandler } from "./utils/config-handler.js";
 import { createErrorResponse } from "./utils/error-handler.js";
+import { llmInferenceService } from "./utils/llm-inference.js";
 
 /**
  * Start a MCP server
@@ -13,12 +14,33 @@ import { createErrorResponse } from "./utils/error-handler.js";
  */
 export async function mcpMeilisearchServer(
   options: ServerOptions = {
-    meilisearchApiKey: "",
     meilisearchHost: "http://localhost:7700",
+    meilisearchApiKey: "",
   }
 ): Promise<http.Server> {
   configHandler.setMeilisearchHost(options.meilisearchHost);
   configHandler.setMeilisearchApiKey(options.meilisearchApiKey);
+
+  if (options.openaiApiKey || configHandler.getOpenaiApiKey()) {
+    const apiKey = options.openaiApiKey || configHandler.getOpenaiApiKey();
+    const model = options.llmModel || configHandler.getLlmModel();
+    if (apiKey) {
+      llmInferenceService.initialize(apiKey);
+      if (model) {
+        llmInferenceService.setSystemPrompt(
+          `You are an AI assistant that helps users interact with a Meilisearch database through MCP tools.
+Your job is to understand the user's query and select the most appropriate tool to use.
+For search queries, determine if they're looking for specific content types or need to search across all indexes.
+You can only use the tools provided to you. Always provide appropriate parameters for the chosen tool.
+If the query mentions specific tool names directly, prioritize using those tools.`
+        );
+      }
+    }
+  } else {
+    console.warn(
+      "OpenAI API key not found. LLM inference will not be available."
+    );
+  }
 
   const httpPort = options.httpPort || 4995;
   const transport = options.transport || "http";
@@ -149,6 +171,12 @@ if (import.meta.url === `file://${process.argv?.[1]}`) {
         break;
       case "apiKey":
         options.meilisearchApiKey = value;
+        break;
+      case "openaiApiKey":
+        options.openaiApiKey = value;
+        break;
+      case "llmModel":
+        options.llmModel = value;
         break;
     }
   }

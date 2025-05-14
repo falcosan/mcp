@@ -40,4 +40,16 @@ export interface ServerOptions {
    * @default 60000 (1 minute)
    */
   sessionCleanupInterval?: number;
+
+  /**
+   * OpenAI API key for LLM inference
+   * If not provided, will try to use OPENAI_API_KEY from environment
+   */
+  openaiApiKey?: string;
+
+  /**
+   * LLM model to use for inference
+   * @default "gpt-3.5-turbo"
+   */
+  llmModel?: string;
 }

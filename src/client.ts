@@ -5,6 +5,7 @@ import {
   LoggingMessageNotificationSchema,
   ToolListChangedNotificationSchema,
 } from "@modelcontextprotocol/sdk/types.js";
+import { llmInferenceService } from "./utils/llm-inference.js";
 
 export class MCPClient {
   /**
@@ -17,7 +18,17 @@ export class MCPClient {
    * List of available tools provided by the MCP server
    * Each tool has a name and description
    */
-  tools: { name: string; description: string }[] = [];
+  tools: {
+    name: string;
+    description: string;
+    parameters: Record<string, any>;
+  }[] = [];
+
+  /**
+   * Flag to enable/disable LLM inference
+   * When enabled, user queries are processed by an LLM to determine which tool to use
+   */
+  useLLMInference: boolean = false;
 
   private client: Client;
   private tries: number = 0;
@@ -28,6 +39,22 @@ export class MCPClient {
 
   constructor(serverName: string) {
     this.client = new Client({ name: serverName, version: "1.0.0" });
+  }
+
+  /**
+   * Set whether to use LLM inference for tool selection
+   * @param use Whether to use LLM inference
+   */
+  setUseLLMInference(use: boolean): void {
+    this.useLLMInference = use;
+  }
+
+  /**
+   * Get current LLM inference setting
+   * @returns Whether LLM inference is enabled
+   */
+  getUseLLMInference(): boolean {
+    return this.useLLMInference;
   }
 
   /**
@@ -68,6 +95,10 @@ export class MCPClient {
       this.setUpNotifications();
 
       await this.listTools();
+
+      // Update LLM inference service with available tools
+      llmInferenceService.setAvailableTools(this.tools);
+
       this.isConnected = true;
     } catch (e) {
       this.tries++;
@@ -90,10 +121,14 @@ export class MCPClient {
         this.tools = toolsResult.tools.map((tool: any) => ({
           name: tool.name,
           description: tool.description ?? "",
+          parameters: tool.parameters || {},
         }));
       } else {
         this.tools = [];
       }
+
+      // Update LLM inference service with the latest tools
+      llmInferenceService.setAvailableTools(this.tools);
     } catch (error) {
       this.tools = [];
     } finally {
@@ -112,6 +147,53 @@ export class MCPClient {
       ToolListChangedNotificationSchema,
       this.listTools
     );
+  }
+
+  /**
+   * Process a user query through the LLM to determine which tool to use
+   * @param query The user's query
+   * @param specificTools Optional array of specific tools to consider
+   * @returns The result of calling the selected tool, or an error
+   */
+  async processQueryWithLLM(
+    query: string,
+    specificTools?: string[]
+  ): Promise<{
+    success: boolean;
+    data?: any;
+    error?: string;
+    toolUsed?: string;
+    reasoning?: string;
+  }> {
+    try {
+      const toolSelection = await llmInferenceService.processQuery(
+        query,
+        specificTools
+      );
+
+      if (!toolSelection) {
+        return {
+          success: false,
+          error: "LLM could not determine which tool to use for this query",
+        };
+      }
+
+      const { toolName, parameters, reasoning } = toolSelection;
+      const result = await this.callTool(toolName, parameters);
+
+      return {
+        ...result,
+        reasoning,
+        toolUsed: toolName,
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      return {
+        success: false,
+        error: `LLM inference error: ${errorMessage}`,
+      };
+    }
   }
 
   /**
@@ -169,6 +251,31 @@ export class MCPClient {
         error instanceof Error ? error.message : String(error);
       return { success: false, error: errorMessage };
     }
+  }
+
+  /**
+   * Process a user search query, using LLM inference if enabled
+   * @param query User's search query
+   * @param specificTools Optional array of specific tools to consider
+   * @returns The search results or error
+   */
+  async processUserQuery(
+    query: string,
+    specificTools?: string[]
+  ): Promise<{
+    success: boolean;
+    data?: any;
+    error?: string;
+    toolUsed?: string;
+    reasoning?: string;
+  }> {
+    // If LLM inference is disabled, default to search-across-all-indexes
+    if (!this.useLLMInference) {
+      return this.callTool("search-across-all-indexes", { q: query });
+    }
+
+    // Use LLM to determine the appropriate tool
+    return this.processQueryWithLLM(query, specificTools);
   }
 
   private setUpTransport(): void {

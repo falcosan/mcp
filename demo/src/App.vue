@@ -3,11 +3,24 @@ import { ref } from "vue";
 import useMCPMeilisearch from "../composables/useMCPMeilisearch";
 
 const searchQuery = ref<string>("");
-const { error, tools, result, client, loading, searchAcrossAllIndexes } =
-  useMCPMeilisearch();
+const {
+  error,
+  tools,
+  result,
+  client,
+  loading,
+  searchAcrossAllIndexes,
+  useLLMInference,
+  toggleLLMInference,
+} = useMCPMeilisearch();
 
 const handleSearch = () => {
   searchAcrossAllIndexes(searchQuery.value);
+};
+
+const handleToggleLLM = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  toggleLLMInference(target.checked);
 };
 </script>
 
@@ -23,6 +36,17 @@ const handleSearch = () => {
       <h2>Connection Status: <span style="color: green">Connected</span></h2>
 
       <div style="margin: 20px 0">
+        <div style="margin-bottom: 10px; display: flex; align-items: center">
+          <input
+            type="checkbox"
+            :checked="useLLMInference"
+            id="llm-toggle"
+            @change="handleToggleLLM"
+            style="margin-right: 5px"
+          />
+          <label for="llm-toggle">Use LLM inference for tool selection</label>
+        </div>
+
         <input
           v-model="searchQuery"
           type="text"
@@ -49,15 +73,25 @@ const handleSearch = () => {
         "
       >
         <div v-if="result.success" style="color: green">Success!</div>
-        <div v-else-if="result.error" style="color: red">
-          Error: {{ result.error }}
+        <div v-else style="color: red">Error: {{ result.error }}</div>
+
+        <div v-if="useLLMInference && result.toolUsed" style="margin-top: 10px">
+          <div><strong>Tool Used:</strong> {{ result.toolUsed }}</div>
+          <div v-if="result.reasoning">
+            <strong>LLM Reasoning:</strong>
+            <p style="margin-top: 5px; font-style: italic">
+              {{ result.reasoning }}
+            </p>
+          </div>
         </div>
-        <pre style="white-space: pre-wrap">
-        {{ JSON.stringify(result.data || result, null, 2) }}
-        </pre>
+
+        <pre style="margin-top: 1em; overflow: auto; max-height: 400px">{{
+          result.data
+        }}</pre>
       </div>
-      <h3>Available Tools</h3>
-      <ul v-if="tools.length">
+
+      <h3 style="margin-top: 2em">Available Tools</h3>
+      <ul>
         <li v-for="tool in tools" :key="tool.name">
           <strong>{{ tool.name }}</strong
           >: {{ tool.description }}

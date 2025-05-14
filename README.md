@@ -6,6 +6,7 @@ A Model Context Protocol (MCP) server implementation that provides a bridge betw
 
 - **MCP Server**: Exposes Meilisearch APIs as tools using the Model Context Protocol.
 - **Web Client Demo**: A demo interface showcasing search functionalities.
+- **LLM Inference**: Intelligent tool selection based on user queries.
 
 ## Key Features
 
@@ -13,6 +14,7 @@ A Model Context Protocol (MCP) server implementation that provides a bridge betw
 - **Real-time Communication**: Enables seamless interaction between clients and the server.
 - **Meilisearch API Support**: Full access to Meilisearch functionalities.
 - **Web Client Demo**: Updated interface for demonstrating search capabilities.
+- **LLM Inference**: Uses OpenAI to intelligently select the most appropriate tool based on user queries.
 
 ## Getting Started
 
@@ -21,6 +23,7 @@ A Model Context Protocol (MCP) server implementation that provides a bridge betw
 - Node.js v20 or higher.
 - A running Meilisearch instance (local or remote).
 - API key for Meilisearch (if required).
+- OpenAI API key (if using LLM inference).
 
 ### Installation
 
@@ -55,20 +58,76 @@ pnpm add mcp-meilisearch
 - `sessionTimeout`: Session timeout in milliseconds (Default: 3600000)
 - `sessionCleanupInterval`: Session cleanup interval in milliseconds (Default: 60000)
 
+#### LLM Inference Options
+
+- `openaiApiKey`: OpenAI API key for LLM inference (Default: uses OPENAI_API_KEY from environment)
+- `llmModel`: LLM model to use (Default: "gpt-3.5-turbo")
+
 ### Using the MCPClient
 
-The package also exports the MCPClient class for client-side integration:
+The package exports the MCPClient class for client-side integration:
 
 ```typescript
 import { MCPClient } from "mcp-meilisearch/client";
 
+// Create a new client
 const client = new MCPClient("mcp-meilisearch-client");
+
+// Connect to the MCP server
 await client.connectToServer("http://localhost:4995/mcp");
 
-// Call a tool
+// Call a specific tool directly
 const result = await client.callTool("search-across-all-indexes", {
   q: "search kiosco antonio",
 });
+
+// Use LLM inference to choose the most appropriate tool
+// First enable LLM inference
+client.setUseLLMInference(true);
+
+// Then process a user query
+const result = await client.processUserQuery("Find events about cucumber");
+console.log(`Tool used: ${result.toolUsed}`);
+console.log(`Reasoning: ${result.reasoning}`);
+console.log(`Results: ${JSON.stringify(result.data)}`);
+```
+
+#### LLM Inference Client Methods
+
+- `setUseLLMInference(use: boolean)`: Enable or disable LLM inference.
+- `getUseLLMInference(): boolean`: Check if LLM inference is enabled.
+- `processUserQuery(query: string, specificTools?: string[])`: Process a user query with LLM inference, optionally limiting to specific tools.
+
+### Starting the Server
+
+You can start the server programmatically:
+
+```typescript
+import mcpMeilisearchServer from "mcp-meilisearch";
+
+await mcpMeilisearchServer({
+  meilisearchHost: "http://localhost:7700",
+  meilisearchApiKey: "your_api_key",
+  openaiApiKey: "your_openai_api_key", // Required for LLM inference
+  llmModel: "gpt-4", // Optional, defaults to gpt-3.5-turbo
+});
+```
+
+Or via the command line:
+
+```bash
+# Set OpenAI API key in environment
+export OPENAI_API_KEY="your_openai_api_key"
+
+# Import the module and start the server
+node -e "import('mcp-meilisearch').then(m => m.default({}))"
+
+# With additional options
+node -e "import('mcp-meilisearch').then(m => m.default({
+  meilisearchHost: 'http://localhost:7700',
+  meilisearchApiKey: 'your_api_key',
+  llmModel: 'gpt-4'
+}))"
 ```
 
 ## Tools
