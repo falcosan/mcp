@@ -31,24 +31,20 @@ If the query mentions specific tool names directly, prioritize using those tools
 
   /**
    * Create a new AI Inference Service
-   * @param apiKey OpenAI API key
+   * The service needs to be initialized with an API key before use.
+   */
+  constructor() {}
+
+  /**
+   * Initialize the AI service with an API key and optionally set the model
+   * @param apiKey OpenAI API key (required)
    * @param model Optional model to use (defaults to gpt-3.5-turbo)
    */
-  constructor(apiKey?: string, model?: string) {
-    if (apiKey) {
-      this.client = new OpenAI({ apiKey });
-    }
+  initialize(apiKey: string, model?: string): void {
+    this.client = new OpenAI({ apiKey });
     if (model) {
       this.model = model;
     }
-  }
-
-  /**
-   * Initialize the AI service with an API key
-   * @param apiKey OpenAI API key
-   */
-  initialize(apiKey: string): void {
-    this.client = new OpenAI({ apiKey });
   }
 
   /**
@@ -174,11 +170,7 @@ If the query mentions specific tool names directly, prioritize using those tools
     }
   }
 
-  /**
-   * Set a custom system prompt for the AI
-   * @param prompt The system prompt to use
-   */
-  setSystemPrompt(prompt: string): void {
+  private setSystemPrompt(prompt: string): void {
     this.systemPrompt = prompt;
   }
 }
