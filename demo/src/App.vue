@@ -7,10 +7,10 @@ const {
   error,
   tools,
   result,
+  useAI,
   client,
   loading,
   searchAcrossAllIndexes,
-  useAI,
   toggleAIInference,
 } = useMCPMeilisearch();
 

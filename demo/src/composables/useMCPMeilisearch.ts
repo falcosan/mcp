@@ -15,12 +15,12 @@ export interface MCPTool {
 }
 
 export default function useMCPMeilisearch() {
+  const useAI = ref<boolean>(false);
   const tools = ref<MCPTool[]>([]);
   const error = ref<string | null>(null);
   const client = ref<MCPClient | null>(null);
   const loading = ref({ client: true, tool: false });
   const result = ref<MCPMeilisearchResult | null>(null);
-  const useAI = ref<boolean>(false);
 
   const callTool = async (
     name: string,
@@ -65,7 +65,7 @@ export default function useMCPMeilisearch() {
       const response = await client.value.callToolWithAI(query, specificTools);
       result.value = response;
       if (!response?.success) {
-        error.value = `Query processing failed: ${response.error}`;
+        error.value = response.error || "Query processing failed:";
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
@@ -119,11 +119,10 @@ export default function useMCPMeilisearch() {
     error,
     tools,
     result,
+    useAI,
     client,
     loading,
     callTool,
-    useAI,
-    callToolWithAI,
     toggleAIInference,
     searchAcrossAllIndexes,
   };
