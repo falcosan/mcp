@@ -43,7 +43,6 @@ export interface ServerOptions {
 
   /**
    * OpenAI API key for LLM inference
-   * If not provided, will try to use OPENAI_API_KEY from environment
    */
   openaiApiKey?: string;
 
