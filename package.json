@@ -29,12 +29,12 @@
     "prepublishOnly": "rm -rf dist && npm version patch && npm run build"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.10.1",
+    "@modelcontextprotocol/sdk": "^1.11.2",
     "axios": "^1.9.0",
     "zod": "^3.24.4"
   },
   "devDependencies": {
-    "@types/node": "^22.14.0",
+    "@types/node": "^22.15.18",
     "typescript": "^5.8.3"
   },
   "engines": {
