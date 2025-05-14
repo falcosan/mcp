@@ -1,4 +1,7 @@
 import { OpenAI } from "openai";
+import { readFileSync } from "fs";
+import { fileURLToPath } from "url";
+import { dirname, resolve } from "path";
 
 interface AITool {
   type: "function";
@@ -8,7 +11,6 @@ interface AITool {
     parameters: Record<string, any>;
   };
 }
-
 /**
  * AI Inference Service
  *
@@ -22,8 +24,11 @@ export class AIService {
     description: string;
     parameters: Record<string, any>;
   }[] = [];
-  private systemPrompt: string = "";
   private model: string = "gpt-3.5-turbo";
+  private systemPrompt: string = readFileSync(
+    resolve(dirname(fileURLToPath(import.meta.url)), "../assets/prompt.txt"),
+    "utf8"
+  );
 
   /**
    * Create a new AI Inference Service
@@ -38,9 +43,7 @@ export class AIService {
    */
   initialize(apiKey: string, model?: string): void {
     this.client = new OpenAI({ apiKey });
-    if (model) {
-      this.model = model;
-    }
+    if (model) this.model = model;
   }
 
   /**
@@ -133,11 +136,8 @@ export class AIService {
       const tools = this.getToolDefinitions(toolsToUse);
 
       const messages = [
-        {
-          role: "system" as const,
-          content: this.systemPrompt,
-        },
         { role: "user" as const, content: query },
+        { role: "system" as const, content: this.systemPrompt },
       ];
 
       const response = await this.client.chat.completions.create({
@@ -149,13 +149,13 @@ export class AIService {
 
       const message = response.choices[0].message;
 
-      if (message.tool_calls && message.tool_calls.length > 0) {
+      if (message.tool_calls?.length) {
         const toolCall = message.tool_calls[0];
 
         return {
           toolName: toolCall.function.name,
-          parameters: JSON.parse(toolCall.function.arguments),
           reasoning: message.content || undefined,
+          parameters: JSON.parse(toolCall.function.arguments),
         };
       }
 

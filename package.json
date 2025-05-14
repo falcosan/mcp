@@ -23,10 +23,10 @@
     "demo"
   ],
   "scripts": {
-    "build": "tsc && tsc --project tsconfig.types.json",
     "demo": "npm run build & npm run dev --workspace=demo",
     "server": "npm run build && node --env-file=.env dist/index.js",
-    "prepublishOnly": "rm -rf dist && npm version patch && npm run build"
+    "prepublishOnly": "rm -rf dist && npm version patch && npm run build",
+    "build": "tsc && tsc -p tsconfig.types.json && mkdir -p dist/assets && cp -R src/assets/* dist/assets/"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.11.2",
