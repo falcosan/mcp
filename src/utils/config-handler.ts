@@ -19,7 +19,7 @@ class ConfigHandler {
    * Set the Meilisearch API key
    * @param apiKey The API key for Meilisearch
    */
-  setMeilisearchApiKey(apiKey: string): void {
+  setMeilisearchApiKey(apiKey?: string): void {
     this._meilisearchApiKey = apiKey || "";
   }
 
@@ -43,7 +43,7 @@ class ConfigHandler {
    * Set the OpenAI API key
    * @param apiKey The API key for OpenAI
    */
-  setOpenaiApiKey(apiKey: string): void {
+  setOpenaiApiKey(apiKey?: string): void {
     this._openaiApiKey = apiKey || "";
   }
 
@@ -56,15 +56,15 @@ class ConfigHandler {
   }
 
   /**
-   * Set the LLM model to use
+   * Set the AI model to use
    * @param model The model name (e.g., gpt-3.5-turbo, gpt-4)
    */
-  setLlmModel(model: string): void {
+  setLlmModel(model?: string): void {
     this._llmModel = model || "gpt-3.5-turbo";
   }
 
   /**
-   * Get the current LLM model
+   * Get the current AI model
    * @returns The model name
    */
   getLlmModel(): string {

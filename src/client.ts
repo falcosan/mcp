@@ -5,7 +5,7 @@ import {
   LoggingMessageNotificationSchema,
   ToolListChangedNotificationSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { llmService } from "./utils/llm-handler.js";
+import { aiService } from "./utils/ai-handler.js";
 
 export class MCPClient {
   /**
@@ -25,8 +25,8 @@ export class MCPClient {
   }[] = [];
 
   /**
-   * Flag to enable/disable LLM inference
-   * When enabled, user queries are processed by an LLM to determine which tool to use
+   * Flag to enable/disable AI inference
+   * When enabled, user queries are processed by an AI to determine which tool to use
    */
   useAI: boolean = false;
 
@@ -42,18 +42,18 @@ export class MCPClient {
   }
 
   /**
-   * Set whether to use LLM inference for tool selection
-   * @param use Whether to use LLM inference
+   * Set whether to use AI inference for tool selection
+   * @param use Whether to use AI inference
    */
   setUseAI(use: boolean): void {
     this.useAI = use;
   }
 
   /**
-   * Get current LLM inference setting
-   * @returns Whether LLM inference is enabled
+   * Get current AI inference setting
+   * @returns Whether AI inference is enabled
    */
-  getUseLLMInference(): boolean {
+  getUseAIInference(): boolean {
     return this.useAI;
   }
 
@@ -96,7 +96,7 @@ export class MCPClient {
 
       await this.listTools();
 
-      llmService.setAvailableTools(this.tools);
+      aiService.setAvailableTools(this.tools);
 
       this.isConnected = true;
     } catch (e) {
@@ -126,7 +126,7 @@ export class MCPClient {
         this.tools = [];
       }
 
-      llmService.setAvailableTools(this.tools);
+      aiService.setAvailableTools(this.tools);
     } catch (error) {
       this.tools = [];
     } finally {
@@ -148,7 +148,7 @@ export class MCPClient {
   }
 
   /**
-   * Process a user query through the LLM to determine which tool to use
+   * Process a user query through the AI to determine which tool to use
    * @param query The user's query
    * @param specificTools Optional array of specific tools to consider
    * @returns The result of calling the selected tool, or an error
@@ -164,12 +164,12 @@ export class MCPClient {
     reasoning?: string;
   }> {
     try {
-      const toolSelection = await llmService.processQuery(query, specificTools);
+      const toolSelection = await aiService.processQuery(query, specificTools);
 
       if (!toolSelection) {
         return {
           success: false,
-          error: "LLM could not determine which tool to use for this query",
+          error: "AI could not determine which tool to use for this query",
         };
       }
 
@@ -186,7 +186,7 @@ export class MCPClient {
         error instanceof Error ? error.message : String(error);
       return {
         success: false,
-        error: `LLM inference error: ${errorMessage}`,
+        error: `AI inference error: ${errorMessage}`,
       };
     }
   }
@@ -249,7 +249,7 @@ export class MCPClient {
   }
 
   /**
-   * Process a user search query, using LLM inference if enabled
+   * Process a user search query, using AI inference if enabled
    * @param query User's search query
    * @param specificTools Optional array of specific tools to consider
    * @returns The search results or error

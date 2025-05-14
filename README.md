@@ -6,7 +6,7 @@ A Model Context Protocol (MCP) server implementation that provides a bridge betw
 
 - **MCP Server**: Exposes Meilisearch APIs as tools using the Model Context Protocol.
 - **Web Client Demo**: A demo interface showcasing search functionalities.
-- **LLM Inference**: Intelligent tool selection based on user queries.
+- **AI Inference**: Intelligent tool selection based on user queries.
 
 ## Key Features
 
@@ -14,7 +14,7 @@ A Model Context Protocol (MCP) server implementation that provides a bridge betw
 - **Real-time Communication**: Enables seamless interaction between clients and the server.
 - **Meilisearch API Support**: Full access to Meilisearch functionalities.
 - **Web Client Demo**: Updated interface for demonstrating search capabilities.
-- **LLM Inference**: Uses OpenAI to intelligently select the most appropriate tool based on user queries.
+- **AI Inference**: Uses OpenAI to intelligently select the most appropriate tool based on user queries.
 
 ## Getting Started
 
@@ -23,7 +23,7 @@ A Model Context Protocol (MCP) server implementation that provides a bridge betw
 - Node.js v20 or higher.
 - A running Meilisearch instance (local or remote).
 - API key for Meilisearch (if required).
-- OpenAI API key (if using LLM inference).
+- OpenAI API key (if using AI inference).
 
 ### Installation
 
@@ -58,10 +58,10 @@ pnpm add mcp-meilisearch
 - `sessionTimeout`: Session timeout in milliseconds (Default: 3600000)
 - `sessionCleanupInterval`: Session cleanup interval in milliseconds (Default: 60000)
 
-#### LLM Inference Options
+#### AI Inference Options
 
-- `openaiApiKey`: OpenAI API key for LLM inference (Default: uses OPENAI_API_KEY from environment)
-- `llmModel`: LLM model to use (Default: "gpt-3.5-turbo")
+- `openaiApiKey`: OpenAI API key for AI inference
+- `llmModel`: AI model to use (Default: "gpt-3.5-turbo")
 
 ### Using the MCPClient
 
@@ -81,8 +81,8 @@ const result = await client.callTool("search-across-all-indexes", {
   q: "search kiosco antonio",
 });
 
-// Use LLM inference to choose the most appropriate tool
-// First enable LLM inference
+// Use AI inference to choose the most appropriate tool
+// First enable AI inference
 client.setUseAI(true);
 
 // Then process a user query
@@ -92,11 +92,11 @@ console.log(`Reasoning: ${result.reasoning}`);
 console.log(`Results: ${JSON.stringify(result.data)}`);
 ```
 
-#### LLM Inference Client Methods
+#### AI Inference Client Methods
 
-- `setUseAI(use: boolean)`: Enable or disable LLM inference.
-- `getUseLLMInference(): boolean`: Check if LLM inference is enabled.
-- `processUserQuery(query: string, specificTools?: string[])`: Process a user query with LLM inference, optionally limiting to specific tools.
+- `setUseAI(use: boolean)`: Enable or disable AI inference.
+- `getUseAIInference(): boolean`: Check if AI inference is enabled.
+- `processUserQuery(query: string, specificTools?: string[])`: Process a user query with AI inference, optionally limiting to specific tools.
 
 ### Starting the Server
 
@@ -108,7 +108,7 @@ import mcpMeilisearchServer from "mcp-meilisearch";
 await mcpMeilisearchServer({
   meilisearchHost: "http://localhost:7700",
   meilisearchApiKey: "your_api_key",
-  openaiApiKey: "your_openai_api_key", // Required for LLM inference
+  openaiApiKey: "your_openai_api_key", // Required for AI inference
   llmModel: "gpt-4", // Optional, defaults to gpt-3.5-turbo
 });
 ```

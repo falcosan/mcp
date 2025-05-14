@@ -11,16 +11,16 @@ const {
   loading,
   searchAcrossAllIndexes,
   useAI,
-  toggleLLMInference,
+  toggleAIInference,
 } = useMCPMeilisearch();
 
 const handleSearch = () => {
   searchAcrossAllIndexes(searchQuery.value);
 };
 
-const handleToggleLLM = (event: Event) => {
+const handleToggleAI = (event: Event) => {
   const target = event.target as HTMLInputElement;
-  toggleLLMInference(target.checked);
+  toggleAIInference(target.checked);
 };
 </script>
 
@@ -40,11 +40,11 @@ const handleToggleLLM = (event: Event) => {
           <input
             type="checkbox"
             :checked="useAI"
-            id="llm-toggle"
-            @change="handleToggleLLM"
+            id="ai-toggle"
+            @change="handleToggleAI"
             style="margin-right: 5px"
           />
-          <label for="llm-toggle">Use AI</label>
+          <label for="ai-toggle">Use AI</label>
         </div>
 
         <input

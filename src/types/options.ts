@@ -42,12 +42,12 @@ export interface ServerOptions {
   sessionCleanupInterval?: number;
 
   /**
-   * OpenAI API key for LLM inference
+   * OpenAI API key for AI inference
    */
   openaiApiKey?: string;
 
   /**
-   * LLM model to use for inference
+   * AI model to use for inference
    * @default "gpt-3.5-turbo"
    */
   llmModel?: string;

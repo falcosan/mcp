@@ -3,7 +3,7 @@ import { createServer } from "node:http";
 import { parse as parseUrl } from "node:url";
 import { ServerOptions } from "./types/options.js";
 import { initServer, MCPServer } from "./server.js";
-import { llmService } from "./utils/llm-handler.js";
+import { aiService } from "./utils/ai-handler.js";
 import { configHandler } from "./utils/config-handler.js";
 import { createErrorResponse } from "./utils/error-handler.js";
 
@@ -18,29 +18,15 @@ export async function mcpMeilisearchServer(
     meilisearchApiKey: "",
   }
 ): Promise<http.Server> {
+  configHandler.setLlmModel(options.llmModel);
+  configHandler.setOpenaiApiKey(options.openaiApiKey);
   configHandler.setMeilisearchHost(options.meilisearchHost);
   configHandler.setMeilisearchApiKey(options.meilisearchApiKey);
 
-  if (options.openaiApiKey || configHandler.getOpenaiApiKey()) {
-    const apiKey = options.openaiApiKey || configHandler.getOpenaiApiKey();
-    const model = options.llmModel || configHandler.getLlmModel();
-    if (apiKey) {
-      llmService.initialize(apiKey);
-      if (model) {
-        llmService.setSystemPrompt(
-          `You are an AI assistant that helps users interact with a Meilisearch database through MCP tools.
-Your job is to understand the user's query and select the most appropriate tool to use.
-For search queries, determine if they're looking for specific content types or need to search across all indexes.
-You can only use the tools provided to you. Always provide appropriate parameters for the chosen tool.
-If the query mentions specific tool names directly, prioritize using those tools.`
-        );
-      }
-    }
-  } else {
-    console.warn(
-      "OpenAI API key not found. LLM inference will not be available."
-    );
-  }
+  const apiKey = configHandler.getOpenaiApiKey();
+
+  if (apiKey) aiService.initialize(apiKey);
+  else console.info("OpenAI API key not found. AI will not be available");
 
   const httpPort = options.httpPort || 4995;
   const transport = options.transport || "http";

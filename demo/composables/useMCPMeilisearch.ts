@@ -97,7 +97,7 @@ export default function useMCPMeilisearch() {
     }
   };
 
-  const toggleLLMInference = (value: boolean) => {
+  const toggleAIInference = (value: boolean) => {
     useAI.value = value;
     if (client.value) {
       client.value.setUseAI(value);
@@ -132,7 +132,7 @@ export default function useMCPMeilisearch() {
     callTool,
     useAI,
     processUserQuery,
-    toggleLLMInference,
+    toggleAIInference,
     searchAcrossAllIndexes,
   };
 }

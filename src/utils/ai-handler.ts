@@ -1,29 +1,29 @@
 import { OpenAI } from "openai";
 
-interface LLMFunctionDefinition {
+interface AIFunctionDefinition {
   name: string;
   description: string;
   parameters: Record<string, any>;
 }
 
-interface LLMTool {
+interface AITool {
   type: "function";
-  function: LLMFunctionDefinition;
+  function: AIFunctionDefinition;
 }
 
-interface LLMCompletionRequest {
+interface AICompletionRequest {
   model: string;
   messages: Array<{ role: "system" | "user" | "assistant"; content: string }>;
-  tools?: LLMTool[];
+  tools?: AITool[];
 }
 
 /**
- * LLM Inference Service
+ * AI Inference Service
  *
- * This service handles the interaction with the LLM to determine the appropriate tools
+ * This service handles the interaction with the AI to determine the appropriate tools
  * to use based on the user's query
  */
-export class LLMService {
+export class AIService {
   private client: OpenAI | null = null;
   private availableTools: {
     name: string;
@@ -38,7 +38,7 @@ You can only use the tools provided to you. Always provide appropriate parameter
 If the query mentions specific tool names directly, prioritize using those tools.`;
 
   /**
-   * Create a new LLM Inference Service
+   * Create a new AI Inference Service
    * @param apiKey OpenAI API key
    * @param model Optional model to use (defaults to gpt-3.5-turbo)
    */
@@ -52,7 +52,7 @@ If the query mentions specific tool names directly, prioritize using those tools
   }
 
   /**
-   * Initialize the LLM service with an API key
+   * Initialize the AI service with an API key
    * @param apiKey OpenAI API key
    */
   initialize(apiKey: string): void {
@@ -60,7 +60,7 @@ If the query mentions specific tool names directly, prioritize using those tools
   }
 
   /**
-   * Set the available tools that can be used by the LLM
+   * Set the available tools that can be used by the AI
    * @param tools Array of tools with name, description, and parameters
    */
   setAvailableTools(
@@ -74,11 +74,11 @@ If the query mentions specific tool names directly, prioritize using those tools
   }
 
   /**
-   * Get tool definitions for the LLM in the format expected by OpenAI
+   * Get tool definitions for the AI in the format expected by OpenAI
    * @param toolNames Optional array of tool names to filter by (if not provided, all tools will be included)
    * @returns Array of tool definitions
    */
-  private getToolDefinitions(toolNames?: string[]): LLMTool[] {
+  private getToolDefinitions(toolNames?: string[]): AITool[] {
     if (!toolNames || toolNames.length === 0) {
       return this.availableTools.map((tool) => ({
         type: "function",
@@ -135,13 +135,11 @@ If the query mentions specific tool names directly, prioritize using those tools
     reasoning?: string;
   } | null> {
     if (!this.client) {
-      throw new Error(
-        "LLM service not initialized. Please provide an API key."
-      );
+      throw new Error("AI service not initialized. Please provide an API key.");
     }
 
     if (this.availableTools.length === 0) {
-      throw new Error("No tools available for the LLM to use.");
+      throw new Error("No tools available for the AI to use.");
     }
 
     try {
@@ -179,13 +177,13 @@ If the query mentions specific tool names directly, prioritize using those tools
 
       return null;
     } catch (error) {
-      console.error("Error in LLM inference:", error);
+      console.error("Error in AI inference:", error);
       throw error;
     }
   }
 
   /**
-   * Set a custom system prompt for the LLM
+   * Set a custom system prompt for the AI
    * @param prompt The system prompt to use
    */
   setSystemPrompt(prompt: string): void {
@@ -193,4 +191,4 @@ If the query mentions specific tool names directly, prioritize using those tools
   }
 }
 
-export const llmService = new LLMService();
+export const aiService = new AIService();
