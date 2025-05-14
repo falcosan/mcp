@@ -91,10 +91,8 @@ export default function useMCPMeilisearch() {
     }
 
     if (useLLMInference.value) {
-      // Use LLM inference to process the query
       await processUserQuery(query);
     } else {
-      // Directly use the search-across-all-indexes tool
       await callTool("search-across-all-indexes", { q: query });
     }
   };
@@ -113,8 +111,6 @@ export default function useMCPMeilisearch() {
     try {
       await mcp.connectToServer("http://localhost:4995/mcp");
       client.value = mcp;
-
-      // Initialize LLM inference setting
       mcp.setUseLLMInference(useLLMInference.value);
     } catch (e) {
       error.value = e instanceof Error ? e.message : String(e);

@@ -44,7 +44,7 @@ const handleToggleLLM = (event: Event) => {
             @change="handleToggleLLM"
             style="margin-right: 5px"
           />
-          <label for="llm-toggle">Use LLM inference for tool selection</label>
+          <label for="llm-toggle">Use AI</label>
         </div>
 
         <input
