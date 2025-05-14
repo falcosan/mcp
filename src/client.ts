@@ -139,6 +139,10 @@ export class MCPClient {
         };
       }
 
+      if (result.isError) {
+        throw new Error("MCP Server error");
+      }
+
       const content = result.content as object[];
       if (!content?.length) {
         return { success: true, data: [] };
