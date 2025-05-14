@@ -72,7 +72,7 @@ export default function useMCPMeilisearch() {
         specificTools
       );
       result.value = response;
-      if (response && !response.success) {
+      if (!response?.success) {
         error.value = `Query processing failed: ${response.error}`;
       }
     } catch (e) {
@@ -130,9 +130,9 @@ export default function useMCPMeilisearch() {
     client,
     loading,
     callTool,
-    searchAcrossAllIndexes,
-    processUserQuery,
     useLLMInference,
+    processUserQuery,
     toggleLLMInference,
+    searchAcrossAllIndexes,
   };
 }
