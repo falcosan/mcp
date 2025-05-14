@@ -50,12 +50,7 @@ export default function useMCPMeilisearch() {
     }
   };
 
-  const processUserQuery = async (query: string, specificTools?: string[]) => {
-    if (!query.trim()) {
-      error.value = "Search query cannot be empty";
-      return;
-    }
-
+  const callToolWithAI = async (query: string, specificTools?: string[]) => {
     if (!client.value) {
       error.value = "Client not connected";
       result.value = { success: false, error: error.value };
@@ -67,10 +62,7 @@ export default function useMCPMeilisearch() {
     error.value = null;
 
     try {
-      const response = await client.value.processUserQuery(
-        query,
-        specificTools
-      );
+      const response = await client.value.callToolWithAI(query, specificTools);
       result.value = response;
       if (!response?.success) {
         error.value = `Query processing failed: ${response.error}`;
@@ -91,7 +83,7 @@ export default function useMCPMeilisearch() {
     }
 
     if (useAI.value) {
-      await processUserQuery(query);
+      await callToolWithAI(query);
     } else {
       await callTool("search-across-all-indexes", { q: query });
     }
@@ -131,7 +123,7 @@ export default function useMCPMeilisearch() {
     loading,
     callTool,
     useAI,
-    processUserQuery,
+    callToolWithAI,
     toggleAIInference,
     searchAcrossAllIndexes,
   };

@@ -9,6 +9,12 @@ import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/
 
 export class MCPClient {
   /**
+   * Flag to enable/disable AI inference
+   * When enabled, user queries are processed by an AI to determine which tool to use
+   */
+  useAI: boolean = false;
+
+  /**
    * Indicates whether the client is connected to the MCP server
    * Used to track the connection state and control async operations
    */
@@ -23,12 +29,6 @@ export class MCPClient {
     description: string;
     parameters: Record<string, any>;
   }[] = [];
-
-  /**
-   * Flag to enable/disable AI inference
-   * When enabled, user queries are processed by an AI to determine which tool to use
-   */
-  useAI: boolean = false;
 
   private client: Client;
   private tries: number = 0;
@@ -47,14 +47,6 @@ export class MCPClient {
    */
   setUseAI(use: boolean): void {
     this.useAI = use;
-  }
-
-  /**
-   * Get current AI inference setting
-   * @returns Whether AI inference is enabled
-   */
-  getUseAIInference(): boolean {
-    return this.useAI;
   }
 
   /**
@@ -148,50 +140,6 @@ export class MCPClient {
   }
 
   /**
-   * Process a user query through the AI to determine which tool to use
-   * @param query The user's query
-   * @param specificTools Optional array of specific tools to consider
-   * @returns The result of calling the selected tool, or an error
-   */
-  async processQueryWithAI(
-    query: string,
-    specificTools?: string[]
-  ): Promise<{
-    success: boolean;
-    data?: any;
-    error?: string;
-    toolUsed?: string;
-    reasoning?: string;
-  }> {
-    try {
-      const toolSelection = await aiService.processQuery(query, specificTools);
-
-      if (!toolSelection) {
-        return {
-          success: false,
-          error: "AI could not determine which tool to use for this query",
-        };
-      }
-
-      const { toolName, parameters, reasoning } = toolSelection;
-      const result = await this.callTool(toolName, parameters);
-
-      return {
-        ...result,
-        reasoning,
-        toolUsed: toolName,
-      };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      return {
-        success: false,
-        error: `AI inference error: ${errorMessage}`,
-      };
-    }
-  }
-
-  /**
    * Calls a tool on the MCP server with optional arguments
    * Parses and processes the response from the server
    * @param name The name of the tool to call
@@ -249,12 +197,12 @@ export class MCPClient {
   }
 
   /**
-   * Process a user search query, using AI inference if enabled
-   * @param query User's search query
+   * Process a user query through the AI to determine which tool to use
+   * @param query The user's query
    * @param specificTools Optional array of specific tools to consider
-   * @returns The search results or error
+   * @returns The result of calling the selected tool, or an error
    */
-  async processUserQuery(
+  async callToolWithAI(
     query: string,
     specificTools?: string[]
   ): Promise<{
@@ -264,11 +212,32 @@ export class MCPClient {
     toolUsed?: string;
     reasoning?: string;
   }> {
-    if (!this.useAI) {
-      return this.callTool("search-across-all-indexes", { q: query });
-    }
+    try {
+      const toolSelection = await aiService.processQuery(query, specificTools);
 
-    return this.processQueryWithAI(query, specificTools);
+      if (!toolSelection) {
+        return {
+          success: false,
+          error: "AI could not determine which tool to use for this query",
+        };
+      }
+
+      const { toolName, parameters, reasoning } = toolSelection;
+      const result = await this.callTool(toolName, parameters);
+
+      return {
+        ...result,
+        reasoning,
+        toolUsed: toolName,
+      };
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      return {
+        success: false,
+        error: `AI inference error: ${errorMessage}`,
+      };
+    }
   }
 
   private setUpTransport(): void {

@@ -82,7 +82,7 @@ const result = await client.callTool("search-across-all-indexes", {
 // First enable AI inference
 client.setUseAI(true);
 
-const result = await client.processUserQuery("Find articles about cucumber");
+const result = await client.callToolWithAI("Find articles about cucumber");
 console.log(`Tool used: ${result.toolUsed}`);
 console.log(`Reasoning: ${result.reasoning}`);
 console.log(`Results: ${JSON.stringify(result.data)}`);
@@ -91,8 +91,7 @@ console.log(`Results: ${JSON.stringify(result.data)}`);
 #### AI Inference Client Methods
 
 - `setUseAI(use: boolean)`: Enable or disable AI inference.
-- `getUseAIInference(): boolean`: Check if AI inference is enabled.
-- `processUserQuery(query: string, specificTools?: string[])`: Process a user query with AI inference, optionally limiting to specific tools.
+- `callToolWithAI(query: string, specificTools?: string[])`: Process a user query with AI inference, optionally limiting to specific tools.
 
 ### Starting the Server
 
