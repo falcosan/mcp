@@ -70,13 +70,10 @@ The package exports the MCPClient class for client-side integration:
 ```typescript
 import { MCPClient } from "mcp-meilisearch/client";
 
-// Create a new client
 const client = new MCPClient("mcp-meilisearch-client");
 
-// Connect to the MCP server
 await client.connectToServer("http://localhost:4995/mcp");
 
-// Call a specific tool directly
 const result = await client.callTool("search-across-all-indexes", {
   q: "search kiosco antonio",
 });
@@ -85,8 +82,7 @@ const result = await client.callTool("search-across-all-indexes", {
 // First enable AI inference
 client.setUseAI(true);
 
-// Then process a user query
-const result = await client.processUserQuery("Find events about cucumber");
+const result = await client.processUserQuery("Find articles about cucumber");
 console.log(`Tool used: ${result.toolUsed}`);
 console.log(`Reasoning: ${result.reasoning}`);
 console.log(`Results: ${JSON.stringify(result.data)}`);
@@ -111,23 +107,6 @@ await mcpMeilisearchServer({
   openaiApiKey: "your_openai_api_key", // Required for AI inference
   llmModel: "gpt-4", // Optional, defaults to gpt-3.5-turbo
 });
-```
-
-Or via the command line:
-
-```bash
-# Set OpenAI API key in environment
-export OPENAI_API_KEY="your_openai_api_key"
-
-# Import the module and start the server
-node -e "import('mcp-meilisearch').then(m => m.default({}))"
-
-# With additional options
-node -e "import('mcp-meilisearch').then(m => m.default({
-  meilisearchHost: 'http://localhost:7700',
-  meilisearchApiKey: 'your_api_key',
-  llmModel: 'gpt-4'
-}))"
 ```
 
 ## Tools
