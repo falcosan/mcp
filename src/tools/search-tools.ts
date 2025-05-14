@@ -227,7 +227,7 @@ export const registerSearchTools = (server: McpServer) => {
               {
                 type: "text",
                 text: JSON.stringify(
-                  { allHits: [], message: "No indexes found in Meilisearch." },
+                  { hits: [], message: "No indexes found in Meilisearch." },
                   null,
                   2
                 ),
@@ -255,11 +255,14 @@ export const registerSearchTools = (server: McpServer) => {
         });
 
         const resultsPerIndex = await Promise.all(searchPromises);
-        const allHits = resultsPerIndex.flat();
+        const hits = resultsPerIndex.flat();
 
         return {
           content: [
-            { type: "text", text: JSON.stringify({ allHits }, null, 2) },
+            {
+              type: "text",
+              text: JSON.stringify({ query: q, hits, limit }, null, 2),
+            },
           ],
         };
       } catch (error: any) {
