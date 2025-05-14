@@ -1,7 +1,5 @@
 import { OpenAI } from "openai";
-import { readFileSync } from "fs";
-import { fileURLToPath } from "url";
-import { resolve, dirname } from "path";
+import generalPrompt from "../prompts/general.js";
 
 interface AITool {
   type: "function";
@@ -11,10 +9,6 @@ interface AITool {
     parameters: Record<string, any>;
   };
 }
-const promptText = readFileSync(
-  resolve(dirname(fileURLToPath(import.meta.url)), "../assets/prompt.txt"),
-  "utf8"
-);
 
 /**
  * AI Inference Service
@@ -30,7 +24,7 @@ export class AIService {
     parameters: Record<string, any>;
   }[] = [];
   private model: string = "gpt-3.5-turbo";
-  private systemPrompt: string = promptText;
+  private systemPrompt: string = generalPrompt;
 
   /**
    * Create a new AI Inference Service
