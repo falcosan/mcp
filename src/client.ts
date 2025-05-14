@@ -3,7 +3,6 @@ import {
   LoggingMessageNotificationSchema,
   ToolListChangedNotificationSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { AIService } from "./utils/ai-handler.js";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
@@ -32,7 +31,6 @@ export class MCPClient {
 
   private client: Client;
   private tries: number = 0;
-  private aiService: AIService = AIService.getInstance();
   private transport: StreamableHTTPClientTransport | null = null;
   private toolsUpdatedCallback:
     | ((tools: Array<{ name: string; description: string }>) => void)
@@ -116,8 +114,6 @@ export class MCPClient {
       } else {
         this.tools = [];
       }
-
-      this.aiService.setAvailableTools(this.tools);
     } catch (error) {
       this.tools = [];
     } finally {
@@ -212,23 +208,26 @@ export class MCPClient {
     reasoning?: string;
   }> {
     try {
-      const toolSelection = await this.aiService.processQuery(
+      const result = await this.callTool("process-ai-query", {
         query,
-        specificTools
-      );
+        specificTools,
+      });
 
-      if (!toolSelection) {
+      if (!result.success) return result;
+
+      const { toolName, parameters, reasoning } = result.data;
+
+      if (!toolName) {
         return {
           success: false,
           error: "AI could not determine which tool to use for this query",
         };
       }
 
-      const { toolName, parameters, reasoning } = toolSelection;
-      const result = await this.callTool(toolName, parameters);
+      const toolResult = await this.callTool(toolName, parameters);
 
       return {
-        ...result,
+        ...toolResult,
         reasoning,
         toolUsed: toolName,
       };

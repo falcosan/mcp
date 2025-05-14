@@ -15,8 +15,6 @@ interface AITool {
  *
  * This service handles the interaction with the AI to determine the appropriate tools
  * to use based on the user's query
- *
- * Implemented as a singleton to ensure the same instance is used throughout the application
  */
 export class AIService {
   private client: OpenAI | null = null;
@@ -28,6 +26,7 @@ export class AIService {
   }[] = [];
   private model: string = "gpt-3.5-turbo";
   private systemPrompt: string = generalPrompt;
+  private static serverInitialized: boolean = false;
 
   /**
    * Private constructor to prevent direct instantiation
@@ -48,12 +47,20 @@ export class AIService {
 
   /**
    * Initialize the AI service with an API key and optionally set the model
+   * This should ONLY be called from the server side
    * @param apiKey OpenAI API key (required)
    * @param model Optional model to use (defaults to gpt-3.5-turbo)
    */
   initialize(apiKey: string, model?: string): void {
+    if (AIService.serverInitialized) {
+      console.warn("AIService has already been initialized by the server.");
+      return;
+    }
+
     this.client = new OpenAI({ apiKey });
     if (model) this.model = model;
+
+    AIService.serverInitialized = true;
   }
 
   /**
@@ -137,14 +144,6 @@ export class AIService {
     parameters: Record<string, any>;
     reasoning?: string;
   } | null> {
-    if (!this.client) {
-      throw new Error("AI service not initialized. Please provide an API key.");
-    }
-
-    if (!this.availableTools.length) {
-      throw new Error("No tools available for the AI to use.");
-    }
-
     try {
       const mentionedTools = this.extractToolNames(query);
       const toolsToUse =
@@ -155,8 +154,8 @@ export class AIService {
         { role: "user" as const, content: query },
         { role: "system" as const, content: this.systemPrompt },
       ];
-
-      const response = await this.client.chat.completions.create({
+      const client = this.client as OpenAI;
+      const response = await client.chat.completions.create({
         tools,
         messages,
         model: this.model,

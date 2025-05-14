@@ -26,8 +26,11 @@ export async function mcpMeilisearchServer(
   const aiService = AIService.getInstance();
   const apiKey = configHandler.getOpenaiApiKey();
 
-  if (apiKey) aiService.initialize(apiKey);
-  else console.info("OpenAI API key not found. AI will not be available");
+  if (apiKey) {
+    aiService.initialize(apiKey);
+  } else {
+    console.warn("OpenAI API key not found. AI will not be available");
+  }
 
   const httpPort = options.httpPort || 4995;
   const transport = options.transport || "http";
@@ -112,7 +115,6 @@ export async function mcpMeilisearchServer(
   try {
     const serverInstances = await initServer(transport, options);
     mcpServerInstance = serverInstances.mcpServer;
-    console.log("MCP server initialized successfully");
   } catch (error) {
     console.error("Failed to initialize MCP server:", error);
     server.close();
