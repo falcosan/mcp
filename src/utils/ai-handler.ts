@@ -66,7 +66,7 @@ export class AIService {
    * @returns Array of tool definitions
    */
   private getToolDefinitions(toolNames?: string[]): AITool[] {
-    if (!toolNames || toolNames.length === 0) {
+    if (!toolNames?.length) {
       return this.availableTools.map((tool) => ({
         type: "function",
         function: {
@@ -125,7 +125,7 @@ export class AIService {
       throw new Error("AI service not initialized. Please provide an API key.");
     }
 
-    if (this.availableTools.length === 0) {
+    if (!this.availableTools.length) {
       throw new Error("No tools available for the AI to use.");
     }
 
