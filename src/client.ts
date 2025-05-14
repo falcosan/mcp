@@ -88,8 +88,6 @@ export class MCPClient {
 
       await this.listTools();
 
-      aiService.setAvailableTools(this.tools);
-
       this.isConnected = true;
     } catch (e) {
       this.tries++;
