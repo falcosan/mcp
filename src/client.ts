@@ -5,7 +5,7 @@ import {
   LoggingMessageNotificationSchema,
   ToolListChangedNotificationSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { llmInferenceService } from "./utils/llm-inference.js";
+import { llmInferenceService } from "./utils/llm-handler.js";
 
 export class MCPClient {
   /**

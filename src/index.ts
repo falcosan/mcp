@@ -4,8 +4,8 @@ import { parse as parseUrl } from "node:url";
 import { ServerOptions } from "./types/options.js";
 import { initServer, MCPServer } from "./server.js";
 import { configHandler } from "./utils/config-handler.js";
+import { llmInferenceService } from "./utils/llm-handler.js";
 import { createErrorResponse } from "./utils/error-handler.js";
-import { llmInferenceService } from "./utils/llm-inference.js";
 
 /**
  * Start a MCP server
