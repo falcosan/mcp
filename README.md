@@ -49,7 +49,7 @@ Create a `.env` file with the following content:
 
 ```
 MEILISEARCH_HOST=http://localhost:7700
-MEILISEARCH_API_KEY=your_master_key_here
+MEILISEARCH_API_KEY=your_api_key_here
 ```
 
 ## Tools
