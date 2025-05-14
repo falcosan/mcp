@@ -22,12 +22,8 @@ export class AIService {
     description: string;
     parameters: Record<string, any>;
   }[] = [];
+  private systemPrompt: string = "";
   private model: string = "gpt-3.5-turbo";
-  private systemPrompt: string = `You are an AI assistant that helps users interact with a Meilisearch database through MCP tools.
-Your job is to understand the user's query and select the most appropriate tool to use.
-For search queries, determine if they're looking for specific content types or need to search across all indexes.
-You can only use the tools provided to you. Always provide appropriate parameters for the chosen tool.
-If the query mentions specific tool names directly, prioritize using those tools.`;
 
   /**
    * Create a new AI Inference Service
