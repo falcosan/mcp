@@ -29,6 +29,7 @@
     "prepublishOnly": "rm -rf dist && npm version patch && npm run build"
   },
   "dependencies": {
+    "@huggingface/inference": "^3.13.0",
     "@modelcontextprotocol/sdk": "^1.11.2",
     "axios": "^1.9.0",
     "openai": "^4.98.0",

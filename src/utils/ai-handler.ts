@@ -1,5 +1,6 @@
 import { OpenAI } from "openai";
 import generalPrompt from "../prompts/general.js";
+import { InferenceClient } from "@huggingface/inference";
 
 interface AITool {
   type: "function";
@@ -17,16 +18,16 @@ interface AITool {
  * to use based on the user's query
  */
 export class AIService {
-  client: OpenAI | null = null;
+  private model: string = "gpt-3.5-turbo";
+  private systemPrompt: string = generalPrompt;
   private static instance: AIService | null = null;
+  private static serverInitialized: boolean = false;
+  private client: OpenAI | InferenceClient | null = null;
   private availableTools: {
     name: string;
     description: string;
     parameters: Record<string, any>;
   }[] = [];
-  private model: string = "gpt-3.5-turbo";
-  private systemPrompt: string = generalPrompt;
-  private static serverInitialized: boolean = false;
 
   /**
    * Private constructor to prevent direct instantiation
@@ -48,16 +49,21 @@ export class AIService {
   /**
    * Initialize the AI service with an API key and optionally set the model
    * This should ONLY be called from the server side
-   * @param apiKey OpenAI API key (required)
+   * @param apiKey AI provider API key (required)
    * @param model Optional model to use (defaults to gpt-3.5-turbo)
    */
-  initialize(apiKey: string, model?: string): void {
+  initialize(apiKey: string, provider = "openai", model?: string): void {
     if (AIService.serverInitialized) {
       console.warn("AIService has already been initialized by the server.");
       return;
     }
-
-    this.client = new OpenAI({ apiKey });
+    switch (provider) {
+      case "huggingface":
+        this.client = new InferenceClient(apiKey);
+        break;
+      default:
+        this.client = new OpenAI({ apiKey });
+    }
     if (model) this.model = model;
 
     AIService.serverInitialized = true;
@@ -83,8 +89,12 @@ export class AIService {
     );
   }
 
+  ensureInitialized(): boolean {
+    return this.client !== null;
+  }
+
   /**
-   * Get tool definitions for the AI in the format expected by OpenAI
+   * Get tool definitions for the AI from the available tools
    * @param toolNames Optional array of tool names to filter by (if not provided, all tools will be included)
    * @returns Array of tool definitions
    */
@@ -145,7 +155,7 @@ export class AIService {
     reasoning?: string;
   } | null> {
     try {
-      if (!this.client) return null;
+      if (!this.ensureInitialized()) return null;
 
       const mentionedTools = this.extractToolNames(query);
       const toolsToUse =
