@@ -43,7 +43,7 @@ export const registerAITools = (server: McpServer) => {
 
         const result = await aiService.processQuery(query, specificTools);
 
-        if (!aiService.client) {
+        if (!aiService.ensureInitialized()) {
           return {
             isError: true,
             content: [

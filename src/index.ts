@@ -19,17 +19,18 @@ export async function mcpMeilisearchServer(
   }
 ): Promise<http.Server> {
   configHandler.setLlmModel(options.llmModel);
-  configHandler.setOpenaiApiKey(options.openaiApiKey);
+  configHandler.setAiProviderName(options.aiProviderName);
   configHandler.setMeilisearchHost(options.meilisearchHost);
+  configHandler.setAiProviderApiKey(options.aiProviderApiKey);
   configHandler.setMeilisearchApiKey(options.meilisearchApiKey);
 
   const aiService = AIService.getInstance();
-  const apiKey = configHandler.getOpenaiApiKey();
+  const apiKey = configHandler.getAiProviderApiKey();
 
   if (apiKey) {
-    aiService.initialize(apiKey);
+    aiService.initialize(apiKey, configHandler.getAiProviderName());
   } else {
-    console.warn("OpenAI API key not found. AI will not be available");
+    console.warn("AI provider API key not found. AI will not be available");
   }
 
   const httpPort = options.httpPort || 4995;
@@ -161,8 +162,10 @@ if (import.meta.url === `file://${process.argv?.[1]}`) {
       case "apiKey":
         options.meilisearchApiKey = value;
         break;
-      case "openaiApiKey":
-        options.openaiApiKey = value;
+      case "aiApiKey":
+        options.aiProviderApiKey = value;
+      case "aiProvider":
+        options.aiProviderName = value as "openai" | "huggingface";
         break;
       case "llmModel":
         options.llmModel = value;

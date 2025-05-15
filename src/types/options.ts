@@ -42,9 +42,15 @@ export interface ServerOptions {
   sessionCleanupInterval?: number;
 
   /**
-   * OpenAI API key for AI inference
+   * AI inference provider name
+   * @default "openai"
    */
-  openaiApiKey?: string;
+  aiProviderName?: "openai" | "huggingface";
+
+  /**
+   * AI provider API key for AI inference
+   */
+  aiProviderApiKey?: string;
 
   /**
    * AI model to use for inference

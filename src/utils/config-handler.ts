@@ -2,9 +2,10 @@
  * Configuration service to store and retrieve Meilisearch configuration
  */
 class ConfigHandler {
+  private _aiProviderName = "";
   private _meilisearchHost = "";
+  private _aiProviderApiKey = "";
   private _meilisearchApiKey = "";
-  private _openaiApiKey = "";
   private _llmModel = "gpt-3.5-turbo";
 
   /**
@@ -40,19 +41,35 @@ class ConfigHandler {
   }
 
   /**
-   * Set the OpenAI API key
-   * @param apiKey The API key for OpenAI
+   * Set the provider for AI inference
+   * @param provider The provider name (e.g., openai, huggingface)
    */
-  setOpenaiApiKey(apiKey?: string): void {
-    this._openaiApiKey = apiKey || "";
+  setAiProviderName(provider?: string): void {
+    this._aiProviderName = provider || "openai";
   }
 
   /**
-   * Get the current OpenAI API key
-   * @returns The API key for OpenAI
+   * Get the current provider for AI inference
+   * @returns The provider name
    */
-  getOpenaiApiKey(): string {
-    return this._openaiApiKey;
+  getAiProviderName(): string {
+    return this._aiProviderName;
+  }
+
+  /**
+   * Set the provider API key
+   * @param apiKey The API key for provider
+   */
+  setAiProviderApiKey(apiKey?: string): void {
+    this._aiProviderApiKey = apiKey || "";
+  }
+
+  /**
+   * Get the current provider API key
+   * @returns The API key for provider
+   */
+  getAiProviderApiKey(): string {
+    return this._aiProviderApiKey;
   }
 
   /**
