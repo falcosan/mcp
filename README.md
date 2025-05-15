@@ -14,7 +14,7 @@ A Model Context Protocol (MCP) server implementation that provides a bridge betw
 - **Real-time Communication**: Enables seamless interaction between clients and the server.
 - **Meilisearch API Support**: Full access to Meilisearch functionalities.
 - **Web Client Demo**: Updated interface for demonstrating search capabilities.
-- **AI Inference**: Uses OpenAI or Hugginface to intelligently select the most appropriate tool based on user queries.
+- **AI Inference**: Uses OpenAI, Hugginface to intelligently select the most appropriate tool based on user queries.
 
 ## Getting Started
 
