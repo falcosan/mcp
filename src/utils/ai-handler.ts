@@ -1,7 +1,6 @@
 import { OpenAI } from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 import systemPrompt from "../prompts/system.js";
-import { markdownToJson } from "./element-handler.js";
 import { InferenceClient } from "@huggingface/inference";
 import { AiProviderNameOptions } from "../types/options.js";
 
@@ -229,7 +228,7 @@ export class AIService {
     if (!response.choices?.length) return null;
 
     const message = response.choices[0].message;
-    const toolCall = markdownToJson<AITool["function"]>(message.content);
+    const toolCall = message.tool_calls;
 
     if (!toolCall) return null;
 
@@ -279,16 +278,15 @@ export class AIService {
     tools: AITool[],
     messages: AIToolMessage[]
   ): Promise<AIToolResponse | null> {
-    const response = await this.client.chat.completions.create({
+    const response = await this.client.responses.create({
       tools,
       messages,
       model: this.model,
-      tool_choice: "auto",
     });
     if (!response.choices?.length) return null;
 
     const message = response.choices[0].message;
-    const toolCall = markdownToJson<AITool["function"]>(message.content);
+    const toolCall = message.tool_calls;
 
     if (!toolCall) return null;
 
