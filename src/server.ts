@@ -88,7 +88,7 @@ export class MCPServer {
     req: IncomingMessage,
     res: ServerResponse
   ): Promise<void> {
-    console.log("GET request received");
+    console.info("GET request received");
 
     const sessionId = this.extractSessionId(req);
     if (!sessionId || !this.sessions.has(sessionId)) {
@@ -97,7 +97,7 @@ export class MCPServer {
       return;
     }
 
-    console.log(`Establishing HTTP stream for session ${sessionId}`);
+    console.info(`Establishing HTTP stream for session ${sessionId}`);
     const sessionInfo = this.sessions.get(sessionId)!;
     const transport = sessionInfo.transport;
 
@@ -133,7 +133,7 @@ export class MCPServer {
 
     try {
       if (sessionId && this.sessions.has(sessionId)) {
-        console.log(`POST request for existing session ${sessionId}`);
+        console.info(`POST request for existing session ${sessionId}`);
         const sessionInfo = this.sessions.get(sessionId)!;
         await sessionInfo.transport.handleRequest(req, res, body);
         this.updateSessionActivity(sessionId);
@@ -163,7 +163,7 @@ export class MCPServer {
    * Clean up and release server resources
    */
   shutdown(): void {
-    console.log("Shutting down MCP server...");
+    console.info("Shutting down MCP server...");
 
     if (this.cleanupInterval) {
       clearInterval(this.cleanupInterval);
@@ -172,7 +172,7 @@ export class MCPServer {
 
     for (const [sessionId, sessionInfo] of this.sessions.entries()) {
       try {
-        console.log(`Closing session ${sessionId}`);
+        console.info(`Closing session ${sessionId}`);
         sessionInfo.transport.close();
       } catch (error) {
         console.error(`Error closing session ${sessionId}:`, error);
@@ -180,7 +180,7 @@ export class MCPServer {
     }
 
     this.sessions.clear();
-    console.log("MCP server shutdown complete");
+    console.info("MCP server shutdown complete");
   }
 
   /**
@@ -220,7 +220,7 @@ export class MCPServer {
 
       this.sendToolListChangedNotification(transport);
 
-      console.log(`New session established: ${newSessionId}`);
+      console.info(`New session established: ${newSessionId}`);
     } catch (error) {
       console.error("Error handling initialize request:", error);
       transport.close();
@@ -255,7 +255,7 @@ export class MCPServer {
         jsonrpc: this.JSON_RPC,
       };
       await transport.send(rpcNotification);
-      console.log(`Sent notification: ${notification.method}`);
+      console.info(`Sent notification: ${notification.method}`);
     } catch (error) {
       console.error(
         `Failed to send notification ${notification.method}:`,
@@ -334,7 +334,7 @@ export class MCPServer {
     }
 
     if (expiredIds.length) {
-      console.log(`Cleaning up ${expiredIds.length} expired sessions`);
+      console.info(`Cleaning up ${expiredIds.length} expired sessions`);
 
       for (const sessionId of expiredIds) {
         try {
@@ -402,10 +402,10 @@ const initServerStdioTransport = async (
   const transport = new StdioServerTransport();
   await serverInstance.connect(transport);
 
-  console.log("Meilisearch MCP Server is running on stdio transport");
+  console.info("Meilisearch MCP Server is running on stdio transport");
 
   process.on("SIGINT", () => {
-    console.log("Shutting down stdio server...");
+    console.info("Shutting down stdio server...");
     process.exit(0);
   });
 

@@ -115,7 +115,7 @@ export async function mcpMeilisearchServer(
 
   await new Promise<void>((resolve) => {
     server.listen(httpPort, () => {
-      console.log(`MCP server listening on port ${httpPort}`);
+      console.info(`MCP server listening on port ${httpPort}`);
       resolve();
     });
   });
@@ -130,7 +130,7 @@ export async function mcpMeilisearchServer(
   }
 
   const shutdownHandler = () => {
-    console.log("Shutting down MCP server...");
+    console.info("Shutting down MCP server...");
     if (mcpServerInstance && typeof mcpServerInstance.shutdown === "function") {
       try {
         mcpServerInstance.shutdown();
@@ -177,7 +177,7 @@ if (import.meta.url === `file://${process.argv?.[1]}`) {
     }
   }
   mcpMeilisearchServer(options)
-    .then(() => console.log("MCP server running"))
+    .then(() => console.info("MCP server running"))
     .catch((err) => {
       console.error("Failed to start server:", err);
       process.exit(1);
