@@ -88,11 +88,11 @@ export class MCPClient {
       await this.listTools();
 
       this.isConnected = true;
-    } catch (e) {
+    } catch (error) {
       this.tries++;
       if (this.tries > 5) {
         this.isConnected = false;
-        throw e;
+        throw error;
       }
       await new Promise((resolve) => setTimeout(resolve, this.tries * 1000));
       await this.connectToServer(serverUrl);

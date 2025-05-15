@@ -12,6 +12,17 @@ interface AITool {
   };
 }
 
+interface AIToolMessage {
+  role: "user" | "system";
+  content: string;
+}
+
+interface AIToolResponse {
+  toolName: string;
+  reasoning?: string;
+  parameters: Record<string, any>;
+}
+
 /**
  * AI Inference Service
  *
@@ -23,6 +34,7 @@ export class AIService {
   private systemPrompt: string = generalPrompt;
   private static instance: AIService | null = null;
   private static serverInitialized: boolean = false;
+  private provider: AiProviderNameOptions = "openai";
   private client: OpenAI | InferenceClient | null = null;
   private availableTools: {
     name: string;
@@ -51,6 +63,7 @@ export class AIService {
    * Initialize the AI service with an API key and optionally set the model
    * This should ONLY be called from the server side
    * @param apiKey AI provider API key (required)
+   * @param provider AI provider name (defaults to openai)
    * @param model Optional model to use (defaults to gpt-3.5-turbo)
    */
   initialize(
@@ -62,15 +75,17 @@ export class AIService {
       console.warn("AIService has already been initialized by the server.");
       return;
     }
-    switch (provider) {
+
+    this.provider = provider;
+    if (model) this.model = model;
+
+    switch (this.provider) {
       case "huggingface":
         this.client = new InferenceClient(apiKey);
         break;
       default:
         this.client = new OpenAI({ apiKey });
     }
-    if (model) this.model = model;
-
     AIService.serverInitialized = true;
   }
 
@@ -159,43 +174,77 @@ export class AIService {
     parameters: Record<string, any>;
     reasoning?: string;
   } | null> {
-    try {
-      if (!this.ensureInitialized()) return null;
+    if (!this.ensureInitialized()) return null;
 
+    try {
       const mentionedTools = this.extractToolNames(query);
       const toolsToUse =
         specificTools || (mentionedTools.length ? mentionedTools : undefined);
       const tools = this.getToolDefinitions(toolsToUse);
 
       const messages = [
-        { role: "user" as const, content: query },
         { role: "system" as const, content: this.systemPrompt },
+        { role: "user" as const, content: query },
       ];
 
-      const response = await this.client.chat.completions.create({
-        tools,
-        messages,
-        model: this.model,
-        tool_choice: "auto",
-      });
-
-      const message = response.choices[0].message;
-
-      if (message.tool_calls?.length) {
-        const toolCall = message.tool_calls[0];
-
-        return {
-          toolName: toolCall.function.name,
-          reasoning: message.content || undefined,
-          parameters: JSON.parse(toolCall.function.arguments),
-        };
+      if (this.provider === "huggingface") {
+        return this.processHuggingFaceQuery(messages);
       }
-
-      return null;
+      return this.processOpenAIQuery(tools, messages);
     } catch (error) {
-      console.error("Error in AI inference:", error);
+      if (error instanceof Error) {
+        throw new Error(error.message);
+      }
       throw error;
     }
+  }
+
+  private async processHuggingFaceQuery(
+    messages: AIToolMessage[]
+  ): Promise<AIToolResponse | null> {
+    const response = await this.client.chatCompletion({
+      messages,
+      max_tokens: 512,
+      model: this.model,
+    });
+
+    const message = response.choices[0].message;
+
+    if (message.tool_calls?.length) {
+      const toolCall = message.tool_calls[0];
+      return {
+        toolName: toolCall.function.name,
+        reasoning: message.content || undefined,
+        parameters: JSON.parse(toolCall.function.arguments),
+      };
+    }
+
+    return null;
+  }
+
+  private async processOpenAIQuery(
+    tools: AITool[],
+    messages: AIToolMessage[]
+  ): Promise<AIToolResponse | null> {
+    const response = await this.client.chat.completions.create({
+      model: this.model,
+      messages,
+      tools,
+      tool_choice: "auto",
+    });
+
+    const message = response.choices[0].message;
+
+    if (message.tool_calls?.length) {
+      const toolCall = message.tool_calls[0];
+      return {
+        toolName: toolCall.function.name,
+        reasoning: message.content || undefined,
+        parameters: JSON.parse(toolCall.function.arguments),
+      };
+    }
+
+    return null;
   }
 
   private setSystemPrompt(prompt: string): void {

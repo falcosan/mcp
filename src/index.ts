@@ -7,16 +7,21 @@ import { configHandler } from "./utils/config-handler.js";
 import { createErrorResponse } from "./utils/error-handler.js";
 import { AiProviderNameOptions, ServerOptions } from "./types/options.js";
 
+const defaultOptions: ServerOptions = {
+  aiProviderApiKey: "",
+  meilisearchApiKey: "",
+  llmModel: "gpt-3.5-turbo",
+  aiProviderName: "openai",
+  meilisearchHost: "http://localhost:7700",
+};
+
 /**
  * Start a MCP server
  * @param options Configuration options for the MCP server
  * @returns A promise that resolves to the HTTP server instance
  */
 export async function mcpMeilisearchServer(
-  options: ServerOptions = {
-    meilisearchHost: "http://localhost:7700",
-    meilisearchApiKey: "",
-  }
+  options: ServerOptions = defaultOptions
 ): Promise<http.Server> {
   configHandler.setLlmModel(options.llmModel);
   configHandler.setAiProviderName(options.aiProviderName);
@@ -28,7 +33,9 @@ export async function mcpMeilisearchServer(
   const apiKey = configHandler.getAiProviderApiKey();
 
   if (apiKey) {
-    aiService.initialize(apiKey, configHandler.getAiProviderName());
+    const llmModel = configHandler.getLlmModel();
+    const aiProviderName = configHandler.getAiProviderName();
+    aiService.initialize(apiKey, aiProviderName, llmModel);
   } else {
     console.warn("AI provider API key not found. AI will not be available");
   }
@@ -142,10 +149,7 @@ export async function mcpMeilisearchServer(
 
 if (import.meta.url === `file://${process.argv?.[1]}`) {
   const args = process.argv.slice(2);
-  const options: ServerOptions = {
-    meilisearchHost: "http://localhost:7700",
-    meilisearchApiKey: "",
-  };
+  const options: ServerOptions = defaultOptions;
   for (let i = 0; i < args.length; i += 2) {
     const key = args[i].replace("--", "");
     const value = args[i + 1];

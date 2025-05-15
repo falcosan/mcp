@@ -4,11 +4,11 @@ import { AiProviderNameOptions } from "../types/options.js";
  * Configuration service to store and retrieve Meilisearch configuration
  */
 class ConfigHandler {
+  private _llmModel = "";
   private _aiProviderName = "";
   private _meilisearchHost = "";
   private _aiProviderApiKey = "";
   private _meilisearchApiKey = "";
-  private _llmModel = "gpt-3.5-turbo";
 
   /**
    * Set the Meilisearch host URL
@@ -54,8 +54,8 @@ class ConfigHandler {
    * Get the current provider for AI inference
    * @returns The provider name
    */
-  getAiProviderName(): string {
-    return this._aiProviderName;
+  getAiProviderName() {
+    return this._aiProviderName as AiProviderNameOptions;
   }
 
   /**

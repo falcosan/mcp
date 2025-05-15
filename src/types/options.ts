@@ -10,9 +10,8 @@ export interface ServerOptions {
 
   /**
    * The API key for authenticating with Meilisearch
-   * @required
    */
-  meilisearchApiKey: string;
+  meilisearchApiKey?: string;
   /**
    * Transport type for MCP server ("http" | "stdio")
    * @default "http"
