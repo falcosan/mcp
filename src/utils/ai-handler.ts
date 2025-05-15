@@ -214,11 +214,13 @@ export class AIService {
       max_tokens: 512,
       model: this.model,
     });
+    if (!response.choices?.length) return null;
 
     const message = response.choices[0].message;
 
     if (message.tool_calls?.length) {
       const toolCall = message.tool_calls[0];
+
       return {
         toolName: toolCall.function.name,
         reasoning: message.content || undefined,
@@ -240,15 +242,25 @@ export class AIService {
       model: this.model,
     });
 
-    const message = response.content;
+    const content = response.content;
 
-    if (message.tool_calls?.length) {
-      const toolCall = message.tool_calls[0];
-      return {
-        toolName: toolCall.function.name,
-        reasoning: message.content || undefined,
-        parameters: JSON.parse(toolCall.function.arguments),
-      };
+    if (Array.isArray(content) && content.length) {
+      const toolCallItem = content.find((item) => item.type === "tool_call");
+
+      if (toolCallItem?.tool_call) {
+        const textItems = content.filter(
+          (item) =>
+            item.type === "text" &&
+            content.indexOf(item) < content.indexOf(toolCallItem)
+        );
+        const reasoning = textItems.map((item) => item.text).join(" ");
+
+        return {
+          reasoning: reasoning || undefined,
+          toolName: toolCallItem.tool_call.name,
+          parameters: JSON.parse(toolCallItem.tool_call.input),
+        };
+      }
     }
 
     return null;
@@ -264,11 +276,13 @@ export class AIService {
       tools,
       tool_choice: "auto",
     });
+    if (!response.choices?.length) return null;
 
     const message = response.choices[0].message;
 
     if (message.tool_calls?.length) {
       const toolCall = message.tool_calls[0];
+
       return {
         toolName: toolCall.function.name,
         reasoning: message.content || undefined,
