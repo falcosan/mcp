@@ -1,6 +1,7 @@
 import { OpenAI } from "openai";
 import Anthropic from "@anthropic-ai/sdk";
-import generalPrompt from "../prompts/general.js";
+import systemPrompt from "../prompts/system.js";
+import { markdownToJson } from "./element-handler.js";
 import { InferenceClient } from "@huggingface/inference";
 import { AiProviderNameOptions } from "../types/options.js";
 
@@ -32,7 +33,7 @@ interface AIToolResponse {
  */
 export class AIService {
   private model: string = "gpt-3.5-turbo";
-  private systemPrompt: string = generalPrompt;
+  private systemPrompt: string = systemPrompt;
   private static instance: AIService | null = null;
   private static serverInitialized: boolean = false;
   private provider: AiProviderNameOptions = "openai";
@@ -82,7 +83,10 @@ export class AIService {
 
     switch (this.provider) {
       case "openai":
-        this.client = new OpenAI({ apiKey });
+        this.client = new OpenAI({
+          apiKey,
+          baseURL: "https://openrouter.ai/api/v1",
+        });
         break;
       case "anthropic":
         this.client = new Anthropic({ apiKey });
@@ -225,18 +229,15 @@ export class AIService {
     if (!response.choices?.length) return null;
 
     const message = response.choices[0].message;
+    const toolCall = markdownToJson<AITool["function"]>(message.content);
 
-    if (message.tool_calls?.length) {
-      const toolCall = message.tool_calls[0];
+    if (!toolCall) return null;
 
-      return {
-        toolName: toolCall.function.name,
-        reasoning: message.content || undefined,
-        parameters: JSON.parse(toolCall.function.arguments),
-      };
-    }
-
-    return null;
+    return {
+      toolName: toolCall.name,
+      reasoning: message.content,
+      parameters: toolCall.parameters,
+    };
   }
 
   private async processAnthropicQuery(
@@ -264,7 +265,7 @@ export class AIService {
         const reasoning = textItems.map((item) => item.text).join(" ");
 
         return {
-          reasoning: reasoning || undefined,
+          reasoning,
           toolName: toolCallItem.tool_call.name,
           parameters: JSON.parse(toolCallItem.tool_call.input),
         };
@@ -279,26 +280,23 @@ export class AIService {
     messages: AIToolMessage[]
   ): Promise<AIToolResponse | null> {
     const response = await this.client.chat.completions.create({
-      model: this.model,
-      messages,
       tools,
+      messages,
+      model: this.model,
       tool_choice: "auto",
     });
     if (!response.choices?.length) return null;
 
     const message = response.choices[0].message;
+    const toolCall = markdownToJson<AITool["function"]>(message.content);
 
-    if (message.tool_calls?.length) {
-      const toolCall = message.tool_calls[0];
+    if (!toolCall) return null;
 
-      return {
-        toolName: toolCall.function.name,
-        reasoning: message.content || undefined,
-        parameters: JSON.parse(toolCall.function.arguments),
-      };
-    }
-
-    return null;
+    return {
+      toolName: toolCall.name,
+      reasoning: message.content,
+      parameters: toolCall.parameters,
+    };
   }
 
   private setSystemPrompt(prompt: string): void {
