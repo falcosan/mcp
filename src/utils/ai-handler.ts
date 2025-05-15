@@ -1,4 +1,5 @@
 import { OpenAI } from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 import generalPrompt from "../prompts/general.js";
 import { InferenceClient } from "@huggingface/inference";
 import { AiProviderNameOptions } from "../types/options.js";
@@ -35,7 +36,7 @@ export class AIService {
   private static instance: AIService | null = null;
   private static serverInitialized: boolean = false;
   private provider: AiProviderNameOptions = "openai";
-  private client: OpenAI | InferenceClient | null = null;
+  private client: OpenAI | InferenceClient | Anthropic | null = null;
   private availableTools: {
     name: string;
     description: string;
@@ -82,6 +83,9 @@ export class AIService {
     switch (this.provider) {
       case "huggingface":
         this.client = new InferenceClient(apiKey);
+        break;
+      case "anthropic":
+        this.client = new Anthropic({ apiKey });
         break;
       default:
         this.client = new OpenAI({ apiKey });
@@ -190,6 +194,9 @@ export class AIService {
       if (this.provider === "huggingface") {
         return this.processHuggingFaceQuery(messages);
       }
+      if (this.provider === "anthropic") {
+        return this.processAnthropicQuery(tools, messages);
+      }
       return this.processOpenAIQuery(tools, messages);
     } catch (error) {
       if (error instanceof Error) {
@@ -209,6 +216,31 @@ export class AIService {
     });
 
     const message = response.choices[0].message;
+
+    if (message.tool_calls?.length) {
+      const toolCall = message.tool_calls[0];
+      return {
+        toolName: toolCall.function.name,
+        reasoning: message.content || undefined,
+        parameters: JSON.parse(toolCall.function.arguments),
+      };
+    }
+
+    return null;
+  }
+
+  private async processAnthropicQuery(
+    tools: AITool[],
+    messages: AIToolMessage[]
+  ): Promise<AIToolResponse | null> {
+    const response = await this.client.messages.create({
+      tools,
+      messages,
+      max_tokens: 1024,
+      model: this.model,
+    });
+
+    const message = response.content;
 
     if (message.tool_calls?.length) {
       const toolCall = message.tool_calls[0];
