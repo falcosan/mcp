@@ -200,7 +200,7 @@ export class AIService {
         return this.processAnthropicQuery(tools, messages);
       }
       if (this.provider === "huggingface") {
-        return this.processHuggingFaceQuery(messages);
+        return this.processHuggingFaceQuery(tools, messages);
       }
 
       return null;
@@ -213,9 +213,11 @@ export class AIService {
   }
 
   private async processHuggingFaceQuery(
+    tools: AITool[],
     messages: AIToolMessage[]
   ): Promise<AIToolResponse | null> {
     const response = await this.client.chatCompletion({
+      tools,
       messages,
       max_tokens: 512,
       model: this.model,
