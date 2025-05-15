@@ -134,8 +134,8 @@ export class AIService {
         type: "function",
         function: {
           name: tool.name,
-          description: tool.description,
           parameters: tool.parameters,
+          description: tool.description,
         },
       }));
     }
