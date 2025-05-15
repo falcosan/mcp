@@ -11,7 +11,6 @@ A Model Context Protocol (MCP) server implementation that provides a bridge betw
 ## Key Features
 
 - **Multiple Transport Options**: Supports both STDIO and StreamableHTTP transports.
-- **Real-time Communication**: Enables seamless interaction between clients and the server.
 - **Meilisearch API Support**: Full access to Meilisearch functionalities.
 - **Web Client Demo**: Updated interface showcasing search capabilities and features.
 - **AI Inference**: Leverages LLMs from providers such as OpenAI, Hugging Face or Anthropic to intelligently determine and utilize the most suitable tool for user queries.
@@ -60,7 +59,8 @@ pnpm add mcp-meilisearch
 
 #### AI Inference Options
 
-- `providerApiKey`: AI provider API key for AI inference
+- `aiProviderName`: Name of the AI provider ("openai" | "anthropic" | "huggingface") (Default: "openai")
+- `aiProviderApiKey`: AI provider API key for AI inference
 - `llmModel`: AI model to use (Default: "gpt-3.5-turbo")
 
 ### Using the MCPClient
@@ -79,8 +79,6 @@ const result = await client.callTool("search-across-all-indexes", {
 });
 
 // Use AI inference to choose the most appropriate tool
-// First enable AI inference
-client.setUseAI(true);
 
 const result = await client.callToolWithAI("Find articles about cucumber");
 console.log(`Tool used: ${result.toolUsed}`);
@@ -90,7 +88,6 @@ console.log(`Results: ${JSON.stringify(result.data)}`);
 
 #### AI Inference Client Methods
 
-- `setUseAI(use: boolean)`: Enable or disable AI inference.
 - `callToolWithAI(query: string, specificTools?: string[])`: Process a user query with AI inference, optionally limiting to specific tools.
 
 ### Starting the Server
@@ -103,8 +100,9 @@ import mcpMeilisearchServer from "mcp-meilisearch";
 await mcpMeilisearchServer({
   meilisearchHost: "http://localhost:7700",
   meilisearchApiKey: "your_meilisearch_api_key",
-  providerApiKey: "your_ai_provider_api_key", // Required for AI inference
-  llmModel: "gpt-4", // Optional, defaults to gpt-3.5-turbo
+  aiProviderName: "openai",
+  aiProviderApiKey: "your_ai_provider_api_key", // Required for AI inference
+  llmModel: "gpt-4",
 });
 ```
 

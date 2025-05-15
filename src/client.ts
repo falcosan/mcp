@@ -8,12 +8,6 @@ import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/
 
 export class MCPClient {
   /**
-   * Flag to enable/disable AI inference
-   * When enabled, user queries are processed by an AI to determine which tool to use
-   */
-  useAI: boolean = false;
-
-  /**
    * Indicates whether the client is connected to the MCP server
    * Used to track the connection state and control async operations
    */
@@ -38,14 +32,6 @@ export class MCPClient {
 
   constructor(serverName: string) {
     this.client = new Client({ name: serverName, version: "1.0.0" });
-  }
-
-  /**
-   * Set whether to use AI inference for tool selection
-   * @param use Whether to use AI inference
-   */
-  setUseAI(use: boolean): void {
-    this.useAI = use;
   }
 
   /**

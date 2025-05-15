@@ -93,9 +93,6 @@ export default function useMCPMeilisearch() {
 
   const toggleAIInference = (value: boolean) => {
     useAI.value = value;
-    if (client.value) {
-      client.value.setUseAI(value);
-    }
   };
 
   onMounted(async () => {
@@ -104,7 +101,6 @@ export default function useMCPMeilisearch() {
     try {
       await mcp.connectToServer("http://localhost:4995/mcp");
       client.value = mcp;
-      mcp.setUseAI(useAI.value);
     } catch (e) {
       error.value = e instanceof Error ? e.message : String(e);
     } finally {
