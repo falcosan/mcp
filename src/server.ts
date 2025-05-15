@@ -23,6 +23,8 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
  * Configuration for the MCP server
  */
 interface ServerConfig {
+  host: string;
+  apiKey: string;
   httpPort: number;
   mcpEndpoint: string;
   sessionTimeout: number;
@@ -36,11 +38,13 @@ interface ServerInstance {
   mcpServer: MCPServer;
 }
 
-const DEFAULT_CONFIG: ServerConfig = {
+const defaultConfig: ServerConfig = {
   httpPort: 4995,
   mcpEndpoint: "/mcp",
   sessionTimeout: 3600000,
   sessionCleanupInterval: 60000,
+  apiKey: process.env.MEILISEARCH_API_KEY || "",
+  host: process.env.MEILISEARCH_HOST || "http://localhost:7700",
 };
 
 /**
@@ -70,7 +74,7 @@ export class MCPServer {
    */
   constructor(server: McpServer, config: Partial<ServerConfig> = {}) {
     this.server = server;
-    this.config = { ...DEFAULT_CONFIG, ...config };
+    this.config = { ...defaultConfig, ...config };
 
     this.startSessionCleanup();
   }
@@ -353,11 +357,6 @@ export class MCPServer {
 const initServerHTTPTransport = async (
   customConfig?: Partial<ServerConfig>
 ) => {
-  const config = {
-    ...DEFAULT_CONFIG,
-    ...customConfig,
-  };
-
   const serverInstance = new McpServer({
     version: "1.0.0",
     name: "mcp-meilisearch",
@@ -372,7 +371,7 @@ const initServerHTTPTransport = async (
   registerTaskTools(serverInstance);
   registerAITools(serverInstance);
 
-  const server = new MCPServer(serverInstance, config);
+  const server = new MCPServer(serverInstance, customConfig);
 
   return { mcpServer: server };
 };
@@ -381,13 +380,9 @@ const initServerHTTPTransport = async (
  * Initialize the MCP server with stdio transport
  * @returns MCP server instance
  */
-const initServerStdioTransport = async () => {
-  const config = {
-    ...DEFAULT_CONFIG,
-    host: process.env.MEILISEARCH_HOST,
-    apiKey: process.env.MEILISEARCH_API_KEY,
-  };
-
+const initServerStdioTransport = async (
+  customConfig?: Partial<ServerConfig>
+) => {
   const serverInstance = new McpServer({
     version: "1.0.0",
     name: "mcp-meilisearch",
@@ -402,7 +397,7 @@ const initServerStdioTransport = async () => {
   registerTaskTools(serverInstance);
   registerAITools(serverInstance);
 
-  const server = new MCPServer(serverInstance, config);
+  const server = new MCPServer(serverInstance, customConfig);
 
   const transport = new StdioServerTransport();
   await serverInstance.connect(transport);
@@ -430,7 +425,7 @@ export const initServer = async (
   try {
     switch (transport) {
       case "stdio":
-        return await initServerStdioTransport();
+        return await initServerStdioTransport(config);
       case "http":
         return await initServerHTTPTransport(config);
       default:

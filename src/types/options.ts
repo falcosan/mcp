@@ -3,10 +3,9 @@ export type AiProviderNameOptions = "openai" | "huggingface" | "anthropic";
 export interface ServerOptions {
   /**
    * The URL of the Meilisearch instance
-   * @required
-   * @example "http://localhost:7700"
+   * @default "http://localhost:7700"
    */
-  meilisearchHost: string;
+  meilisearchHost?: string;
 
   /**
    * The API key for authenticating with Meilisearch

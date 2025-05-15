@@ -81,14 +81,17 @@ export class AIService {
     if (model) this.model = model;
 
     switch (this.provider) {
-      case "huggingface":
-        this.client = new InferenceClient(apiKey);
+      case "openai":
+        this.client = new OpenAI({ apiKey });
         break;
       case "anthropic":
         this.client = new Anthropic({ apiKey });
         break;
+      case "huggingface":
+        this.client = new InferenceClient(apiKey);
+        break;
       default:
-        this.client = new OpenAI({ apiKey });
+        throw new Error(`Unsupported AI provider: ${this.provider}`);
     }
     AIService.serverInitialized = true;
   }
@@ -190,14 +193,17 @@ export class AIService {
         { role: "system" as const, content: this.systemPrompt },
         { role: "user" as const, content: query },
       ];
-
-      if (this.provider === "huggingface") {
-        return this.processHuggingFaceQuery(messages);
+      if (this.provider === "openai") {
+        return this.processOpenAIQuery(tools, messages);
       }
       if (this.provider === "anthropic") {
         return this.processAnthropicQuery(tools, messages);
       }
-      return this.processOpenAIQuery(tools, messages);
+      if (this.provider === "huggingface") {
+        return this.processHuggingFaceQuery(messages);
+      }
+
+      return null;
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(error.message);

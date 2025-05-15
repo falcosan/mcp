@@ -13,8 +13,8 @@ A Model Context Protocol (MCP) server implementation that provides a bridge betw
 - **Multiple Transport Options**: Supports both STDIO and StreamableHTTP transports.
 - **Real-time Communication**: Enables seamless interaction between clients and the server.
 - **Meilisearch API Support**: Full access to Meilisearch functionalities.
-- **Web Client Demo**: Updated interface for demonstrating search capabilities.
-- **AI Inference**: Uses OpenAI, Hugginface to intelligently select the most appropriate tool based on user queries.
+- **Web Client Demo**: Updated interface showcasing search capabilities and features.
+- **AI Inference**: Leverages LLMs from providers such as OpenAI, Hugging Face, or Anthropic to intelligently determine and utilize the most suitable tool for user queries.
 
 ## Getting Started
 
@@ -60,7 +60,7 @@ pnpm add mcp-meilisearch
 
 #### AI Inference Options
 
-- `providerApiKey`: OpenAI API key for AI inference
+- `providerApiKey`: AI provider API key for AI inference
 - `llmModel`: AI model to use (Default: "gpt-3.5-turbo")
 
 ### Using the MCPClient
@@ -102,8 +102,8 @@ import mcpMeilisearchServer from "mcp-meilisearch";
 
 await mcpMeilisearchServer({
   meilisearchHost: "http://localhost:7700",
-  meilisearchApiKey: "your_api_key",
-  providerApiKey: "your_openai_api_key", // Required for AI inference
+  meilisearchApiKey: "your_meilisearch_api_key",
+  providerApiKey: "your_ai_provider_api_key", // Required for AI inference
   llmModel: "gpt-4", // Optional, defaults to gpt-3.5-turbo
 });
 ```

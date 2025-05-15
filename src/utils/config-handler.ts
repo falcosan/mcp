@@ -14,8 +14,8 @@ class ConfigHandler {
    * Set the Meilisearch host URL
    * @param host The URL of the Meilisearch instance
    */
-  setMeilisearchHost(host: string): void {
-    this._meilisearchHost = host;
+  setMeilisearchHost(host?: string): void {
+    this._meilisearchHost = host || "http://localhost:7700";
   }
 
   /**
