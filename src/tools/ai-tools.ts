@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { AIService } from "../utils/ai-handler.js";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { zodToJsonSchema } from "zod-to-json-schema";
 import { createErrorResponse } from "../utils/error-handler.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 /**
  * AI Tools
@@ -34,11 +35,14 @@ export const registerAITools = (server: McpServer) => {
         const aiService = AIService.getInstance();
         const availableTools = Object.entries(server._registeredTools)
           .filter(([name]) => name !== "process-ai-query")
-          .map(([name, { description, parameters }]) => ({
-            name,
-            parameters,
-            description,
-          }));
+          .map(([name, { description, inputSchema }]) => {
+            const { definitions } = zodToJsonSchema(inputSchema, "parameters");
+            return {
+              name,
+              description,
+              parameters: definitions?.parameters ?? {},
+            };
+          });
         aiService.setAvailableTools(availableTools);
 
         const result = await aiService.processQuery(query, specificTools);

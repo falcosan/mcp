@@ -8,6 +8,7 @@ declare module "../prompts/*.js" {
 }
 
 declare module "@modelcontextprotocol/sdk/server/mcp.js" {
+  import { ZodObject } from "zod";
   export class McpServer {
     constructor(options?: { name?: string; version?: string });
 
@@ -15,6 +16,7 @@ declare module "@modelcontextprotocol/sdk/server/mcp.js" {
       [key: string]: {
         parameters: object;
         description: string;
+        inputSchema: ZodObject;
       };
     };
 

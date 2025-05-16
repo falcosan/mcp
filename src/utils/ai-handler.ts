@@ -6,11 +6,9 @@ import { AiProviderNameOptions } from "../types/options.js";
 
 interface AITool {
   type: "function";
-  function: {
-    name: string;
-    description: string;
-    parameters: Record<string, any>;
-  };
+  name: string;
+  description: string;
+  parameters: Record<string, any>;
 }
 
 interface AIToolMessage {
@@ -129,27 +127,16 @@ export class AIService {
    * @returns Array of tool definitions
    */
   private getToolDefinitions(toolNames?: string[]): AITool[] {
-    if (!toolNames?.length) {
-      return this.availableTools.map((tool) => ({
-        type: "function",
-        function: {
-          name: tool.name,
-          parameters: tool.parameters,
-          description: tool.description,
-        },
-      }));
-    }
+    const tools = toolNames?.length
+      ? this.availableTools.filter((tool) => toolNames.includes(tool.name))
+      : this.availableTools;
 
-    return this.availableTools
-      .filter((tool) => toolNames.includes(tool.name))
-      .map((tool) => ({
-        type: "function",
-        function: {
-          name: tool.name,
-          description: tool.description,
-          parameters: tool.parameters,
-        },
-      }));
+    return tools.map((tool) => ({
+      name: tool.name,
+      type: "function",
+      parameters: tool.parameters,
+      description: tool.description,
+    }));
   }
 
   /**
