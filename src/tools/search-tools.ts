@@ -67,6 +67,7 @@ export const registerSearchTools = (server: McpServer) => {
       attributesToRetrieve: z
         .array(z.string())
         .optional()
+        .default(["*"])
         .describe("Attributes to include in results"),
       attributesToCrop: z
         .array(z.string())
@@ -210,6 +211,7 @@ export const registerSearchTools = (server: McpServer) => {
       attributesToRetrieve: z
         .array(z.string())
         .optional()
+        .default(["*"])
         .describe("Attributes to include in results"),
     },
     async ({ q, limit, attributesToRetrieve }: GlobalSearchParams) => {

@@ -225,8 +225,8 @@ export class AIService {
     if (!toolCall) return null;
     return {
       toolName: toolCall.name,
-      reasoning: message.content,
       parameters: toolCall.parameters,
+      reasoning: JSON.stringify(toolCall, null, 2),
     };
   }
 
@@ -259,8 +259,8 @@ export class AIService {
     if (!toolCall) return null;
     return {
       toolName: toolCall.name,
-      reasoning: message.content,
       parameters: toolCall.parameters,
+      reasoning: JSON.stringify(toolCall, null, 2),
     };
   }
 }
