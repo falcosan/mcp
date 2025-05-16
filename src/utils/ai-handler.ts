@@ -1,8 +1,8 @@
 import { OpenAI } from "openai";
 import systemPrompt from "../prompts/system.js";
+import { markdownToJson } from "./response-handler.js";
 import { InferenceClient } from "@huggingface/inference";
 import { AiProviderNameOptions } from "../types/options.js";
-import { markdownToJson } from "./response-handler.js";
 
 interface AITool {
   name: string;
@@ -169,32 +169,25 @@ export class AIService {
   ): Promise<AIToolResponse | null> {
     if (!this.ensureInitialized()) return null;
 
-    try {
-      const mentionedTools = this.extractToolNames(query);
-      const toolsToUse =
-        specificTools || (mentionedTools.length ? mentionedTools : undefined);
-      const tools = this.getToolDefinitions(toolsToUse);
-      const systemPrompt = this.systemPrompt.replace(
-        "MCP_TOOLS",
-        JSON.stringify(tools, null, 2)
-      );
+    const mentionedTools = this.extractToolNames(query);
+    const toolsToUse =
+      specificTools || (mentionedTools.length ? mentionedTools : undefined);
+    const tools = this.getToolDefinitions(toolsToUse);
+    const systemPrompt = this.systemPrompt.replace(
+      "MCP_TOOLS",
+      JSON.stringify(tools, null, 2)
+    );
 
-      const messages = [
-        { role: "system" as const, content: systemPrompt },
-        { role: "user" as const, content: query },
-      ];
+    const messages = [
+      { role: "system" as const, content: systemPrompt },
+      { role: "user" as const, content: query },
+    ];
 
-      if (this.provider === "huggingface") {
-        return this.processHuggingFaceQuery(tools, messages);
-      }
-
-      return this.processOpenAIQuery(tools, messages);
-    } catch (error) {
-      if (error instanceof Error) {
-        throw new Error(error.message);
-      }
-      throw error;
+    if (this.provider === "huggingface") {
+      return this.processHuggingFaceQuery(tools, messages);
     }
+
+    return this.processOpenAIQuery(tools, messages);
   }
 
   private async processOpenAIQuery(
@@ -203,16 +196,16 @@ export class AIService {
   ): Promise<AIToolResponse | null> {
     const client = this.client as OpenAI;
 
-    const response = await client.chat.completions
-      .create({
-        tools,
-        messages,
-        model: this.model,
-      })
-      .catch((error: any) => {
-        console.error("Error in OpenAI API call:", error);
-        return null;
-      });
+    const response = await client.chat.completions.create({
+      tools,
+      messages,
+      model: this.model,
+    });
+
+    if ("error" in response) {
+      console.error("Error in OpenAI API call:", response);
+      return null;
+    }
 
     if (!response?.choices.length) return null;
 
@@ -236,17 +229,17 @@ export class AIService {
   ): Promise<AIToolResponse | null> {
     const client = this.client as InferenceClient;
 
-    const response = await client
-      .chatCompletion({
-        tools,
-        messages,
-        max_tokens: 512,
-        model: this.model,
-      })
-      .catch((error: any) => {
-        console.error("Error in HugginFace API call:", error);
-        return null;
-      });
+    const response = await client.chatCompletion({
+      tools,
+      messages,
+      max_tokens: 512,
+      model: this.model,
+    });
+
+    if ("error" in response) {
+      console.error("Error in HugginFace call:", response);
+      return null;
+    }
 
     if (!response?.choices.length) return null;
 
