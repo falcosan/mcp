@@ -1,8 +1,7 @@
 import { OpenAI } from "openai";
 import systemPrompt from "../prompts/system.js";
-import { InferenceClient } from "@huggingface/inference";
-import { AiProviderNameOptions } from "../types/options.js";
 import { markdownToJson } from "./response-handler.js";
+import { InferenceClient } from "@huggingface/inference";
 
 interface AITool {
   name: string;
@@ -38,10 +37,10 @@ interface AIToolResponse {
  * to use based on the user's query
  */
 export class AIService {
+  private provider: string = "openai";
   private model: string = "gpt-3.5-turbo";
   private static instance: AIService | null = null;
   private static serverInitialized: boolean = false;
-  private provider: AiProviderNameOptions = "openai";
   private readonly systemPrompt: string = systemPrompt;
   private client: OpenAI | InferenceClient | null = null;
   private availableTools: {
@@ -74,11 +73,7 @@ export class AIService {
    * @param provider AI provider name (defaults to openai)
    * @param model Optional model to use (defaults to gpt-3.5-turbo)
    */
-  initialize(
-    apiKey: string,
-    provider: AiProviderNameOptions = "openai",
-    model?: string
-  ): void {
+  initialize(apiKey: string, provider: string, model?: string): void {
     if (AIService.serverInitialized) {
       console.warn("AIService has already been initialized by the server.");
       return;
@@ -88,17 +83,14 @@ export class AIService {
     if (model) this.model = model;
 
     switch (this.provider) {
-      case "openai":
-        this.client = new OpenAI({
-          apiKey,
-          baseURL: "https://openrouter.ai/api/v1",
-        });
-        break;
       case "huggingface":
         this.client = new InferenceClient(apiKey);
         break;
       default:
-        throw new Error(`Unsupported AI provider: ${this.provider}`);
+        this.client = new OpenAI({
+          apiKey,
+          baseURL: this.resolveOpenAIEndpoint(),
+        });
     }
     AIService.serverInitialized = true;
   }
@@ -111,8 +103,33 @@ export class AIService {
     this.availableTools = tools;
   }
 
+  /**
+   * Check if the AI service is initialized
+   * @returns true if initialized, false otherwise
+   */
   ensureInitialized(): boolean {
     return this.client !== null;
+  }
+
+  private resolveOpenAIEndpoint(): string | undefined {
+    const isOpenAI = this.provider === "openai";
+    const isNamespaced = this.model.includes("/");
+
+    if (isOpenAI && !isNamespaced) return undefined;
+
+    return "https://openrouter.ai/api/v1";
+  }
+
+  private resolveOpenAIModel(): string {
+    const isOpenAI = this.provider === "openai";
+    const isNamespaced = this.model.includes("/");
+
+    if (isOpenAI && !isNamespaced) return this.model;
+
+    if (this.model.startsWith(`${this.provider}/`)) {
+      return this.model;
+    }
+    return `${this.provider}/${this.model}`;
   }
 
   /**
@@ -180,14 +197,10 @@ export class AIService {
         { role: "system" as const, content: systemPrompt },
         { role: "user" as const, content: query },
       ];
-      if (this.provider === "openai") {
-        return this.processOpenAIQuery(tools, messages);
-      }
       if (this.provider === "huggingface") {
         return this.processHuggingFaceQuery(tools, messages);
       }
-
-      return null;
+      return this.processOpenAIQuery(tools, messages);
     } catch (error) {
       if (error instanceof Error) {
         throw new Error(error.message);
@@ -201,12 +214,13 @@ export class AIService {
     messages: AIToolMessage[]
   ): Promise<AIToolResponse | null> {
     const client = this.client as OpenAI;
+    const model = this.resolveOpenAIModel();
 
     const response = await client.chat.completions
       .create({
         tools,
+        model,
         messages,
-        model: this.model,
       })
       .catch((error: any) => {
         console.error("Error in OpenAI API call:", error);

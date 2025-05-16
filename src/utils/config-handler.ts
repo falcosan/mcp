@@ -1,5 +1,3 @@
-import { AiProviderNameOptions } from "../types/options.js";
-
 /**
  * Configuration service to store and retrieve Meilisearch configuration
  */
@@ -46,7 +44,7 @@ class ConfigHandler {
    * Set the provider for AI inference
    * @param provider The provider name: openai, huggingface.
    */
-  setAiProviderName(provider?: AiProviderNameOptions): void {
+  setAiProviderName(provider?: string): void {
     this._aiProviderName = provider || "openai";
   }
 
@@ -55,7 +53,7 @@ class ConfigHandler {
    * @returns The provider name
    */
   getAiProviderName() {
-    return this._aiProviderName as AiProviderNameOptions;
+    return this._aiProviderName;
   }
 
   /**
