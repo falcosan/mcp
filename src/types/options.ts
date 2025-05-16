@@ -1,3 +1,5 @@
+export type AiProviderNameOptions = "openai" | "huggingface" | "openrouter";
+
 export interface ServerOptions {
   /**
    * The URL of the Meilisearch instance
@@ -43,7 +45,7 @@ export interface ServerOptions {
    * AI inference provider name
    * @default "openai"
    */
-  aiProviderName?: string;
+  aiProviderName?: AiProviderNameOptions;
 
   /**
    * AI provider API key for AI inference

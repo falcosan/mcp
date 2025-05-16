@@ -59,7 +59,7 @@ pnpm add mcp-meilisearch
 
 #### AI Inference Options
 
-- `aiProviderName`: Name of the AI provider ("openai" | "huggingface") (Default: "openai")
+- `aiProviderName`: Name of the AI provider ("openai" | "huggingface" | "openrouter") (Default: "openai")
 - `aiProviderApiKey`: AI provider API key for AI inference
 - `llmModel`: AI model to use (Default: "gpt-3.5-turbo")
 

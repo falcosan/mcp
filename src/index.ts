@@ -2,10 +2,10 @@ import http from "node:http";
 import { createServer } from "node:http";
 import { parse as parseUrl } from "node:url";
 import { AIService } from "./utils/ai-handler.js";
-import { ServerOptions } from "./types/options.js";
 import { initServer, MCPServer } from "./server.js";
 import { configHandler } from "./utils/config-handler.js";
 import { createErrorResponse } from "./utils/error-handler.js";
+import { AiProviderNameOptions, ServerOptions } from "./types/options.js";
 
 const defaultOptions: ServerOptions = {
   aiProviderApiKey: "",
@@ -169,7 +169,7 @@ if (import.meta.url === `file://${process.argv?.[1]}`) {
       case "aiApiKey":
         options.aiProviderApiKey = value;
       case "aiProvider":
-        options.aiProviderName = value;
+        options.aiProviderName = value as AiProviderNameOptions;
         break;
       case "llmModel":
         options.llmModel = value;

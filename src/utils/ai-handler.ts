@@ -2,6 +2,7 @@ import { OpenAI } from "openai";
 import systemPrompt from "../prompts/system.js";
 import { markdownToJson } from "./response-handler.js";
 import { InferenceClient } from "@huggingface/inference";
+import { AiProviderNameOptions } from "../types/options.js";
 
 interface AITool {
   name: string;
@@ -73,7 +74,11 @@ export class AIService {
    * @param provider AI provider name (defaults to openai)
    * @param model Optional model to use (defaults to gpt-3.5-turbo)
    */
-  initialize(apiKey: string, provider: string, model?: string): void {
+  initialize(
+    apiKey: string,
+    provider: AiProviderNameOptions = "openai",
+    model?: string
+  ): void {
     if (AIService.serverInitialized) {
       console.warn("AIService has already been initialized by the server.");
       return;
