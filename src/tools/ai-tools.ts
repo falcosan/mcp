@@ -34,10 +34,10 @@ export const registerAITools = (server: McpServer) => {
         const aiService = AIService.getInstance();
         const availableTools = Object.entries(server._registeredTools)
           .filter(([name]) => name !== "process-ai-query")
-          .map(([name, { description }]) => ({
+          .map(([name, { description, parameters }]) => ({
             name,
+            parameters,
             description,
-            parameters: {},
           }));
         aiService.setAvailableTools(availableTools);
 

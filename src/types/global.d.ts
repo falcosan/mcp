@@ -13,6 +13,7 @@ declare module "@modelcontextprotocol/sdk/server/mcp.js" {
 
     _registeredTools: {
       [key: string]: {
+        parameters: object;
         description: string;
       };
     };
