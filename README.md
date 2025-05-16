@@ -63,6 +63,24 @@ pnpm add mcp-meilisearch
 - `aiProviderApiKey`: AI provider API key for AI inference
 - `llmModel`: AI model to use (Default: "gpt-3.5-turbo")
 
+##### Using OpenRouter as AI Provider
+
+When setting `aiProviderName` to "openrouter", please be aware that not all models support function calling, which is required for proper AI inference in this package. Make sure to select a model that supports the tools parameter.
+
+You can find a list of OpenRouter models that support function calling at:
+https://openrouter.ai/models?fmt=cards&supported_parameters=tools
+
+Example configuration with OpenRouter:
+
+```typescript
+await mcpMeilisearchServer({
+  meilisearchHost: "http://localhost:7700",
+  aiProviderName: "openrouter",
+  aiProviderApiKey: "your_openrouter_api_key",
+  llmModel: "anthropic/claude-3-opus", // Make sure to use a model that supports function calling
+});
+```
+
 ### Using the MCPClient
 
 The package exports the MCPClient class for client-side integration:
