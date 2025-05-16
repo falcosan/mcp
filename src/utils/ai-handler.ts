@@ -204,14 +204,18 @@ export class AIService {
   ): Promise<AIToolResponse | null> {
     const client = this.client as OpenAI;
 
-    const response = await client.chat.completions.create({
-      tools,
-      messages,
-      model: this.model,
-      response_format: { type: "json_object" },
-    });
+    const response = await client.chat.completions
+      .create({
+        tools,
+        messages,
+        model: this.model,
+      })
+      .catch((error: any) => {
+        console.error("Error in OpenAI API call:", error);
+        return null;
+      });
 
-    if (!response.choices?.length) return null;
+    if (!response?.choices.length) return null;
 
     const message = response.choices[0].message;
 
@@ -236,13 +240,19 @@ export class AIService {
   ): Promise<AIToolResponse | null> {
     const client = this.client as InferenceClient;
 
-    const response = await client.chatCompletion({
-      tools,
-      messages,
-      max_tokens: 512,
-      model: this.model,
-    });
-    if (!response.choices?.length) return null;
+    const response = await client
+      .chatCompletion({
+        tools,
+        messages,
+        max_tokens: 512,
+        model: this.model,
+      })
+      .catch((error: any) => {
+        console.error("Error in HugginFace API call:", error);
+        return null;
+      });
+
+    if (!response?.choices.length) return null;
 
     const message = response.choices[0].message;
     const toolCall = message.tool_calls;
