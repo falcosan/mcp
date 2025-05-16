@@ -13,7 +13,7 @@ A Model Context Protocol (MCP) server implementation that provides a bridge betw
 - **Multiple Transport Options**: Supports both STDIO and StreamableHTTP transports.
 - **Meilisearch API Support**: Full access to Meilisearch functionalities.
 - **Web Client Demo**: Updated interface showcasing search capabilities and features.
-- **AI Inference**: Leverages LLMs from providers such as OpenAI, Hugging Face or Anthropic to intelligently determine and utilize the most suitable tool for user queries.
+- **AI Inference**: Leverages LLMs from providers such as OpenAIo HuggingFace to intelligently determine and utilize the most suitable tool for user queries.
 
 ## Getting Started
 
@@ -59,7 +59,7 @@ pnpm add mcp-meilisearch
 
 #### AI Inference Options
 
-- `aiProviderName`: Name of the AI provider ("openai" | "anthropic" | "huggingface") (Default: "openai")
+- `aiProviderName`: Name of the AI provider ("openai" | "huggingface") (Default: "openai")
 - `aiProviderApiKey`: AI provider API key for AI inference
 - `llmModel`: AI model to use (Default: "gpt-3.5-turbo")
 

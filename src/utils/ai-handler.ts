@@ -1,14 +1,17 @@
 import { OpenAI } from "openai";
-import Anthropic from "@anthropic-ai/sdk";
 import systemPrompt from "../prompts/system.js";
 import { InferenceClient } from "@huggingface/inference";
 import { AiProviderNameOptions } from "../types/options.js";
+import { markdownToJson } from "./response-handler.js";
 
 interface AITool {
   type: "function";
-  name: string;
-  description: string;
-  parameters: Record<string, any>;
+  function: {
+    name: string;
+    strict: true;
+    description: string;
+    parameters: Record<string, any>;
+  };
 }
 
 interface AIToolMessage {
@@ -18,7 +21,7 @@ interface AIToolMessage {
 
 interface AIToolResponse {
   toolName: string;
-  reasoning?: string;
+  reasoning?: string | null;
   parameters: Record<string, any>;
 }
 
@@ -34,7 +37,7 @@ export class AIService {
   private static instance: AIService | null = null;
   private static serverInitialized: boolean = false;
   private provider: AiProviderNameOptions = "openai";
-  private client: OpenAI | InferenceClient | Anthropic | null = null;
+  private client: OpenAI | InferenceClient | null = null;
   private availableTools: {
     name: string;
     description: string;
@@ -85,9 +88,6 @@ export class AIService {
           baseURL: "https://openrouter.ai/api/v1",
         });
         break;
-      case "anthropic":
-        this.client = new Anthropic({ apiKey });
-        break;
       case "huggingface":
         this.client = new InferenceClient(apiKey);
         break;
@@ -132,10 +132,13 @@ export class AIService {
       : this.availableTools;
 
     return tools.map((tool) => ({
-      name: tool.name,
       type: "function",
-      parameters: tool.parameters,
-      description: tool.description,
+      function: {
+        strict: true,
+        name: tool.name,
+        parameters: tool.parameters,
+        description: tool.description,
+      },
     }));
   }
 
@@ -166,11 +169,7 @@ export class AIService {
   async processQuery(
     query: string,
     specificTools?: string[]
-  ): Promise<{
-    toolName: string;
-    parameters: Record<string, any>;
-    reasoning?: string;
-  } | null> {
+  ): Promise<AIToolResponse | null> {
     if (!this.ensureInitialized()) return null;
 
     try {
@@ -186,9 +185,6 @@ export class AIService {
       if (this.provider === "openai") {
         return this.processOpenAIQuery(tools, messages);
       }
-      if (this.provider === "anthropic") {
-        return this.processAnthropicQuery(tools, messages);
-      }
       if (this.provider === "huggingface") {
         return this.processHuggingFaceQuery(tools, messages);
       }
@@ -202,20 +198,28 @@ export class AIService {
     }
   }
 
-  private async processHuggingFaceQuery(
+  private async processOpenAIQuery(
     tools: AITool[],
     messages: AIToolMessage[]
   ): Promise<AIToolResponse | null> {
-    const response = await this.client.chatCompletion({
+    const client = this.client as OpenAI;
+
+    const response = await client.chat.completions.create({
       tools,
       messages,
-      max_tokens: 512,
       model: this.model,
+      response_format: { type: "json_object" },
     });
+
     if (!response.choices?.length) return null;
 
     const message = response.choices[0].message;
-    const toolCall = message.tool_calls;
+
+    if (!message.content) return null;
+
+    const toolCall = markdownToJson<{ name: string; parameters: object }>(
+      message.content
+    );
 
     if (!toolCall) return null;
 
@@ -226,48 +230,16 @@ export class AIService {
     };
   }
 
-  private async processAnthropicQuery(
+  private async processHuggingFaceQuery(
     tools: AITool[],
     messages: AIToolMessage[]
   ): Promise<AIToolResponse | null> {
-    const response = await this.client.messages.create({
+    const client = this.client as InferenceClient;
+
+    const response = await client.chatCompletion({
       tools,
       messages,
-      max_tokens: 1024,
-      model: this.model,
-    });
-
-    const content = response.content;
-
-    if (Array.isArray(content) && content.length) {
-      const toolCallItem = content.find((item) => item.type === "tool_call");
-
-      if (toolCallItem?.tool_call) {
-        const textItems = content.filter(
-          (item) =>
-            item.type === "text" &&
-            content.indexOf(item) < content.indexOf(toolCallItem)
-        );
-        const reasoning = textItems.map((item) => item.text).join(" ");
-
-        return {
-          reasoning,
-          toolName: toolCallItem.tool_call.name,
-          parameters: JSON.parse(toolCallItem.tool_call.input),
-        };
-      }
-    }
-
-    return null;
-  }
-
-  private async processOpenAIQuery(
-    tools: AITool[],
-    messages: AIToolMessage[]
-  ): Promise<AIToolResponse | null> {
-    const response = await this.client.responses.create({
-      tools,
-      messages,
+      max_tokens: 512,
       model: this.model,
     });
     if (!response.choices?.length) return null;
