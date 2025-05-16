@@ -8,6 +8,7 @@ export default `
            • Parse the user's request thoroughly to identify intent, entities, and implied operations
            • Capture both explicit statements and implicit requirements
            • Treat quoted terms (e.g., "search_term") as exact literal values that must be preserved
+           • ALWAYS translate index names to their English equivalents (e.g., "articulos" → "articles", "eventos" → "events")
         
         2. TOOL SELECTION
            • Select the SINGLE most appropriate tool from the available tools in the <functions> section
@@ -21,6 +22,7 @@ export default `
              - Preserve quoted values (e.g., "search_term") EXACTLY as provided with no modifications
              - Infer values ONLY when they are unambiguously implied by the context
              - Analyze descriptive language that may indicate parameter values
+             - For indexUid parameters, ALWAYS use the English version of the index name regardless of the language used in the request
            • Optional parameters:
              - Include ONLY when explicitly provided or strongly implied
              - Omit when uncertain about their values
