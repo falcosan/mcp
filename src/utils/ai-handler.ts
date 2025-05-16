@@ -5,6 +5,12 @@ import { AiProviderNameOptions } from "../types/options.js";
 import { markdownToJson } from "./response-handler.js";
 
 interface AITool {
+  name: string;
+  description: string;
+  parameters: Record<string, any>;
+}
+
+interface AIToolDefinition {
   type: "function";
   function: {
     name: string;
@@ -33,10 +39,10 @@ interface AIToolResponse {
  */
 export class AIService {
   private model: string = "gpt-3.5-turbo";
-  private systemPrompt: string = systemPrompt;
   private static instance: AIService | null = null;
   private static serverInitialized: boolean = false;
   private provider: AiProviderNameOptions = "openai";
+  private readonly systemPrompt: string = systemPrompt;
   private client: OpenAI | InferenceClient | null = null;
   private availableTools: {
     name: string;
@@ -101,20 +107,8 @@ export class AIService {
    * Set the available tools that can be used by the AI
    * @param tools Array of tools with name, description, and parameters
    */
-  setAvailableTools(
-    tools: {
-      name: string;
-      description: string;
-      parameters: Record<string, any>;
-    }[]
-  ): void {
+  setAvailableTools(tools: AITool[]): void {
     this.availableTools = tools;
-    this.setSystemPrompt(
-      this.systemPrompt.replace(
-        "MCP_TOOLS",
-        JSON.stringify(this.availableTools, null, 2)
-      )
-    );
   }
 
   ensureInitialized(): boolean {
@@ -126,7 +120,7 @@ export class AIService {
    * @param toolNames Optional array of tool names to filter by (if not provided, all tools will be included)
    * @returns Array of tool definitions
    */
-  private getToolDefinitions(toolNames?: string[]): AITool[] {
+  private getToolDefinitions(toolNames?: string[]): AIToolDefinition[] {
     const tools = toolNames?.length
       ? this.availableTools.filter((tool) => toolNames.includes(tool.name))
       : this.availableTools;
@@ -177,9 +171,13 @@ export class AIService {
       const toolsToUse =
         specificTools || (mentionedTools.length ? mentionedTools : undefined);
       const tools = this.getToolDefinitions(toolsToUse);
+      const systemPrompt = this.systemPrompt.replace(
+        "MCP_TOOLS",
+        JSON.stringify(tools, null, 2)
+      );
 
       const messages = [
-        { role: "system" as const, content: this.systemPrompt },
+        { role: "system" as const, content: systemPrompt },
         { role: "user" as const, content: query },
       ];
       if (this.provider === "openai") {
@@ -199,7 +197,7 @@ export class AIService {
   }
 
   private async processOpenAIQuery(
-    tools: AITool[],
+    tools: AIToolDefinition[],
     messages: AIToolMessage[]
   ): Promise<AIToolResponse | null> {
     const client = this.client as OpenAI;
@@ -221,12 +219,9 @@ export class AIService {
 
     if (!message.content) return null;
 
-    const toolCall = markdownToJson<{ name: string; parameters: object }>(
-      message.content
-    );
+    const toolCall = markdownToJson<AITool>(message.content);
 
     if (!toolCall) return null;
-
     return {
       toolName: toolCall.name,
       reasoning: message.content,
@@ -235,7 +230,7 @@ export class AIService {
   }
 
   private async processHuggingFaceQuery(
-    tools: AITool[],
+    tools: AIToolDefinition[],
     messages: AIToolMessage[]
   ): Promise<AIToolResponse | null> {
     const client = this.client as InferenceClient;
@@ -255,18 +250,16 @@ export class AIService {
     if (!response?.choices.length) return null;
 
     const message = response.choices[0].message;
-    const toolCall = message.tool_calls;
+
+    if (!message.content) return null;
+
+    const toolCall = markdownToJson<AITool>(message.content);
 
     if (!toolCall) return null;
-
     return {
       toolName: toolCall.name,
       reasoning: message.content,
       parameters: toolCall.parameters,
     };
-  }
-
-  private setSystemPrompt(prompt: string): void {
-    this.systemPrompt = prompt;
   }
 }
