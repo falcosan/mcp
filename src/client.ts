@@ -127,6 +127,7 @@ export class MCPClient {
    * Parses and processes the response from the server
    * @param name The name of the tool to call
    * @param args Optional arguments to pass to the tool
+   * @throws Error if the tool call fails
    * @returns Object containing success status and either data or error message
    */
   async callTool(
@@ -182,12 +183,15 @@ export class MCPClient {
   /**
    * Process a user query through the AI to determine which tool to use
    * @param query The user's query
-   * @param specificTools Optional array of specific tools to consider
+   * @param options Options for the AI processing
+   * @param options.specificTools Optional array of specific tool names to consider
+   * @param options.justReasoning If true, only returns the reasoning without calling the tool
+   * @throws Error if AI inference fails
    * @returns The result of calling the selected tool, or an error
    */
   async callToolWithAI(
     query: string,
-    specificTools?: string[]
+    options: { specificTools?: string[]; justReasoning?: boolean } = {}
   ): Promise<{
     success: boolean;
     data?: any;
@@ -195,6 +199,8 @@ export class MCPClient {
     toolUsed?: string;
     reasoning?: string;
   }> {
+    const { specificTools, justReasoning } = options;
+
     try {
       const result = await this.callTool("process-ai-query", {
         query,
@@ -209,6 +215,14 @@ export class MCPClient {
         return {
           success: false,
           error: "AI could not determine which tool to use for this query",
+        };
+      }
+
+      if (justReasoning) {
+        return {
+          reasoning,
+          success: true,
+          toolUsed: toolName,
         };
       }
 
