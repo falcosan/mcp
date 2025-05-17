@@ -34,7 +34,8 @@ export const registerVectorTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
   // Get experimental features status
@@ -53,7 +54,8 @@ export const registerVectorTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
   // Update embedders configuration
@@ -97,7 +99,8 @@ export const registerVectorTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
   // Get embedders configuration
@@ -120,7 +123,8 @@ export const registerVectorTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
   // Reset embedders configuration
@@ -143,7 +147,8 @@ export const registerVectorTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
   // Perform vector search
@@ -272,7 +277,8 @@ export const registerVectorTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 };
 

@@ -15,29 +15,10 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
  * @param server - The MCP server instance
  */
 export const registerSystemTools = (server: McpServer) => {
-  // Get health status
+  // Get Meilisearch version
   server.tool(
-    "health",
-    "Check if the Meilisearch server is healthy",
-    {},
-    async () => {
-      try {
-        const response = await apiClient.get("/health");
-        return {
-          content: [
-            { type: "text", text: JSON.stringify(response.data, null, 2) },
-          ],
-        };
-      } catch (error) {
-        return createErrorResponse(error);
-      }
-    }
-  );
-
-  // Get version information
-  server.tool(
-    "version",
-    "Get the version information of the Meilisearch server",
+    "get-version",
+    "Get the version of the Meilisearch instance",
     {},
     async () => {
       try {
@@ -50,13 +31,34 @@ export const registerSystemTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
-  // Get system information
+  // Get Meilisearch health status
   server.tool(
-    "info",
-    "Get the system information of the Meilisearch server",
+    "get-health",
+    "Get the health status of the Meilisearch instance",
+    {},
+    async () => {
+      try {
+        const response = await apiClient.get("/health");
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Get Meilisearch server stats
+  server.tool(
+    "get-stats",
+    "Get statistics about the Meilisearch server",
     {},
     async () => {
       try {
@@ -69,34 +71,8 @@ export const registerSystemTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
-  );
-
-  // Get statistics
-  server.tool(
-    "stats",
-    "Get statistics about all indexes or a specific index",
-    {
-      indexUid: z
-        .string()
-        .optional()
-        .describe(
-          "Unique identifier of the index (optional, if not provided stats for all indexes will be returned)"
-        ),
     },
-    async ({ indexUid }) => {
-      try {
-        const endpoint = indexUid ? `/indexes/${indexUid}/stats` : "/stats";
-        const response = await apiClient.get(endpoint);
-        return {
-          content: [
-            { type: "text", text: JSON.stringify(response.data, null, 2) },
-          ],
-        };
-      } catch (error) {
-        return createErrorResponse(error);
-      }
-    }
+    { category: "meilisearch" }
   );
 
   // Get all tasks (with optional filtering)
@@ -156,7 +132,8 @@ export const registerSystemTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
   // Delete tasks
@@ -245,7 +222,8 @@ export const registerSystemTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 };
 

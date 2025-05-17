@@ -9,6 +9,8 @@ declare module "../prompts/*.js" {
 
 declare module "@modelcontextprotocol/sdk/server/mcp.js" {
   import { ZodObject } from "zod";
+  import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
+
   export class McpServer {
     constructor(options?: { name?: string; version?: string });
 
@@ -24,7 +26,8 @@ declare module "@modelcontextprotocol/sdk/server/mcp.js" {
       name: string,
       description: string,
       parameters: Record<string, any>,
-      handler: (args: any, extra: any) => any | Promise<any>
+      handler: (args: any, extra: any) => any | Promise<any>,
+      annotations: ToolAnnotations & { category: string }
     ): void;
 
     connect(transport: any): Promise<void>;

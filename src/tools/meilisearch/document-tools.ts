@@ -97,7 +97,8 @@ export const registerDocumentTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
   // Get a single document by ID
@@ -130,7 +131,8 @@ export const registerDocumentTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
   // Add documents to an index
@@ -178,7 +180,8 @@ export const registerDocumentTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
   // Update documents in an index
@@ -226,7 +229,8 @@ export const registerDocumentTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
   // Delete a document by ID
@@ -250,7 +254,8 @@ export const registerDocumentTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
   // Delete multiple documents by ID
@@ -288,7 +293,8 @@ export const registerDocumentTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
   // Delete all documents in an index
@@ -311,7 +317,8 @@ export const registerDocumentTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 };
 

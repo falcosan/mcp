@@ -15,7 +15,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
  * @param server - The MCP server instance
  */
 export const registerSettingsTools = (server: McpServer) => {
-  // Get all settings
+  // Get all settings for an index
   server.tool(
     "get-settings",
     "Get all settings for a Meilisearch index",
@@ -33,13 +33,14 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
-  // Update settings
+  // Update all settings for an index
   server.tool(
     "update-settings",
-    "Update settings for a Meilisearch index",
+    "Update all settings for a Meilisearch index",
     {
       indexUid: z.string().describe("Unique identifier of the index"),
       settings: z
@@ -75,10 +76,11 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
-  // Reset settings
+  // Reset all settings for an index
   server.tool(
     "reset-settings",
     "Reset all settings for a Meilisearch index to their default values",
@@ -98,268 +100,1104 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
-  // Get specific settings
-  const specificSettingsTools = [
+  // Get displayed attributes setting
+  server.tool(
+    "get-displayed-attributes",
+    "Get the displayed attributes setting for a Meilisearch index",
     {
-      name: "get-searchable-attributes",
-      endpoint: "searchable-attributes",
-      description: "Get the searchable attributes setting",
+      indexUid: z.string().describe("Unique identifier of the index"),
     },
-    {
-      name: "get-displayed-attributes",
-      endpoint: "displayed-attributes",
-      description: "Get the displayed attributes setting",
-    },
-    {
-      name: "get-filterable-attributes",
-      endpoint: "filterable-attributes",
-      description: "Get the filterable attributes setting",
-    },
-    {
-      name: "get-sortable-attributes",
-      endpoint: "sortable-attributes",
-      description: "Get the sortable attributes setting",
-    },
-    {
-      name: "get-ranking-rules",
-      endpoint: "ranking-rules",
-      description: "Get the ranking rules setting",
-    },
-    {
-      name: "get-stop-words",
-      endpoint: "stop-words",
-      description: "Get the stop words setting",
-    },
-    {
-      name: "get-synonyms",
-      endpoint: "synonyms",
-      description: "Get the synonyms setting",
-    },
-    {
-      name: "get-distinct-attribute",
-      endpoint: "distinct-attribute",
-      description: "Get the distinct attribute setting",
-    },
-    {
-      name: "get-typo-tolerance",
-      endpoint: "typo-tolerance",
-      description: "Get the typo tolerance setting",
-    },
-    {
-      name: "get-faceting",
-      endpoint: "faceting",
-      description: "Get the faceting setting",
-    },
-    {
-      name: "get-pagination",
-      endpoint: "pagination",
-      description: "Get the pagination setting",
-    },
-  ];
-
-  // Create a tool for each specific setting
-  specificSettingsTools.forEach(({ name, endpoint, description }) => {
-    server.tool(
-      name,
-      description,
-      {
-        indexUid: z.string().describe("Unique identifier of the index"),
-      },
-      async ({ indexUid }) => {
-        try {
-          const response = await apiClient.get(
-            `/indexes/${indexUid}/settings/${endpoint}`
-          );
-          return {
-            content: [
-              { type: "text", text: JSON.stringify(response.data, null, 2) },
-            ],
-          };
-        } catch (error) {
-          return createErrorResponse(error);
-        }
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.get(
+          `/indexes/${indexUid}/settings/displayed-attributes`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
       }
-    );
-  });
+    },
+    { category: "meilisearch" }
+  );
 
-  // Update specific settings
-  const updateSettingsTools = [
+  // Update displayed attributes setting
+  server.tool(
+    "update-displayed-attributes",
+    "Update the displayed attributes setting for a Meilisearch index",
     {
-      name: "update-searchable-attributes",
-      endpoint: "searchable-attributes",
-      description: "Update the searchable attributes setting",
+      indexUid: z.string().describe("Unique identifier of the index"),
     },
-    {
-      name: "update-displayed-attributes",
-      endpoint: "displayed-attributes",
-      description: "Update the displayed attributes setting",
-    },
-    {
-      name: "update-filterable-attributes",
-      endpoint: "filterable-attributes",
-      description: "Update the filterable attributes setting",
-    },
-    {
-      name: "update-sortable-attributes",
-      endpoint: "sortable-attributes",
-      description: "Update the sortable attributes setting",
-    },
-    {
-      name: "update-ranking-rules",
-      endpoint: "ranking-rules",
-      description: "Update the ranking rules setting",
-    },
-    {
-      name: "update-stop-words",
-      endpoint: "stop-words",
-      description: "Update the stop words setting",
-    },
-    {
-      name: "update-synonyms",
-      endpoint: "synonyms",
-      description: "Update the synonyms setting",
-    },
-    {
-      name: "update-distinct-attribute",
-      endpoint: "distinct-attribute",
-      description: "Update the distinct attribute setting",
-    },
-    {
-      name: "update-typo-tolerance",
-      endpoint: "typo-tolerance",
-      description: "Update the typo tolerance setting",
-    },
-    {
-      name: "update-faceting",
-      endpoint: "faceting",
-      description: "Update the faceting setting",
-    },
-    {
-      name: "update-pagination",
-      endpoint: "pagination",
-      description: "Update the pagination setting",
-    },
-  ];
-
-  // Create an update tool for each specific setting
-  updateSettingsTools.forEach(({ name, endpoint, description }) => {
-    server.tool(
-      name,
-      description,
-      {
-        indexUid: z.string().describe("Unique identifier of the index"),
-        value: z.string().describe("JSON value for the setting"),
-      },
-      async ({ indexUid, value }) => {
-        try {
-          // Parse the value string to ensure it's valid JSON
-          const parsedValue = JSON.parse(value);
-
-          const response = await apiClient.put(
-            `/indexes/${indexUid}/settings/${endpoint}`,
-            parsedValue
-          );
-          return {
-            content: [
-              { type: "text", text: JSON.stringify(response.data, null, 2) },
-            ],
-          };
-        } catch (error) {
-          return createErrorResponse(error);
-        }
+    async ({ indexUid, displayedAttributes }) => {
+      try {
+        const response = await apiClient.put(
+          `/indexes/${indexUid}/settings/displayed-attributes`,
+          displayedAttributes
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
       }
-    );
-  });
+    },
+    { category: "meilisearch" }
+  );
 
-  // Reset specific settings
-  const resetSettingsTools = [
+  // Reset displayed attributes setting
+  server.tool(
+    "reset-displayed-attributes",
+    "Reset the displayed attributes setting for a Meilisearch index",
     {
-      name: "reset-searchable-attributes",
-      endpoint: "searchable-attributes",
-      description:
-        "Reset the searchable attributes setting to its default value",
+      indexUid: z.string().describe("Unique identifier of the index"),
     },
-    {
-      name: "reset-displayed-attributes",
-      endpoint: "displayed-attributes",
-      description:
-        "Reset the displayed attributes setting to its default value",
-    },
-    {
-      name: "reset-filterable-attributes",
-      endpoint: "filterable-attributes",
-      description:
-        "Reset the filterable attributes setting to its default value",
-    },
-    {
-      name: "reset-sortable-attributes",
-      endpoint: "sortable-attributes",
-      description: "Reset the sortable attributes setting to its default value",
-    },
-    {
-      name: "reset-ranking-rules",
-      endpoint: "ranking-rules",
-      description: "Reset the ranking rules setting to its default value",
-    },
-    {
-      name: "reset-stop-words",
-      endpoint: "stop-words",
-      description: "Reset the stop words setting to its default value",
-    },
-    {
-      name: "reset-synonyms",
-      endpoint: "synonyms",
-      description: "Reset the synonyms setting to its default value",
-    },
-    {
-      name: "reset-distinct-attribute",
-      endpoint: "distinct-attribute",
-      description: "Reset the distinct attribute setting to its default value",
-    },
-    {
-      name: "reset-typo-tolerance",
-      endpoint: "typo-tolerance",
-      description: "Reset the typo tolerance setting to its default value",
-    },
-    {
-      name: "reset-faceting",
-      endpoint: "faceting",
-      description: "Reset the faceting setting to its default value",
-    },
-    {
-      name: "reset-pagination",
-      endpoint: "pagination",
-      description: "Reset the pagination setting to its default value",
-    },
-  ];
-
-  // Create a reset tool for each specific setting
-  resetSettingsTools.forEach(({ name, endpoint, description }) => {
-    server.tool(
-      name,
-      description,
-      {
-        indexUid: z.string().describe("Unique identifier of the index"),
-      },
-      async ({ indexUid }) => {
-        try {
-          const response = await apiClient.delete(
-            `/indexes/${indexUid}/settings/${endpoint}`
-          );
-          return {
-            content: [
-              { type: "text", text: JSON.stringify(response.data, null, 2) },
-            ],
-          };
-        } catch (error) {
-          return createErrorResponse(error);
-        }
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.delete(
+          `/indexes/${indexUid}/settings/displayed-attributes`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
       }
-    );
-  });
+    },
+    { category: "meilisearch" }
+  );
+
+  // Get filterable attributes setting
+  server.tool(
+    "get-filterable-attributes",
+    "Get the filterable attributes setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.get(
+          `/indexes/${indexUid}/settings/filterable-attributes`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Update filterable attributes setting
+  server.tool(
+    "update-filterable-attributes",
+    "Update the filterable attributes setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid, filterableAttributes }) => {
+      try {
+        const response = await apiClient.put(
+          `/indexes/${indexUid}/settings/filterable-attributes`,
+          filterableAttributes
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Reset filterable attributes setting
+  server.tool(
+    "reset-filterable-attributes",
+    "Reset the filterable attributes setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.delete(
+          `/indexes/${indexUid}/settings/filterable-attributes`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Get sortable attributes setting
+  server.tool(
+    "get-sortable-attributes",
+    "Get the sortable attributes setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.get(
+          `/indexes/${indexUid}/settings/sortable-attributes`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Update sortable attributes setting
+  server.tool(
+    "update-sortable-attributes",
+    "Update the sortable attributes setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid, sortableAttributes }) => {
+      try {
+        const response = await apiClient.put(
+          `/indexes/${indexUid}/settings/sortable-attributes`,
+          sortableAttributes
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Reset sortable attributes setting
+  server.tool(
+    "reset-sortable-attributes",
+    "Reset the sortable attributes setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.delete(
+          `/indexes/${indexUid}/settings/sortable-attributes`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Get searchable attributes setting
+  server.tool(
+    "get-searchable-attributes",
+    "Get the searchable attributes setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.get(
+          `/indexes/${indexUid}/settings/searchable-attributes`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Update searchable attributes setting
+  server.tool(
+    "update-searchable-attributes",
+    "Update the searchable attributes setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid, searchableAttributes }) => {
+      try {
+        const response = await apiClient.put(
+          `/indexes/${indexUid}/settings/searchable-attributes`,
+          searchableAttributes
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Reset searchable attributes setting
+  server.tool(
+    "reset-searchable-attributes",
+    "Reset the searchable attributes setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.delete(
+          `/indexes/${indexUid}/settings/searchable-attributes`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Get ranking rules setting
+  server.tool(
+    "get-ranking-rules",
+    "Get the ranking rules setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.get(
+          `/indexes/${indexUid}/settings/ranking-rules`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Update ranking rules setting
+  server.tool(
+    "update-ranking-rules",
+    "Update the ranking rules setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid, rankingRules }) => {
+      try {
+        const response = await apiClient.put(
+          `/indexes/${indexUid}/settings/ranking-rules`,
+          rankingRules
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Reset ranking rules setting
+  server.tool(
+    "reset-ranking-rules",
+    "Reset the ranking rules setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.delete(
+          `/indexes/${indexUid}/settings/ranking-rules`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Get stop words setting
+  server.tool(
+    "get-stop-words",
+    "Get the stop words setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.get(
+          `/indexes/${indexUid}/settings/stop-words`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Update stop words setting
+  server.tool(
+    "update-stop-words",
+    "Update the stop words setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid, stopWords }) => {
+      try {
+        const response = await apiClient.put(
+          `/indexes/${indexUid}/settings/stop-words`,
+          stopWords
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Reset stop words setting
+  server.tool(
+    "reset-stop-words",
+    "Reset the stop words setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.delete(
+          `/indexes/${indexUid}/settings/stop-words`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Get synonyms setting
+  server.tool(
+    "get-synonyms",
+    "Get the synonyms setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.get(
+          `/indexes/${indexUid}/settings/synonyms`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Update synonyms setting
+  server.tool(
+    "update-synonyms",
+    "Update the synonyms setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid, synonyms }) => {
+      try {
+        const response = await apiClient.put(
+          `/indexes/${indexUid}/settings/synonyms`,
+          synonyms
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Reset synonyms setting
+  server.tool(
+    "reset-synonyms",
+    "Reset the synonyms setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.delete(
+          `/indexes/${indexUid}/settings/synonyms`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Get typo tolerance setting
+  server.tool(
+    "get-typo-tolerance",
+    "Get the typo tolerance setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.get(
+          `/indexes/${indexUid}/settings/typo-tolerance`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Update typo tolerance setting
+  server.tool(
+    "update-typo-tolerance",
+    "Update the typo tolerance setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid, typoTolerance }) => {
+      try {
+        const response = await apiClient.put(
+          `/indexes/${indexUid}/settings/typo-tolerance`,
+          typoTolerance
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Reset typo tolerance setting
+  server.tool(
+    "reset-typo-tolerance",
+    "Reset the typo tolerance setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.delete(
+          `/indexes/${indexUid}/settings/typo-tolerance`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Get pagination setting
+  server.tool(
+    "get-pagination",
+    "Get the pagination setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.get(
+          `/indexes/${indexUid}/settings/pagination`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Update pagination setting
+  server.tool(
+    "update-pagination",
+    "Update the pagination setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid, pagination }) => {
+      try {
+        const response = await apiClient.put(
+          `/indexes/${indexUid}/settings/pagination`,
+          pagination
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Reset pagination setting
+  server.tool(
+    "reset-pagination",
+    "Reset the pagination setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.delete(
+          `/indexes/${indexUid}/settings/pagination`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Get faceting setting
+  server.tool(
+    "get-faceting",
+    "Get the faceting setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.get(
+          `/indexes/${indexUid}/settings/faceting`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Update faceting setting
+  server.tool(
+    "update-faceting",
+    "Update the faceting setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid, faceting }) => {
+      try {
+        const response = await apiClient.put(
+          `/indexes/${indexUid}/settings/faceting`,
+          faceting
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Reset faceting setting
+  server.tool(
+    "reset-faceting",
+    "Reset the faceting setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.delete(
+          `/indexes/${indexUid}/settings/faceting`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Get dictionary setting
+  server.tool(
+    "get-dictionary",
+    "Get the dictionary setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.get(
+          `/indexes/${indexUid}/settings/dictionary`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Update dictionary setting
+  server.tool(
+    "update-dictionary",
+    "Update the dictionary setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid, dictionary }) => {
+      try {
+        const response = await apiClient.put(
+          `/indexes/${indexUid}/settings/dictionary`,
+          dictionary
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Reset dictionary setting
+  server.tool(
+    "reset-dictionary",
+    "Reset the dictionary setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.delete(
+          `/indexes/${indexUid}/settings/dictionary`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Get proximity precision setting
+  server.tool(
+    "get-proximity-precision",
+    "Get the proximity precision setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.get(
+          `/indexes/${indexUid}/settings/proximity-precision`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Update proximity precision setting
+  server.tool(
+    "update-proximity-precision",
+    "Update the proximity precision setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid, proximityPrecision }) => {
+      try {
+        const response = await apiClient.put(
+          `/indexes/${indexUid}/settings/proximity-precision`,
+          proximityPrecision
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Reset proximity precision setting
+  server.tool(
+    "reset-proximity-precision",
+    "Reset the proximity precision setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.delete(
+          `/indexes/${indexUid}/settings/proximity-precision`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Get separator tokens setting
+  server.tool(
+    "get-separator-tokens",
+    "Get the separator tokens setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.get(
+          `/indexes/${indexUid}/settings/separator-tokens`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Update separator tokens setting
+  server.tool(
+    "update-separator-tokens",
+    "Update the separator tokens setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid, separatorTokens }) => {
+      try {
+        const response = await apiClient.put(
+          `/indexes/${indexUid}/settings/separator-tokens`,
+          separatorTokens
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Reset separator tokens setting
+  server.tool(
+    "reset-separator-tokens",
+    "Reset the separator tokens setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.delete(
+          `/indexes/${indexUid}/settings/separator-tokens`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Get non-separator tokens setting
+  server.tool(
+    "get-non-separator-tokens",
+    "Get the non-separator tokens setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.get(
+          `/indexes/${indexUid}/settings/non-separator-tokens`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Update non-separator tokens setting
+  server.tool(
+    "update-non-separator-tokens",
+    "Update the non-separator tokens setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid, nonSeparatorTokens }) => {
+      try {
+        const response = await apiClient.put(
+          `/indexes/${indexUid}/settings/non-separator-tokens`,
+          nonSeparatorTokens
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Reset non-separator tokens setting
+  server.tool(
+    "reset-non-separator-tokens",
+    "Reset the non-separator tokens setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.delete(
+          `/indexes/${indexUid}/settings/non-separator-tokens`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Get word dictionary setting
+  server.tool(
+    "get-word-dictionary",
+    "Get the word dictionary setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.get(
+          `/indexes/${indexUid}/settings/word-dictionary`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Update word dictionary setting
+  server.tool(
+    "update-word-dictionary",
+    "Update the word dictionary setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid, wordDictionary }) => {
+      try {
+        const response = await apiClient.put(
+          `/indexes/${indexUid}/settings/word-dictionary`,
+          wordDictionary
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
+
+  // Reset word dictionary setting
+  server.tool(
+    "reset-word-dictionary",
+    "Reset the word dictionary setting for a Meilisearch index",
+    {
+      indexUid: z.string().describe("Unique identifier of the index"),
+    },
+    async ({ indexUid }) => {
+      try {
+        const response = await apiClient.delete(
+          `/indexes/${indexUid}/settings/word-dictionary`
+        );
+        return {
+          content: [
+            { type: "text", text: JSON.stringify(response.data, null, 2) },
+          ],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    },
+    { category: "meilisearch" }
+  );
 };
 
 export default registerSettingsTools;

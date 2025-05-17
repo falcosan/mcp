@@ -89,7 +89,8 @@ export const registerAITools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "core" }
   );
 };
 

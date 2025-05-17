@@ -42,10 +42,10 @@ interface WaitForTaskParams {
  * @param server - The MCP server instance
  */
 export const registerTaskTools = (server: McpServer) => {
-  // Get all tasks
+  // List all tasks
   server.tool(
     "list-tasks",
-    "List tasks with optional filtering",
+    "List all tasks in the Meilisearch instance",
     {
       limit: z
         .number()
@@ -116,7 +116,8 @@ export const registerTaskTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
   // Get a specific task
@@ -137,7 +138,8 @@ export const registerTaskTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
   // Cancel tasks
@@ -193,7 +195,8 @@ export const registerTaskTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
   // Wait for a task to complete
@@ -256,7 +259,8 @@ export const registerTaskTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 };
 

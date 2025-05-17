@@ -76,7 +76,8 @@ export const registerIndexTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
   // Get index information
@@ -97,7 +98,8 @@ export const registerIndexTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
   // Create a new index
@@ -122,7 +124,8 @@ export const registerIndexTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
   // Update an index
@@ -146,7 +149,8 @@ export const registerIndexTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
   // Delete an index
@@ -167,7 +171,8 @@ export const registerIndexTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
   // Swap indexes
@@ -213,7 +218,8 @@ export const registerIndexTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 };
 

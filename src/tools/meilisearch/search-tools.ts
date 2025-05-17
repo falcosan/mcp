@@ -140,7 +140,8 @@ export const registerSearchTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
   // Multi-search across multiple indexes
@@ -193,7 +194,8 @@ export const registerSearchTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
   server.tool(
@@ -270,7 +272,8 @@ export const registerSearchTools = (server: McpServer) => {
       } catch (error: any) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 
   // Facet search
@@ -310,7 +313,8 @@ export const registerSearchTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    }
+    },
+    { category: "meilisearch" }
   );
 };
 
