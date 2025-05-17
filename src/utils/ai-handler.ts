@@ -1,5 +1,6 @@
 import { OpenAI } from "openai";
 import systemPrompt from "../prompts/system.js";
+import { OPEN_ROUTER_API } from "../types/enums.js";
 import { markdownToJson } from "./response-handler.js";
 import { InferenceClient } from "@huggingface/inference";
 import { AiProviderNameOptions } from "../types/options.js";
@@ -38,6 +39,7 @@ interface AIToolResponse {
  * to use based on the user's query
  */
 export class AIService {
+  private apiKey: string = "";
   private model: string = "gpt-3.5-turbo";
   private static instance: AIService | null = null;
   private static serverInitialized: boolean = false;
@@ -77,28 +79,30 @@ export class AIService {
   initialize(
     apiKey: string,
     provider: AiProviderNameOptions = "openai",
-    model?: string
+    model?: string,
+    forceNewInit: boolean = false
   ): void {
-    if (AIService.serverInitialized) {
+    if (AIService.serverInitialized && !forceNewInit) {
       console.warn("AIService has already been initialized by the server.");
       return;
     }
 
+    this.apiKey = apiKey;
     this.provider = provider;
     if (model) this.model = model;
 
     switch (this.provider) {
       case "openai":
-        this.client = new OpenAI({ apiKey });
+        this.client = new OpenAI({ apiKey: this.apiKey });
         break;
       case "openrouter":
         this.client = new OpenAI({
-          apiKey,
-          baseURL: "https://openrouter.ai/api/v1",
+          apiKey: this.apiKey,
+          baseURL: OPEN_ROUTER_API.baseURL,
         });
         break;
       case "huggingface":
-        this.client = new InferenceClient(apiKey);
+        this.client = new InferenceClient(this.apiKey);
         break;
       default:
         throw new Error(`Unsupported AI provider: ${this.provider}`);
@@ -184,10 +188,10 @@ export class AIService {
     ];
 
     if (this.provider === "huggingface") {
-      return this.processHuggingFaceQuery(tools, messages);
+      return await this.processHuggingFaceQuery(tools, messages);
     }
 
-    return this.processOpenAIQuery(tools, messages);
+    return await this.processOpenAIQuery(tools, messages);
   }
 
   private async processOpenAIQuery(
