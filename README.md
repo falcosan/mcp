@@ -92,7 +92,7 @@ const client = new MCPClient("mcp-meilisearch-client");
 
 await client.connectToServer("http://localhost:4995/mcp");
 
-const result = await client.callTool("search-across-all-indexes", {
+const result = await client.callTool("global-search", {
   q: "search kiosco antonio",
 });
 
@@ -306,7 +306,7 @@ The MCP server exposes various tools that allow you to interact with Meilisearch
 - **Parameters**:
   - `searches` (string, required): JSON array of search queries, each with indexUid and q fields.
 
-#### search-across-all-indexes
+#### global-search
 
 - **Description**: Search for a term across all available Meilisearch indexes and return combined results.
 - **Parameters**:

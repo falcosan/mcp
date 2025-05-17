@@ -85,13 +85,9 @@ export default function useMCPMeilisearch() {
     }
 
     if (useAI.value) {
-      await callToolWithAI(query, [
-        "search",
-        "multi-search",
-        "search-across-all-indexes",
-      ]);
+      await callToolWithAI(query, ["search", "multi-search", "global-search"]);
     } else {
-      await callTool("search-across-all-indexes", { q: query });
+      await callTool("global-search", { q: query });
     }
   };
 

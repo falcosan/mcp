@@ -29,11 +29,65 @@ interface SearchParams {
 }
 
 interface MultiSearchParams {
-  searches: string;
+  queries: SearchParams[];
 }
 
 interface GlobalSearchParams
   extends Pick<SearchParams, "q" | "limit" | "attributesToRetrieve"> {}
+
+const SearchParamsSchema = {
+  indexUid: z.string().describe("Unique identifier of the index"),
+  q: z.string().describe("Search query"),
+  limit: z
+    .number()
+    .min(1)
+    .optional()
+    .describe("Maximum number of results to return (default: 20)"),
+  offset: z
+    .number()
+    .min(0)
+    .optional()
+    .describe("Number of results to skip (default: 0)"),
+  filter: z.string().optional().describe("Filter query to apply"),
+  sort: z
+    .array(z.string())
+    .optional()
+    .describe('Attributes to sort by, e.g. ["price:asc"]'),
+  facets: z.array(z.string()).optional().describe("Facets to return"),
+  attributesToRetrieve: z
+    .array(z.string())
+    .optional()
+    .default(["*"])
+    .describe("Attributes to include in results"),
+  attributesToCrop: z
+    .array(z.string())
+    .optional()
+    .describe("Attributes to crop"),
+  cropLength: z
+    .number()
+    .optional()
+    .describe("Length at which to crop cropped attributes"),
+  attributesToHighlight: z
+    .array(z.string())
+    .optional()
+    .describe("Attributes to highlight"),
+  highlightPreTag: z
+    .string()
+    .optional()
+    .describe("Tag to insert before highlighted text"),
+  highlightPostTag: z
+    .string()
+    .optional()
+    .describe("Tag to insert after highlighted text"),
+  showMatchesPosition: z
+    .boolean()
+    .optional()
+    .describe("Whether to include match positions in results"),
+  matchingStrategy: z
+    .string()
+    .optional()
+    .describe("Matching strategy: 'all' or 'last'"),
+};
 
 /**
  * Register search tools with the MCP server
@@ -45,59 +99,7 @@ export const registerSearchTools = (server: McpServer) => {
   server.tool(
     "search",
     "Search for documents in a Meilisearch index",
-    {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      q: z.string().describe("Search query"),
-      limit: z
-        .number()
-        .min(1)
-        .optional()
-        .describe("Maximum number of results to return (default: 20)"),
-      offset: z
-        .number()
-        .min(0)
-        .optional()
-        .describe("Number of results to skip (default: 0)"),
-      filter: z.string().optional().describe("Filter query to apply"),
-      sort: z
-        .array(z.string())
-        .optional()
-        .describe('Attributes to sort by, e.g. ["price:asc"]'),
-      facets: z.array(z.string()).optional().describe("Facets to return"),
-      attributesToRetrieve: z
-        .array(z.string())
-        .optional()
-        .default(["*"])
-        .describe("Attributes to include in results"),
-      attributesToCrop: z
-        .array(z.string())
-        .optional()
-        .describe("Attributes to crop"),
-      cropLength: z
-        .number()
-        .optional()
-        .describe("Length at which to crop cropped attributes"),
-      attributesToHighlight: z
-        .array(z.string())
-        .optional()
-        .describe("Attributes to highlight"),
-      highlightPreTag: z
-        .string()
-        .optional()
-        .describe("Tag to insert before highlighted text"),
-      highlightPostTag: z
-        .string()
-        .optional()
-        .describe("Tag to insert after highlighted text"),
-      showMatchesPosition: z
-        .boolean()
-        .optional()
-        .describe("Whether to include match positions in results"),
-      matchingStrategy: z
-        .string()
-        .optional()
-        .describe("Matching strategy: 'all' or 'last'"),
-    },
+    SearchParamsSchema,
     { category: "meilisearch" },
     async ({
       indexUid,
@@ -149,28 +151,25 @@ export const registerSearchTools = (server: McpServer) => {
     "multi-search",
     "Perform multiple searches in one request",
     {
-      searches: z
-        .string()
+      queries: z
+        .array(z.object(SearchParamsSchema))
         .describe(
-          "JSON array of search queries, each with indexUid and q fields"
+          "JSON array of search queries, each with indexUid and q fields as required. Other fields of the SearchParams are optional."
         ),
     },
     { category: "meilisearch" },
-    async ({ searches }: MultiSearchParams) => {
+    async ({ queries }: MultiSearchParams) => {
       try {
-        // Parse the searches string to ensure it's valid JSON
-        const parsedSearches = JSON.parse(searches);
-
-        // Ensure searches is an array
-        if (!Array.isArray(parsedSearches)) {
+        // Ensure queries is an array
+        if (!Array.isArray(queries)) {
           return {
             isError: true,
-            content: [{ type: "text", text: "Searches must be a JSON array" }],
+            content: [{ type: "text", text: "Queries must be a JSON array" }],
           };
         }
 
         // Ensure each search has at least indexUid
-        for (const search of parsedSearches) {
+        for (const search of queries) {
           if (!search.indexUid) {
             return {
               isError: true,
@@ -185,7 +184,7 @@ export const registerSearchTools = (server: McpServer) => {
         }
 
         const response = await apiClient.post("/multi-search", {
-          queries: parsedSearches,
+          queries,
         });
         return {
           content: [
@@ -199,7 +198,7 @@ export const registerSearchTools = (server: McpServer) => {
   );
 
   server.tool(
-    "search-across-all-indexes",
+    "global-search",
     "Search for a term across all available Meilisearch indexes and return combined results.",
     {
       q: z.string().describe("Search query"),
