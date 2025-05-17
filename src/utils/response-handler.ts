@@ -17,6 +17,12 @@ export function markdownToJson<T>(markdownJsonString: string): T | null {
   const fenceMatch = S.match(fenceRegex);
   if (fenceMatch && fenceMatch[1]) {
     S = fenceMatch[1].trim();
+  } else {
+    const jsonTagRegex = /<json>\s*([\s\S]*?)\s*<\/json>/;
+    const jsonTagMatch = S.match(jsonTagRegex);
+    if (jsonTagMatch && jsonTagMatch[1]) {
+      S = jsonTagMatch[1].trim();
+    }
   }
 
   if (S === "") return null;
@@ -24,6 +30,7 @@ export function markdownToJson<T>(markdownJsonString: string): T | null {
   S = S.replace(/\/\/[^\r\n]*/g, "");
   S = S.replace(/\/\*[\s\S]*?\*\//g, "");
   S = S.replace(/,\s*([}\]])/g, "$1");
+  S = S.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":');
 
   try {
     const parsedJson = JSON.parse(S);
