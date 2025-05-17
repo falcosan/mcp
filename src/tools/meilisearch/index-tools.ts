@@ -60,6 +60,7 @@ export const registerIndexTools = (server: McpServer) => {
         .optional()
         .describe("Number of indexes to skip"),
     },
+    { category: "meilisearch" },
     async ({ limit, offset }: ListIndexesParams) => {
       try {
         const response = await apiClient.get("/indexes", {
@@ -76,8 +77,7 @@ export const registerIndexTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Get index information
@@ -87,6 +87,7 @@ export const registerIndexTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }: GetIndexParams) => {
       try {
         const response = await apiClient.get(`/indexes/${indexUid}`);
@@ -98,8 +99,7 @@ export const registerIndexTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Create a new index
@@ -110,6 +110,7 @@ export const registerIndexTools = (server: McpServer) => {
       indexUid: z.string().describe("Unique identifier for the new index"),
       primaryKey: z.string().optional().describe("Primary key for the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, primaryKey }: CreateIndexParams) => {
       try {
         const response = await apiClient.post("/indexes", {
@@ -124,8 +125,7 @@ export const registerIndexTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Update an index
@@ -136,6 +136,7 @@ export const registerIndexTools = (server: McpServer) => {
       indexUid: z.string().describe("Unique identifier of the index"),
       primaryKey: z.string().describe("New primary key for the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, primaryKey }: UpdateIndexParams) => {
       try {
         const response = await apiClient.patch(`/indexes/${indexUid}`, {
@@ -149,8 +150,7 @@ export const registerIndexTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Delete an index
@@ -160,6 +160,7 @@ export const registerIndexTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index to delete"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }: DeleteIndexParams) => {
       try {
         const response = await apiClient.delete(`/indexes/${indexUid}`);
@@ -171,8 +172,7 @@ export const registerIndexTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Swap indexes
@@ -186,6 +186,7 @@ export const registerIndexTools = (server: McpServer) => {
           'JSON array of index pairs to swap, e.g. [["movies", "movies_new"]]'
         ),
     },
+    { category: "meilisearch" },
     async ({ indexes }: SwapIndexesParams) => {
       try {
         // Parse the indexes string to ensure it's valid JSON
@@ -218,8 +219,7 @@ export const registerIndexTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 };
 

@@ -22,6 +22,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(`/indexes/${indexUid}/settings`);
@@ -33,8 +34,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Update all settings for an index
@@ -47,6 +47,7 @@ export const registerSettingsTools = (server: McpServer) => {
         .string()
         .describe("JSON object containing settings to update"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, settings }) => {
       try {
         // Parse the settings string to ensure it's valid JSON
@@ -76,8 +77,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Reset all settings for an index
@@ -87,6 +87,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -100,8 +101,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Get displayed attributes setting
@@ -111,6 +111,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -124,8 +125,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Update displayed attributes setting
@@ -135,6 +135,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, displayedAttributes }) => {
       try {
         const response = await apiClient.put(
@@ -149,8 +150,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Reset displayed attributes setting
@@ -160,6 +160,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -173,8 +174,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Get filterable attributes setting
@@ -184,6 +184,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -197,8 +198,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Update filterable attributes setting
@@ -208,6 +208,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, filterableAttributes }) => {
       try {
         const response = await apiClient.put(
@@ -222,8 +223,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Reset filterable attributes setting
@@ -233,6 +233,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -246,8 +247,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Get sortable attributes setting
@@ -257,6 +257,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -270,8 +271,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Update sortable attributes setting
@@ -281,6 +281,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, sortableAttributes }) => {
       try {
         const response = await apiClient.put(
@@ -295,8 +296,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Reset sortable attributes setting
@@ -306,6 +306,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -319,8 +320,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Get searchable attributes setting
@@ -330,6 +330,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -343,8 +344,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Update searchable attributes setting
@@ -354,6 +354,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, searchableAttributes }) => {
       try {
         const response = await apiClient.put(
@@ -368,8 +369,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Reset searchable attributes setting
@@ -379,6 +379,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -392,8 +393,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Get ranking rules setting
@@ -403,6 +403,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -416,8 +417,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Update ranking rules setting
@@ -427,6 +427,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, rankingRules }) => {
       try {
         const response = await apiClient.put(
@@ -441,8 +442,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Reset ranking rules setting
@@ -452,6 +452,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -465,8 +466,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Get stop words setting
@@ -476,6 +476,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -489,8 +490,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Update stop words setting
@@ -500,6 +500,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, stopWords }) => {
       try {
         const response = await apiClient.put(
@@ -514,8 +515,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Reset stop words setting
@@ -525,6 +525,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -538,8 +539,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Get synonyms setting
@@ -549,6 +549,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -562,8 +563,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Update synonyms setting
@@ -573,6 +573,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, synonyms }) => {
       try {
         const response = await apiClient.put(
@@ -587,8 +588,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Reset synonyms setting
@@ -598,6 +598,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -611,8 +612,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Get typo tolerance setting
@@ -622,6 +622,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -635,8 +636,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Update typo tolerance setting
@@ -646,6 +646,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, typoTolerance }) => {
       try {
         const response = await apiClient.put(
@@ -660,8 +661,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Reset typo tolerance setting
@@ -671,6 +671,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -684,8 +685,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Get pagination setting
@@ -695,6 +695,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -708,8 +709,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Update pagination setting
@@ -719,6 +719,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, pagination }) => {
       try {
         const response = await apiClient.put(
@@ -733,8 +734,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Reset pagination setting
@@ -744,6 +744,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -757,8 +758,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Get faceting setting
@@ -768,6 +768,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -781,8 +782,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Update faceting setting
@@ -792,6 +792,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, faceting }) => {
       try {
         const response = await apiClient.put(
@@ -806,8 +807,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Reset faceting setting
@@ -817,6 +817,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -830,8 +831,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Get dictionary setting
@@ -841,6 +841,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -854,8 +855,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Update dictionary setting
@@ -865,6 +865,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, dictionary }) => {
       try {
         const response = await apiClient.put(
@@ -879,8 +880,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Reset dictionary setting
@@ -890,6 +890,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -903,8 +904,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Get proximity precision setting
@@ -914,6 +914,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -927,8 +928,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Update proximity precision setting
@@ -938,6 +938,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, proximityPrecision }) => {
       try {
         const response = await apiClient.put(
@@ -952,8 +953,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Reset proximity precision setting
@@ -963,6 +963,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -976,8 +977,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Get separator tokens setting
@@ -987,6 +987,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -1000,8 +1001,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Update separator tokens setting
@@ -1011,6 +1011,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, separatorTokens }) => {
       try {
         const response = await apiClient.put(
@@ -1025,8 +1026,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Reset separator tokens setting
@@ -1036,6 +1036,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -1049,8 +1050,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Get non-separator tokens setting
@@ -1060,6 +1060,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -1073,8 +1074,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Update non-separator tokens setting
@@ -1084,6 +1084,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, nonSeparatorTokens }) => {
       try {
         const response = await apiClient.put(
@@ -1098,8 +1099,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Reset non-separator tokens setting
@@ -1109,6 +1109,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -1122,8 +1123,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Get word dictionary setting
@@ -1133,6 +1133,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -1146,8 +1147,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Update word dictionary setting
@@ -1157,6 +1157,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, wordDictionary }) => {
       try {
         const response = await apiClient.put(
@@ -1171,8 +1172,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Reset word dictionary setting
@@ -1182,6 +1182,7 @@ export const registerSettingsTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -1195,8 +1196,7 @@ export const registerSettingsTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 };
 

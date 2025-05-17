@@ -30,6 +30,7 @@ export const registerAITools = (server: McpServer) => {
         .optional()
         .describe("Optional array of specific tool names to consider"),
     },
+    { category: "core" },
     async ({ query, specificTools }: ProcessAIQueryParams) => {
       try {
         const aiService = AIService.getInstance();
@@ -89,8 +90,7 @@ export const registerAITools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "core" }
+    }
   );
 };
 

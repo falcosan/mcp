@@ -98,6 +98,7 @@ export const registerSearchTools = (server: McpServer) => {
         .optional()
         .describe("Matching strategy: 'all' or 'last'"),
     },
+    { category: "meilisearch" },
     async ({
       indexUid,
       q,
@@ -140,8 +141,7 @@ export const registerSearchTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Multi-search across multiple indexes
@@ -155,6 +155,7 @@ export const registerSearchTools = (server: McpServer) => {
           "JSON array of search queries, each with indexUid and q fields"
         ),
     },
+    { category: "meilisearch" },
     async ({ searches }: MultiSearchParams) => {
       try {
         // Parse the searches string to ensure it's valid JSON
@@ -194,8 +195,7 @@ export const registerSearchTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   server.tool(
@@ -216,6 +216,7 @@ export const registerSearchTools = (server: McpServer) => {
         .default(["*"])
         .describe("Attributes to include in results"),
     },
+    { category: "meilisearch" },
     async ({ q, limit, attributesToRetrieve }: GlobalSearchParams) => {
       try {
         const indexesResponse = await apiClient.get("/indexes", {
@@ -272,8 +273,7 @@ export const registerSearchTools = (server: McpServer) => {
       } catch (error: any) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Facet search
@@ -292,6 +292,7 @@ export const registerSearchTools = (server: McpServer) => {
         .optional()
         .describe("Filter to apply to the base search"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, facetName, facetQuery, filter }) => {
       try {
         const params: Record<string, any> = {
@@ -313,8 +314,7 @@ export const registerSearchTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 };
 

@@ -26,8 +26,8 @@ declare module "@modelcontextprotocol/sdk/server/mcp.js" {
       name: string,
       description: string,
       parameters: Record<string, any>,
-      handler: (args: any, extra: any) => any | Promise<any>,
-      annotations: ToolAnnotations & { category: string }
+      annotations: ToolAnnotations & { category: string },
+      handler: (args: any, extra: any) => any | Promise<any>
     ): void;
 
     connect(transport: any): Promise<void>;

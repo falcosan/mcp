@@ -20,6 +20,7 @@ export const registerSystemTools = (server: McpServer) => {
     "get-version",
     "Get the version of the Meilisearch instance",
     {},
+    { category: "meilisearch" },
     async () => {
       try {
         const response = await apiClient.get("/version");
@@ -31,8 +32,7 @@ export const registerSystemTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Get Meilisearch health status
@@ -40,6 +40,7 @@ export const registerSystemTools = (server: McpServer) => {
     "get-health",
     "Get the health status of the Meilisearch instance",
     {},
+    { category: "meilisearch" },
     async () => {
       try {
         const response = await apiClient.get("/health");
@@ -51,8 +52,7 @@ export const registerSystemTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Get Meilisearch server stats
@@ -60,6 +60,7 @@ export const registerSystemTools = (server: McpServer) => {
     "get-stats",
     "Get statistics about the Meilisearch server",
     {},
+    { category: "meilisearch" },
     async () => {
       try {
         const response = await apiClient.get("/");
@@ -71,8 +72,7 @@ export const registerSystemTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Get all tasks (with optional filtering)
@@ -113,6 +113,7 @@ export const registerSystemTools = (server: McpServer) => {
         .optional()
         .describe("UIDs of the indexes on which tasks were performed"),
     },
+    { category: "meilisearch" },
     async ({ limit, from, status, type, indexUids }) => {
       try {
         const params: Record<string, any> = {};
@@ -132,8 +133,7 @@ export const registerSystemTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Delete tasks
@@ -192,6 +192,7 @@ export const registerSystemTools = (server: McpServer) => {
           "Delete tasks that finished processing before this date (ISO 8601 format)"
         ),
     },
+    { category: "meilisearch" },
     async ({
       statuses,
       types,
@@ -222,8 +223,7 @@ export const registerSystemTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 };
 

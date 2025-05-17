@@ -88,6 +88,7 @@ export const registerTaskTools = (server: McpServer) => {
         .optional()
         .describe("UIDs of specific tasks to return"),
     },
+    { category: "meilisearch" },
     async ({
       limit,
       from,
@@ -116,8 +117,7 @@ export const registerTaskTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Get a specific task
@@ -127,6 +127,7 @@ export const registerTaskTools = (server: McpServer) => {
     {
       taskUid: z.number().describe("Unique identifier of the task"),
     },
+    { category: "meilisearch" },
     async ({ taskUid }: GetTaskParams) => {
       try {
         const response = await apiClient.get(`/tasks/${taskUid}`);
@@ -138,8 +139,7 @@ export const registerTaskTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Cancel tasks
@@ -178,6 +178,7 @@ export const registerTaskTools = (server: McpServer) => {
         .optional()
         .describe("UIDs of the tasks to cancel"),
     },
+    { category: "meilisearch" },
     async ({ statuses, types, indexUids, uids }: CancelTasksParams) => {
       try {
         const body: Record<string, any> = {};
@@ -195,8 +196,7 @@ export const registerTaskTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Wait for a task to complete
@@ -216,6 +216,7 @@ export const registerTaskTools = (server: McpServer) => {
         .optional()
         .describe("Polling interval in milliseconds (default: 500)"),
     },
+    { category: "meilisearch" },
     async ({
       taskUid,
       timeoutMs = 5000,
@@ -259,8 +260,7 @@ export const registerTaskTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 };
 

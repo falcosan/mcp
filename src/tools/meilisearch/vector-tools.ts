@@ -21,6 +21,7 @@ export const registerVectorTools = (server: McpServer) => {
     "enable-vector-search",
     "Enable the vector search experimental feature in Meilisearch",
     {},
+    { category: "meilisearch" },
     async () => {
       try {
         const response = await apiClient.post("/experimental-features", {
@@ -34,8 +35,7 @@ export const registerVectorTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Get experimental features status
@@ -43,6 +43,7 @@ export const registerVectorTools = (server: McpServer) => {
     "get-experimental-features",
     "Get the status of experimental features in Meilisearch",
     {},
+    { category: "meilisearch" },
     async () => {
       try {
         const response = await apiClient.get("/experimental-features");
@@ -54,8 +55,7 @@ export const registerVectorTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Update embedders configuration
@@ -68,6 +68,7 @@ export const registerVectorTools = (server: McpServer) => {
         .string()
         .describe("JSON object containing embedder configurations"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, embedders }) => {
       try {
         // Parse the embedders string to ensure it's valid JSON
@@ -99,8 +100,7 @@ export const registerVectorTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Get embedders configuration
@@ -110,6 +110,7 @@ export const registerVectorTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -123,8 +124,7 @@ export const registerVectorTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Reset embedders configuration
@@ -134,6 +134,7 @@ export const registerVectorTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -147,8 +148,7 @@ export const registerVectorTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Perform vector search
@@ -206,6 +206,7 @@ export const registerVectorTools = (server: McpServer) => {
           "Ratio of vector vs text search in hybrid search (0-1, default: 0.5)"
         ),
     },
+    { category: "meilisearch" },
     async ({
       indexUid,
       vector,
@@ -277,8 +278,7 @@ export const registerVectorTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 };
 

@@ -79,6 +79,7 @@ export const registerDocumentTools = (server: McpServer) => {
         .describe("Fields to return in the documents"),
       filter: z.string().optional().describe("Filter query to apply"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, limit, offset, fields, filter }: GetDocumentsParams) => {
       try {
         const response = await apiClient.get(`/indexes/${indexUid}/documents`, {
@@ -97,8 +98,7 @@ export const registerDocumentTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Get a single document by ID
@@ -113,6 +113,7 @@ export const registerDocumentTools = (server: McpServer) => {
         .optional()
         .describe("Fields to return in the document"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, documentId, fields }: GetDocumentParams) => {
       try {
         const response = await apiClient.get(
@@ -131,8 +132,7 @@ export const registerDocumentTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Add documents to an index
@@ -147,6 +147,7 @@ export const registerDocumentTools = (server: McpServer) => {
         .optional()
         .describe("Primary key for the documents"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, documents, primaryKey }: AddDocumentsParams) => {
       try {
         // Parse the documents string to ensure it's valid JSON
@@ -180,8 +181,7 @@ export const registerDocumentTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Update documents in an index
@@ -196,6 +196,7 @@ export const registerDocumentTools = (server: McpServer) => {
         .optional()
         .describe("Primary key for the documents"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, documents, primaryKey }: UpdateDocumentsParams) => {
       try {
         // Parse the documents string to ensure it's valid JSON
@@ -229,8 +230,7 @@ export const registerDocumentTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Delete a document by ID
@@ -241,6 +241,7 @@ export const registerDocumentTools = (server: McpServer) => {
       indexUid: z.string().describe("Unique identifier of the index"),
       documentId: z.string().describe("ID of the document to delete"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, documentId }: DeleteDocumentParams) => {
       try {
         const response = await apiClient.delete(
@@ -254,8 +255,7 @@ export const registerDocumentTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Delete multiple documents by ID
@@ -266,6 +266,7 @@ export const registerDocumentTools = (server: McpServer) => {
       indexUid: z.string().describe("Unique identifier of the index"),
       documentIds: z.string().describe("JSON array of document IDs to delete"),
     },
+    { category: "meilisearch" },
     async ({ indexUid, documentIds }: DeleteDocumentsParams) => {
       try {
         // Parse the document IDs string to ensure it's valid JSON
@@ -293,8 +294,7 @@ export const registerDocumentTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 
   // Delete all documents in an index
@@ -304,6 +304,7 @@ export const registerDocumentTools = (server: McpServer) => {
     {
       indexUid: z.string().describe("Unique identifier of the index"),
     },
+    { category: "meilisearch" },
     async ({ indexUid }: DeleteAllDocumentsParams) => {
       try {
         const response = await apiClient.delete(
@@ -317,8 +318,7 @@ export const registerDocumentTools = (server: McpServer) => {
       } catch (error) {
         return createErrorResponse(error);
       }
-    },
-    { category: "meilisearch" }
+    }
   );
 };
 
