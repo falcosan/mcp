@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { AIService } from "../utils/ai-handler.js";
+import { AIService } from "../../utils/ai-handler.js";
 import { zodToJsonSchema } from "zod-to-json-schema";
-import { createErrorResponse } from "../utils/error-handler.js";
+import { createErrorResponse } from "../../utils/error-handler.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 /**

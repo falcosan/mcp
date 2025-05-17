@@ -1,6 +1,6 @@
 import { z } from "zod";
-import apiClient from "../utils/api-handler.js";
-import { createErrorResponse } from "../utils/error-handler.js";
+import apiClient from "../../utils/api-handler.js";
+import { createErrorResponse } from "../../utils/error-handler.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 /**

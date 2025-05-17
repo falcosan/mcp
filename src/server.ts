@@ -6,16 +6,16 @@ import {
   InitializeRequestSchema,
   ToolListChangedNotification,
 } from "@modelcontextprotocol/sdk/types.js";
-import registerAITools from "./tools/ai-tools.js";
-import registerTaskTools from "./tools/task-tools.js";
-import registerIndexTools from "./tools/index-tools.js";
-import registerSearchTools from "./tools/search-tools.js";
-import registerSystemTools from "./tools/system-tools.js";
-import registerVectorTools from "./tools/vector-tools.js";
-import registerDocumentTools from "./tools/document-tools.js";
-import registerSettingsTools from "./tools/settings-tools.js";
+import registerAITools from "./tools/core/ai-tools.js";
 import { createErrorResponse } from "./utils/error-handler.js";
+import registerTaskTools from "./tools/meilisearch/task-tools.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import registerIndexTools from "./tools/meilisearch/index-tools.js";
+import registerSearchTools from "./tools/meilisearch/search-tools.js";
+import registerSystemTools from "./tools/meilisearch/system-tools.js";
+import registerVectorTools from "./tools/meilisearch/vector-tools.js";
+import registerDocumentTools from "./tools/meilisearch/document-tools.js";
+import registerSettingsTools from "./tools/meilisearch/settings-tools.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 
