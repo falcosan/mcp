@@ -154,7 +154,7 @@ export const registerSearchTools = (server: McpServer) => {
       queries: z
         .array(z.object(SearchParamsSchema))
         .describe(
-          "JSON array of search queries, each with indexUid and q fields as required. Other fields of the SearchParams are optional."
+          "JSON array of search queries, each containing the same parameters as the `search` tool"
         ),
     },
     { category: "meilisearch" },
@@ -199,7 +199,7 @@ export const registerSearchTools = (server: McpServer) => {
 
   server.tool(
     "global-search",
-    "Search for a term across all available Meilisearch indexes and return combined results.",
+    "Search for a term across all available Meilisearch indexes and return combined results",
     {
       q: z.string().describe("Search query"),
       limit: z
