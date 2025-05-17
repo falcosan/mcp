@@ -92,11 +92,13 @@ export class MCPClient {
       if (!toolsResult) {
         this.tools = [];
       } else if (toolsResult.tools && Array.isArray(toolsResult.tools)) {
-        this.tools = toolsResult.tools.map((tool: any) => ({
-          name: tool.name,
-          description: tool.description ?? "",
-          parameters: tool.parameters || {},
-        }));
+        this.tools = toolsResult.tools
+          .filter(({ annotations }) => annotations?.category !== "core")
+          .map((tool: any) => ({
+            name: tool.name,
+            description: tool.description ?? "",
+            parameters: tool.parameters || {},
+          }));
       } else {
         this.tools = [];
       }

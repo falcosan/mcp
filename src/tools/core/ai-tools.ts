@@ -35,7 +35,7 @@ export const registerAITools = (server: McpServer) => {
       try {
         const aiService = AIService.getInstance();
         const availableTools = Object.entries(server._registeredTools)
-          .filter(([name]) => name !== "process-ai-query")
+          .filter(([_, { annotations }]) => annotations?.category !== "core")
           .map(([name, { description, inputSchema }]) => {
             const { definitions } = zodToJsonSchema(inputSchema, "parameters");
             return {

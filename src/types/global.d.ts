@@ -19,6 +19,7 @@ declare module "@modelcontextprotocol/sdk/server/mcp.js" {
         parameters: object;
         description: string;
         inputSchema: ZodObject;
+        annotations: ToolAnnotations & { category: string };
       };
     };
 
