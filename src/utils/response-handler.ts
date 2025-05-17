@@ -27,7 +27,7 @@ export function markdownToJson<T>(markdownJsonString: string): T | null {
 
   try {
     const parsedJson = JSON.parse(S);
-    return parsedJson;
+    return parseNestedJsonStrings(parsedJson);
   } catch (error) {
     console.error("Failed to parse JSON after transformations.");
     console.error("Original string:", markdownJsonString);
@@ -35,4 +35,34 @@ export function markdownToJson<T>(markdownJsonString: string): T | null {
     console.error("Error:", error);
     return null;
   }
+}
+
+function tryParseJsonString(str: string): any {
+  try {
+    if (
+      typeof str === "string" &&
+      ((str.startsWith("[") && str.endsWith("]")) ||
+        (str.startsWith("{") && str.endsWith("}")))
+    ) {
+      return JSON.parse(str);
+    }
+    return str;
+  } catch {
+    return str;
+  }
+}
+
+function parseNestedJsonStrings(obj: any): any {
+  if (Array.isArray(obj)) {
+    return obj.map((item) => parseNestedJsonStrings(item));
+  } else if (obj !== null && typeof obj === "object") {
+    const result: Record<string, any> = {};
+    for (const key of Object.keys(obj)) {
+      result[key] = parseNestedJsonStrings(obj[key]);
+    }
+    return result;
+  } else if (typeof obj === "string") {
+    return tryParseJsonString(obj);
+  }
+  return obj;
 }
