@@ -207,7 +207,7 @@ export class AIService {
       model: this.model,
     });
 
-    if (response instanceof RateLimitError) {
+    if (this.provider === "openrouter" && response instanceof RateLimitError) {
       const { data } = await axios.post(
         OPEN_ROUTER_API.keys,
         { name: new Date() },
@@ -218,6 +218,10 @@ export class AIService {
           },
         }
       );
+      if (!data.key) {
+        console.error("Error in OpenRouter API call:", data);
+        return null;
+      }
 
       this.initialize(data.key, this.provider, this.model, true);
       return await this.processOpenAIQuery(tools, messages);
