@@ -1,4 +1,5 @@
-import { OpenAI } from "openai";
+import axios from "axios";
+import { OpenAI, RateLimitError } from "openai";
 import systemPrompt from "../prompts/system.js";
 import { OPEN_ROUTER_API } from "../types/enums.js";
 import { markdownToJson } from "./response-handler.js";
@@ -205,6 +206,22 @@ export class AIService {
       messages,
       model: this.model,
     });
+
+    if (response instanceof RateLimitError) {
+      const { data } = await axios.post(
+        OPEN_ROUTER_API.keys,
+        { name: new Date() },
+        {
+          headers: {
+            Authorization: `Bearer ${this.apiKey}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      this.initialize(data.key, this.provider, this.model, true);
+      return await this.processOpenAIQuery(tools, messages);
+    }
 
     if ("error" in response) {
       console.error("Error in OpenAI API call:", response);
