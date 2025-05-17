@@ -13,6 +13,7 @@ export const mcpBuilderPlugin = (): Plugin => ({
       optimizeDeps: { exclude: ["mcp-meilisearch"] },
       build: {
         ssr: true,
+        minify: true,
         sourcemap: true,
         target: "esnext",
         outDir: "dist/mcp",

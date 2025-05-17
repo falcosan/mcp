@@ -24,15 +24,15 @@
   ],
   "scripts": {
     "build": "tsc && tsc -p tsconfig.types.json",
-    "demo": "npm run build & npm run dev --workspace=demo",
+    "demo": "npm run build & npm run preview --workspace=demo",
     "server": "npm run build && node --env-file=.env dist/index.js",
     "prepublishOnly": "rm -rf dist && npm version patch && npm run build"
   },
   "dependencies": {
     "@huggingface/inference": "^3.13.1",
-    "@modelcontextprotocol/sdk": "^1.11.2",
+    "@modelcontextprotocol/sdk": "^1.11.4",
     "axios": "^1.9.0",
-    "openai": "^4.98.0",
+    "openai": "^4.100.0",
     "zod": "^3.24.4"
   },
   "devDependencies": {
