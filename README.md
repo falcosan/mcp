@@ -106,7 +106,16 @@ console.log(`Results: ${JSON.stringify(result.data)}`);
 
 #### AI Inference Client Methods
 
-- `callToolWithAI(query: string, specificTools?: string[])`: Process a user query with AI inference, optionally limiting to specific tools.
+#### `callToolWithAI(query, options)`
+
+Processes a user query through AI to determine and execute the most appropriate tool.
+
+**Parameters:**
+
+- `query`: String - The user's query or request to be processed
+- `options`: Object (Optional) - Configuration options
+  - `specificTools`: String[] (Optional) - Restricts tool selection to this list of tool names
+  - `justReasoning`: Boolean (Optional) - When set to `true`, returns only the AI's reasoning without executing the selected tool
 
 ### Starting the Server
 
@@ -304,7 +313,7 @@ The MCP server exposes various tools that allow you to interact with Meilisearch
 
 - **Description**: Perform multiple searches in one request.
 - **Parameters**:
-  - `searches` (string, required): JSON array of search queries, each with indexUid and q fields.
+  - `queries` (string, required): JSON array of search queries, each containing the same parameters as the `search` tool.
 
 #### global-search
 

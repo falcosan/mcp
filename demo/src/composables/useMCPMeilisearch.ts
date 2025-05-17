@@ -64,7 +64,10 @@ export default function useMCPMeilisearch() {
     error.value = null;
 
     try {
-      const response = await client.value.callToolWithAI(query, specificTools);
+      const response = await client.value.callToolWithAI(query, {
+        specificTools,
+      });
+
       result.value = response;
       if (!response?.success) {
         error.value = response.error || "Query processing failed:";
