@@ -80,6 +80,63 @@ export class MCPServer {
   }
 
   /**
+   * Handles an HTTP request and routes it to the appropriate handler
+   * @param req The HTTP request
+   * @param res The HTTP response
+   * @param mcpEndpoint The MCP endpoint path
+   */
+  async handleHttpRequest(
+    req: IncomingMessage,
+    res: ServerResponse,
+    mcpEndpoint: string
+  ): Promise<void> {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept, mcp-session-id"
+    );
+
+    if (req.method === "OPTIONS") {
+      res.statusCode = 200;
+      res.end();
+      return;
+    }
+
+    const parsedUrl = new URL(req.url || "/", `http://${req.headers.host}`);
+    const pathname = parsedUrl.pathname || "/";
+
+    if (!pathname.startsWith(mcpEndpoint)) {
+      this.sendErrorResponse(res, 404, "Not found");
+      return;
+    }
+
+    if (req.method === "GET") {
+      await this.handleGetRequest(req, res);
+      return;
+    }
+
+    if (req.method === "POST") {
+      let body = "";
+      req.on("data", (chunk) => {
+        body += chunk.toString();
+      });
+
+      req.on("end", async () => {
+        try {
+          const jsonBody = JSON.parse(body);
+          await this.handlePostRequest(req, res, jsonBody);
+        } catch (error) {
+          this.sendErrorResponse(res, 400, "Invalid JSON body");
+        }
+      });
+      return;
+    }
+
+    this.sendErrorResponse(res, 405, "Method not allowed");
+  }
+
+  /**
    * Handles an HTTP GET request
    * @param req The HTTP request
    * @param res The HTTP response
@@ -352,7 +409,7 @@ export class MCPServer {
 }
 
 /**
- * Initialize the MCP server with HTTP transport using Vite
+ * Initialize the MCP server with HTTP transport
  */
 const initServerHTTPTransport = async (
   customConfig?: Partial<ServerConfig>
@@ -415,6 +472,7 @@ const initServerStdioTransport = async (
 /**
  * Initialize the MCP server with the specified transport
  * @param transport The transport type to use ("stdio" or "http")
+ * @param config Configuration options for the server
  * @returns A promise that resolves to the server instances
  * @throws Error if the transport type is unsupported
  */

@@ -1,10 +1,8 @@
 import http from "node:http";
 import { createServer } from "node:http";
-import { parse as parseUrl } from "node:url";
 import { AIService } from "./utils/ai-handler.js";
 import { initServer, MCPServer } from "./server.js";
 import { configHandler } from "./utils/config-handler.js";
-import { createErrorResponse } from "./utils/error-handler.js";
 import { AiProviderNameOptions, ServerOptions } from "./types/options.js";
 
 const defaultOptions: ServerOptions = {
@@ -46,71 +44,14 @@ export async function mcpMeilisearchServer(
   const mcpEndpoint = options.mcpEndpoint || "/mcp";
 
   const server = createServer(async (req, res) => {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    res.setHeader(
-      "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept, mcp-session-id"
-    );
-
-    if (req.method === "OPTIONS") {
-      res.statusCode = 200;
-      res.end();
-      return;
-    }
-
-    const parsedUrl = parseUrl(req.url || "/", true);
-    const pathname = parsedUrl.pathname || "/";
-
-    if (!pathname.startsWith(mcpEndpoint)) {
-      res.statusCode = 404;
-      res.end(JSON.stringify({ error: "Not found" }));
-      return;
-    }
-
     if (!mcpServerInstance) {
-      console.error("MCP server not initialized yet");
       res.statusCode = 503;
       res.setHeader("Content-Type", "application/json");
-      res.end(
-        JSON.stringify(createErrorResponse("MCP server not initialized yet"))
-      );
+      res.end(JSON.stringify({ error: "MCP server not initialized yet" }));
       return;
     }
 
-    if (req.method === "GET") {
-      await mcpServerInstance.handleGetRequest(req, res);
-      return;
-    }
-
-    if (req.method === "POST") {
-      let body = "";
-      req.on("data", (chunk) => {
-        body += chunk.toString();
-      });
-      req.on("end", async () => {
-        try {
-          const jsonBody = JSON.parse(body);
-          if (mcpServerInstance) {
-            await mcpServerInstance.handlePostRequest(req, res, jsonBody);
-          } else {
-            res.statusCode = 503;
-            res.end(
-              JSON.stringify(
-                createErrorResponse("MCP server not initialized yet")
-              )
-            );
-          }
-        } catch {
-          res.statusCode = 400;
-          res.end(JSON.stringify(createErrorResponse("Invalid JSON body")));
-        }
-      });
-      return;
-    }
-
-    res.statusCode = 405;
-    res.end(JSON.stringify(createErrorResponse("Method not allowed")));
+    await mcpServerInstance.handleHttpRequest(req, res, mcpEndpoint);
   });
 
   await new Promise<void>((resolve) => {
@@ -168,6 +109,7 @@ if (import.meta.url === `file://${process.argv?.[1]}`) {
         break;
       case "aiApiKey":
         options.aiProviderApiKey = value;
+        break;
       case "aiProvider":
         options.aiProviderName = value as AiProviderNameOptions;
         break;
