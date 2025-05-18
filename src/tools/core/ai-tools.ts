@@ -62,10 +62,11 @@ export const registerAITools = (server: McpServer) => {
 
         if (!result) {
           return {
+            isError: true,
             content: [
               {
                 type: "text",
-                text: "AI couldn't determine an appropriate tool to use for this query.",
+                text: "The MCP server could not determine which tool to use for this query. Check the server logs for more details.",
               },
             ],
           };
@@ -78,8 +79,8 @@ export const registerAITools = (server: McpServer) => {
               text: JSON.stringify(
                 {
                   toolName: result.toolName,
+                  reasoning: result.reasoning,
                   parameters: result.parameters,
-                  reasoning: result.reasoning || "No explanation provided",
                 },
                 null,
                 2
