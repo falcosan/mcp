@@ -1,6 +1,6 @@
 import { mcpMeilisearchServer } from "../../dist/index.js";
 
-mcpMeilisearchServer({
+await mcpMeilisearchServer({
   aiProviderName: "openrouter",
   llmModel: "meta-llama/llama-4-maverick:free",
   meilisearchHost: process.env.VITE_MEILISEARCH_HOST,
