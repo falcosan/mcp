@@ -1,17 +1,9 @@
 import http from "node:http";
 import { createServer } from "node:http";
 import { AIService } from "./utils/ai-handler.js";
-import { initServer, MCPServer } from "./server.js";
 import { configHandler } from "./utils/config-handler.js";
-import { AiProviderNameOptions, ServerOptions } from "./types/options.js";
-
-const defaultOptions: ServerOptions = {
-  aiProviderApiKey: "",
-  meilisearchApiKey: "",
-  llmModel: "gpt-3.5-turbo",
-  aiProviderName: "openai",
-  meilisearchHost: "http://localhost:7700",
-};
+import { initServer, MCPServer, defaultOptions } from "./server.js";
+import { ServerOptions, AiProviderNameOptions } from "./types/options.js";
 
 /**
  * Start a MCP server

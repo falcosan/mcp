@@ -6,6 +6,7 @@ import {
   InitializeRequestSchema,
   ToolListChangedNotification,
 } from "@modelcontextprotocol/sdk/types.js";
+import { ServerOptions } from "./types/options.js";
 import registerAITools from "./tools/core/ai-tools.js";
 import { createErrorResponse } from "./utils/error-handler.js";
 import registerTaskTools from "./tools/meilisearch/task-tools.js";
@@ -20,33 +21,11 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 
 /**
- * Configuration for the MCP server
- */
-interface ServerConfig {
-  host: string;
-  apiKey: string;
-  httpPort: number;
-  mcpEndpoint: string;
-  sessionTimeout: number;
-  sessionCleanupInterval: number;
-}
-
-/**
  * Return type for the initServer function
  */
 interface ServerInstance {
   mcpServer: MCPServer;
 }
-
-const defaultConfig: ServerConfig = {
-  httpPort: 4995,
-  mcpEndpoint: "/mcp",
-  sessionTimeout: 3600000,
-  sessionCleanupInterval: 60000,
-  apiKey: process.env.MEILISEARCH_API_KEY || "",
-  host: process.env.MEILISEARCH_HOST || "http://localhost:7700",
-};
-
 /**
  * Information about an active transport session
  */
@@ -54,6 +33,15 @@ interface SessionInfo {
   transport: StreamableHTTPServerTransport;
   lastActivity: number;
 }
+
+export const defaultOptions: ServerOptions = {
+  httpPort: 4995,
+  mcpEndpoint: "/mcp",
+  sessionTimeout: 3600000,
+  sessionCleanupInterval: 60000,
+  meilisearchApiKey: process.env.MEILISEARCH_API_KEY || "",
+  meilisearchHost: process.env.MEILISEARCH_HOST || "http://localhost:7700",
+};
 
 /**
  * Implementation of an MCP server for Meilisearch
@@ -63,7 +51,7 @@ export class MCPServer {
   private readonly SESSION_ID_HEADER_NAME = "mcp-session-id";
 
   private server: McpServer;
-  private config: ServerConfig;
+  private config: ServerOptions;
   private cleanupInterval: NodeJS.Timeout | null = null;
   private sessions: Map<string, SessionInfo> = new Map();
 
@@ -72,9 +60,9 @@ export class MCPServer {
    * @param server The underlying MCP server implementation
    * @param config Configuration options
    */
-  constructor(server: McpServer, config: Partial<ServerConfig> = {}) {
+  constructor(server: McpServer, config: Partial<ServerOptions> = {}) {
     this.server = server;
-    this.config = { ...defaultConfig, ...config };
+    this.config = { ...defaultOptions, ...config };
 
     this.startSessionCleanup();
   }
@@ -372,9 +360,10 @@ export class MCPServer {
    * Starts the session cleanup process
    */
   private startSessionCleanup(): void {
+    const cleanupInterval = this.config.sessionCleanupInterval || 60000;
     this.cleanupInterval = setInterval(() => {
       this.cleanupExpiredSessions();
-    }, this.config.sessionCleanupInterval);
+    }, cleanupInterval);
   }
 
   /**
@@ -383,9 +372,10 @@ export class MCPServer {
   private cleanupExpiredSessions(): void {
     const now = Date.now();
     const expiredIds: string[] = [];
+    const sessionTimeout = this.config.sessionTimeout || 3600000;
 
     for (const [sessionId, info] of this.sessions.entries()) {
-      if (now - info.lastActivity > this.config.sessionTimeout) {
+      if (now - info.lastActivity > sessionTimeout) {
         expiredIds.push(sessionId);
       }
     }
@@ -412,7 +402,7 @@ export class MCPServer {
  * Initialize the MCP server with HTTP transport
  */
 const initServerHTTPTransport = async (
-  customConfig?: Partial<ServerConfig>
+  customConfig?: Partial<ServerOptions>
 ) => {
   const serverInstance = new McpServer({
     version: "1.0.0",
@@ -438,7 +428,7 @@ const initServerHTTPTransport = async (
  * @returns MCP server instance
  */
 const initServerStdioTransport = async (
-  customConfig?: Partial<ServerConfig>
+  customConfig?: Partial<ServerOptions>
 ) => {
   const serverInstance = new McpServer({
     version: "1.0.0",
@@ -478,7 +468,7 @@ const initServerStdioTransport = async (
  */
 export const initServer = async (
   transport: "stdio" | "http",
-  config?: Partial<ServerConfig>
+  config?: Partial<ServerOptions>
 ): Promise<ServerInstance> => {
   try {
     switch (transport) {
