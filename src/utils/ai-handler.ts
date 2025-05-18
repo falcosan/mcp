@@ -29,19 +29,10 @@ interface AIToolMessage {
   [key: string]: unknown;
 }
 
-interface AIToolResponseBase {
-  reasoning?: string | null;
-}
-
-interface AIToolSuccessResponse extends AIToolResponseBase {
-  error: null;
-  toolName: string;
-  parameters: Record<string, unknown>;
-}
-
-interface AIToolErrorResponse extends AIToolResponseBase {
-  error: string;
+interface AIToolResponse {
   toolName?: string;
+  reasoning?: string;
+  error: string | null;
   parameters?: Record<string, unknown>;
 }
 
@@ -177,7 +168,7 @@ export class AIService {
   async processQuery(
     query: string,
     specificTools?: string[]
-  ): Promise<AIToolSuccessResponse | AIToolErrorResponse> {
+  ): Promise<AIToolResponse> {
     if (!this.ensureInitialized()) {
       return {
         error: "AI service not initialized. Please provide an API key.",
@@ -208,7 +199,7 @@ export class AIService {
   private async processOpenAIQuery(
     tools: AIToolDefinition[],
     messages: AIToolMessage[]
-  ): Promise<AIToolSuccessResponse | AIToolErrorResponse> {
+  ): Promise<AIToolResponse> {
     try {
       const client = this.client as OpenAI;
 
@@ -249,7 +240,7 @@ export class AIService {
   private async processHuggingFaceQuery(
     tools: AIToolDefinition[],
     messages: AIToolMessage[]
-  ): Promise<AIToolSuccessResponse | AIToolErrorResponse> {
+  ): Promise<AIToolResponse> {
     try {
       const client = this.client as typeof InferenceClient;
       const response: ChatCompletionOutput = await client.chatCompletion({

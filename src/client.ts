@@ -219,6 +219,13 @@ export class MCPClient {
         };
       }
 
+      if (!toolName) {
+        return {
+          success: false,
+          error: "No tool name provided in AI response",
+        };
+      }
+
       const toolResult = await this.callTool(toolName, parameters);
 
       return {
