@@ -81,10 +81,9 @@ export class AIService {
   initialize(
     apiKey: string,
     provider: AiProviderNameOptions = "openai",
-    model?: string,
-    forceNewInit: boolean = false
+    model?: string
   ): void {
-    if (AIService.serverInitialized && !forceNewInit) {
+    if (AIService.serverInitialized) {
       console.warn("AIService has already been initialized by the server.");
       return;
     }
@@ -198,23 +197,31 @@ export class AIService {
   ): Promise<AIToolResponse | null> {
     const client = this.client as OpenAI;
 
-    const response = await client.chat.completions.create({
-      tools,
-      messages,
-      model: this.model,
-      tool_choice: "required",
-    });
+    const response = await client.chat.completions
+      .create({
+        tools,
+        messages,
+        model: this.model,
+        tool_choice: "required",
+      })
+      .catch(console.error);
 
-    if ("error" in response) {
+    if (response && "error" in response) {
       console.error("Error in OpenAI API call:", response);
       return null;
     }
 
-    if (!response?.choices.length) return null;
+    if (!response?.choices.length) {
+      console.error("No choices in OpenAI response");
+      return null;
+    }
 
     const message = response.choices[0].message;
 
-    if (!message.content) return null;
+    if (!message.content) {
+      console.error("No content in OpenAI response");
+      return null;
+    }
 
     const toolCall = markdownToJson<AITool>(message.content);
 
@@ -232,23 +239,31 @@ export class AIService {
   ): Promise<AIToolResponse | null> {
     const client = this.client as typeof InferenceClient;
 
-    const response: ChatCompletionOutput = await client.chatCompletion({
-      tools,
-      messages,
-      model: this.model,
-      tool_choice: "required",
-    } as ChatCompletionInput);
+    const response: ChatCompletionOutput = await client
+      .chatCompletion({
+        tools,
+        messages,
+        model: this.model,
+        tool_choice: "required",
+      } as ChatCompletionInput)
+      .catch(console.error);
 
-    if ("error" in response) {
+    if (response && "error" in response) {
       console.error("Error in Hugging Face call:", response);
       return null;
     }
 
-    if (!response?.choices.length) return null;
+    if (!response?.choices.length) {
+      console.error("No choices in Hugging Face response");
+      return null;
+    }
 
     const message = response.choices[0].message;
 
-    if (!message.content) return null;
+    if (!message.content) {
+      console.error("No content in Hugging Face response");
+      return null;
+    }
 
     const toolCall = markdownToJson<AITool>(message.content);
 
