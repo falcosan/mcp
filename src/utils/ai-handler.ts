@@ -4,6 +4,7 @@ import { OPEN_ROUTER_API } from "../types/enums.js";
 import { markdownToJson } from "./response-handler.js";
 import { InferenceClient } from "@huggingface/inference";
 import { AiProviderNameOptions } from "../types/options.js";
+import { ChatCompletionInput, ChatCompletionOutput } from "@huggingface/tasks";
 
 interface AITool {
   name: string;
@@ -19,11 +20,13 @@ interface AIToolDefinition {
     description: string;
     parameters: Record<string, any>;
   };
+  [key: string]: unknown;
 }
 
 interface AIToolMessage {
-  role: "user" | "system";
   content: string;
+  role: "user" | "system";
+  [key: string]: unknown;
 }
 
 interface AIToolResponse {
@@ -39,13 +42,12 @@ interface AIToolResponse {
  * to use based on the user's query
  */
 export class AIService {
-  private apiKey: string = "";
   private model: string = "gpt-3.5-turbo";
   private static instance: AIService | null = null;
   private static serverInitialized: boolean = false;
   private provider: AiProviderNameOptions = "openai";
   private readonly systemPrompt: string = systemPrompt;
-  private client: OpenAI | InferenceClient | null = null;
+  private client: OpenAI | typeof InferenceClient | null = null;
   private availableTools: {
     name: string;
     description: string;
@@ -87,22 +89,18 @@ export class AIService {
       return;
     }
 
-    this.apiKey = apiKey;
     this.provider = provider;
     if (model) this.model = model;
 
     switch (this.provider) {
       case "openai":
-        this.client = new OpenAI({ apiKey: this.apiKey });
-        break;
-      case "openrouter":
-        this.client = new OpenAI({
-          apiKey: this.apiKey,
-          baseURL: OPEN_ROUTER_API.baseURL,
-        });
+        this.client = new OpenAI({ apiKey });
         break;
       case "huggingface":
-        this.client = new InferenceClient(this.apiKey);
+        this.client = new InferenceClient(apiKey);
+        break;
+      case "openrouter":
+        this.client = new OpenAI({ apiKey, baseURL: OPEN_ROUTER_API.baseURL });
         break;
       default:
         throw new Error(`Unsupported AI provider: ${this.provider}`);
@@ -204,6 +202,7 @@ export class AIService {
       tools,
       messages,
       model: this.model,
+      tool_choice: "required",
     });
 
     if ("error" in response) {
@@ -231,17 +230,17 @@ export class AIService {
     tools: AIToolDefinition[],
     messages: AIToolMessage[]
   ): Promise<AIToolResponse | null> {
-    const client = this.client as InferenceClient;
+    const client = this.client as typeof InferenceClient;
 
-    const response = await client.chatCompletion({
+    const response: ChatCompletionOutput = await client.chatCompletion({
       tools,
       messages,
-      max_tokens: 512,
       model: this.model,
-    });
+      tool_choice: "required",
+    } as ChatCompletionInput);
 
     if ("error" in response) {
-      console.error("Error in HugginFace call:", response);
+      console.error("Error in Hugging Face call:", response);
       return null;
     }
 
