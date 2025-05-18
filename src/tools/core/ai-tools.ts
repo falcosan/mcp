@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { AIService } from "../../utils/ai-handler.js";
 import { zodToJsonSchema } from "zod-to-json-schema";
+import { AIService } from "../../utils/ai-handler.js";
 import { createErrorResponse } from "../../utils/error-handler.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -48,29 +48,7 @@ export const registerAITools = (server: McpServer) => {
 
         const result = await aiService.processQuery(query, specificTools);
 
-        if (!aiService.ensureInitialized()) {
-          return {
-            isError: true,
-            content: [
-              {
-                type: "text",
-                text: "AI service not initialized. Please provide an API key.",
-              },
-            ],
-          };
-        }
-
-        if (!result) {
-          return {
-            isError: true,
-            content: [
-              {
-                type: "text",
-                text: "The MCP server could not determine which tool to use for this query. Check the server logs for more details.",
-              },
-            ],
-          };
-        }
+        if (result.error) return createErrorResponse(result.error);
 
         return {
           content: [

@@ -29,10 +29,20 @@ interface AIToolMessage {
   [key: string]: unknown;
 }
 
-interface AIToolResponse {
-  toolName: string;
+interface AIToolResponseBase {
   reasoning?: string | null;
-  parameters: Record<string, any>;
+}
+
+interface AIToolSuccessResponse extends AIToolResponseBase {
+  error: null;
+  toolName: string;
+  parameters: Record<string, unknown>;
+}
+
+interface AIToolErrorResponse extends AIToolResponseBase {
+  error: string;
+  toolName?: string;
+  parameters?: Record<string, unknown>;
 }
 
 /**
@@ -167,8 +177,12 @@ export class AIService {
   async processQuery(
     query: string,
     specificTools?: string[]
-  ): Promise<AIToolResponse | null> {
-    if (!this.ensureInitialized()) return null;
+  ): Promise<AIToolSuccessResponse | AIToolErrorResponse> {
+    if (!this.ensureInitialized()) {
+      return {
+        error: "AI service not initialized. Please provide an API key.",
+      };
+    }
 
     const mentionedTools = this.extractToolNames(query);
     const toolsToUse =
@@ -194,84 +208,79 @@ export class AIService {
   private async processOpenAIQuery(
     tools: AIToolDefinition[],
     messages: AIToolMessage[]
-  ): Promise<AIToolResponse | null> {
-    const client = this.client as OpenAI;
+  ): Promise<AIToolSuccessResponse | AIToolErrorResponse> {
+    try {
+      const client = this.client as OpenAI;
 
-    const response = await client.chat.completions
-      .create({
+      const response = await client.chat.completions.create({
         tools,
         messages,
         model: this.model,
         tool_choice: "required",
-      })
-      .catch(console.error);
+      });
 
-    if (response && "error" in response) {
-      console.error("Error in OpenAI API call:", response);
-      return null;
+      if (!response.choices?.length) {
+        return { error: "No choices returned from OpenAI" };
+      }
+
+      const message = response.choices[0].message;
+
+      if (message.content) {
+        const toolCall = markdownToJson<AITool>(message.content);
+        if (!toolCall) {
+          return {
+            error: `Invalid tool call format in content: ${message.content}`,
+          };
+        }
+        return {
+          error: null,
+          toolName: toolCall.name,
+          parameters: toolCall.parameters,
+          reasoning: JSON.stringify(toolCall, null, 2),
+        };
+      }
+
+      return { error: "No tool call or content in OpenAI response" };
+    } catch (error) {
+      return { error: `OpenAI API error: ${error}` };
     }
-
-    if (!response?.choices.length) {
-      console.error("No choices in OpenAI response");
-      return null;
-    }
-
-    const message = response.choices[0].message;
-
-    if (!message.content) {
-      console.error("No content in OpenAI response");
-      return null;
-    }
-
-    const toolCall = markdownToJson<AITool>(message.content);
-
-    if (!toolCall) return null;
-    return {
-      toolName: toolCall.name,
-      parameters: toolCall.parameters,
-      reasoning: JSON.stringify(toolCall, null, 2),
-    };
   }
 
   private async processHuggingFaceQuery(
     tools: AIToolDefinition[],
     messages: AIToolMessage[]
-  ): Promise<AIToolResponse | null> {
-    const client = this.client as typeof InferenceClient;
-
-    const response: ChatCompletionOutput = await client
-      .chatCompletion({
+  ): Promise<AIToolSuccessResponse | AIToolErrorResponse> {
+    try {
+      const client = this.client as typeof InferenceClient;
+      const response: ChatCompletionOutput = await client.chatCompletion({
         tools,
         messages,
         model: this.model,
         tool_choice: "required",
-      } as ChatCompletionInput)
-      .catch(console.error);
+      } as ChatCompletionInput);
 
-    if (response && "error" in response) {
-      console.error("Error in Hugging Face call:", response);
-      return null;
+      if (!response.choices?.length) {
+        return { error: "No choices in Hugging Face response" };
+      }
+
+      const message = response.choices[0].message;
+
+      if (message.content) {
+        const toolCall = markdownToJson<AITool>(message.content);
+        if (!toolCall) {
+          return { error: `Invalid tool call format in content: ${response}` };
+        }
+        return {
+          error: null,
+          toolName: toolCall.name,
+          parameters: toolCall.parameters,
+          reasoning: JSON.stringify(toolCall, null, 2),
+        };
+      }
+
+      return { error: "No tool call or content in Hugging Face response" };
+    } catch (error) {
+      return { error: `Hugging Face API error: ${error}` };
     }
-
-    if (!response?.choices.length) {
-      console.error("No choices in Hugging Face response");
-      return null;
-    }
-
-    const message = response.choices[0].message;
-
-    if (!message.content) {
-      console.error("No content in Hugging Face response");
-      return null;
-    }
-
-    const toolCall = markdownToJson<AITool>(message.content);
-
-    if (!toolCall) return null;
-    return {
-      toolName: toolCall.name,
-      parameters: toolCall.parameters,
-      reasoning: JSON.stringify(toolCall, null, 2),
-    };
   }
 }

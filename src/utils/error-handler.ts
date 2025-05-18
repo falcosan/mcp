@@ -1,8 +1,4 @@
 /**
- * Error handling utilities for Meilisearch API responses
- */
-
-/**
  * Formats Meilisearch API errors for consistent error messaging
  *
  * @param error - The error from the API request
