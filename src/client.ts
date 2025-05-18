@@ -211,13 +211,6 @@ export class MCPClient {
 
       const { toolName, parameters, reasoning } = result.data;
 
-      if (!toolName) {
-        return {
-          success: false,
-          error: "AI could not determine which tool to use for this query",
-        };
-      }
-
       if (justReasoning) {
         return {
           reasoning,
