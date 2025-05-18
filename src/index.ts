@@ -30,10 +30,11 @@ export async function mcpMeilisearchServer(
     console.warn("AI provider API key not found. AI will not be available");
   }
 
-  const httpPort = options.httpPort || 4995;
-  const transport = options.transport || "http";
   let mcpServerInstance: MCPServer | null = null;
-  const mcpEndpoint = options.mcpEndpoint || "/mcp";
+
+  const transport = options.transport;
+  const mcpEndpoint = options.mcpEndpoint;
+  const httpPort = options.httpPort || defaultOptions.httpPort;
 
   const server = createServer(async (req, res) => {
     if (!mcpServerInstance) {
@@ -110,7 +111,7 @@ if (import.meta.url === `file://${process.argv?.[1]}`) {
         break;
     }
   }
-  mcpMeilisearchServer(options)
+  await mcpMeilisearchServer(options)
     .then(() => console.info("MCP server running"))
     .catch((err) => {
       console.error("Failed to start server:", err);

@@ -34,13 +34,11 @@ interface SessionInfo {
   lastActivity: number;
 }
 
-export const defaultOptions: ServerOptions = {
+export const defaultOptions = {
   httpPort: 4995,
   mcpEndpoint: "/mcp",
   sessionTimeout: 3600000,
   sessionCleanupInterval: 60000,
-  meilisearchApiKey: process.env.MEILISEARCH_API_KEY || "",
-  meilisearchHost: process.env.MEILISEARCH_HOST || "http://localhost:7700",
 };
 
 /**
@@ -76,7 +74,7 @@ export class MCPServer {
   async handleHttpRequest(
     req: IncomingMessage,
     res: ServerResponse,
-    mcpEndpoint: string
+    mcpEndpoint: string = defaultOptions.mcpEndpoint
   ): Promise<void> {
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -360,7 +358,8 @@ export class MCPServer {
    * Starts the session cleanup process
    */
   private startSessionCleanup(): void {
-    const cleanupInterval = this.config.sessionCleanupInterval || 60000;
+    const cleanupInterval = this.config.sessionCleanupInterval!;
+
     this.cleanupInterval = setInterval(() => {
       this.cleanupExpiredSessions();
     }, cleanupInterval);
@@ -372,7 +371,7 @@ export class MCPServer {
   private cleanupExpiredSessions(): void {
     const now = Date.now();
     const expiredIds: string[] = [];
-    const sessionTimeout = this.config.sessionTimeout || 3600000;
+    const sessionTimeout = this.config.sessionTimeout!;
 
     for (const [sessionId, info] of this.sessions.entries()) {
       if (now - info.lastActivity > sessionTimeout) {
@@ -467,15 +466,15 @@ const initServerStdioTransport = async (
  * @throws Error if the transport type is unsupported
  */
 export const initServer = async (
-  transport: "stdio" | "http",
+  transport: "http" | "stdio" = "http",
   config?: Partial<ServerOptions>
 ): Promise<ServerInstance> => {
   try {
     switch (transport) {
-      case "stdio":
-        return await initServerStdioTransport(config);
       case "http":
         return await initServerHTTPTransport(config);
+      case "stdio":
+        return await initServerStdioTransport(config);
       default:
         throw new Error(`Unsupported transport type: ${transport}`);
     }
