@@ -9,7 +9,7 @@ import { ChatCompletionInput, ChatCompletionOutput } from "@huggingface/tasks";
 interface AITool {
   name: string;
   description: string;
-  parameters: Record<string, any>;
+  parameters: Record<string, unknown>;
 }
 
 interface AIToolDefinition {
@@ -18,7 +18,7 @@ interface AIToolDefinition {
     name: string;
     strict: true;
     description: string;
-    parameters: Record<string, any>;
+    parameters: Record<string, unknown>;
   };
   [key: string]: unknown;
 }
@@ -43,17 +43,13 @@ interface AIToolResponse {
  * to use based on the user's query
  */
 export class AIService {
+  private availableTools: AITool[] = [];
   private model: string = "gpt-3.5-turbo";
   private static instance: AIService | null = null;
   private static serverInitialized: boolean = false;
   private provider: AiProviderNameOptions = "openai";
   private readonly systemPrompt: string = systemPrompt;
   private client: OpenAI | typeof InferenceClient | null = null;
-  private availableTools: {
-    name: string;
-    description: string;
-    parameters: Record<string, any>;
-  }[] = [];
 
   /**
    * Private constructor to prevent direct instantiation
@@ -216,8 +212,24 @@ export class AIService {
 
       const message = response.choices[0].message;
 
+      if (message.tool_calls?.length) {
+        const toolCall = message.tool_calls[0]?.function;
+
+        if (!toolCall) {
+          return { error: "Invalid tool from OpenAI response" };
+        }
+
+        return {
+          error: null,
+          toolName: toolCall.name,
+          parameters: JSON.parse(toolCall.arguments),
+          reasoning: JSON.stringify(toolCall, null, 2),
+        };
+      }
+
       if (message.content) {
         const toolCall = markdownToJson<AITool>(message.content);
+
         if (!toolCall) {
           return {
             error: `Invalid tool call format in content: ${message.content}`,
@@ -256,11 +268,26 @@ export class AIService {
 
       const message = response.choices[0].message;
 
+      if (message.tool_calls?.length) {
+        const toolCall = message.tool_calls[0]?.function;
+
+        if (!toolCall) {
+          return { error: "Invalid tool from Hugging Face response" };
+        }
+
+        return {
+          error: null,
+          toolName: toolCall.name,
+          parameters: JSON.parse(toolCall.arguments),
+          reasoning: JSON.stringify(toolCall, null, 2),
+        };
+      }
+
       if (message.content) {
         const toolCall = markdownToJson<AITool>(message.content);
-        if (!toolCall) {
-          return { error: `Invalid tool call format in content: ${response}` };
-        }
+
+        if (!toolCall) return { error: "Invalid tool call format in content" };
+
         return {
           error: null,
           toolName: toolCall.name,
