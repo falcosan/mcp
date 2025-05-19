@@ -78,7 +78,11 @@ function parseNestedJsonStrings(obj: any): any {
  * Recursively removes null values from an object, replacing them with undefined
  * This ensures optional parameters are properly handled by JSON schema validation
  */
-export function cleanNullValues(obj: Record<string, any>): Record<string, any> {
+export function cleanNullValues(
+  obj?: Record<string, any>
+): Record<string, any> {
+  if (!obj || typeof obj !== "object") return obj ?? {};
+
   const result: Record<string, any> = {};
 
   for (const [key, value] of Object.entries(obj)) {

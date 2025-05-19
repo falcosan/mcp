@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { AIService } from "../../utils/ai-handler.js";
+import { cleanNullValues } from "../../utils/response-handler.js";
 import { createErrorResponse } from "../../utils/error-handler.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
@@ -58,7 +59,7 @@ export const registerAITools = (server: McpServer) => {
                 {
                   toolName: result.toolName,
                   reasoning: result.reasoning,
-                  parameters: result.parameters,
+                  parameters: cleanNullValues(result.parameters),
                 },
                 null,
                 2

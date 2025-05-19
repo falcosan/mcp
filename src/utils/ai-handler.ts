@@ -1,9 +1,9 @@
 import { OpenAI } from "openai";
 import systemPrompt from "../prompts/system.js";
 import { OPEN_ROUTER_API } from "../types/enums.js";
+import { markdownToJson } from "./response-handler.js";
 import { InferenceClient } from "@huggingface/inference";
 import { AiProviderNameOptions } from "../types/options.js";
-import { markdownToJson, cleanNullValues } from "./response-handler.js";
 import { ChatCompletionInput, ChatCompletionOutput } from "@huggingface/tasks";
 
 interface AITool {
@@ -221,7 +221,7 @@ export class AIService {
 
         const inferenceToolResponse = {
           name: toolCall.name,
-          parameters: cleanNullValues(JSON.parse(toolCall.arguments)),
+          parameters: JSON.parse(toolCall.arguments),
         };
 
         return {
@@ -283,7 +283,7 @@ export class AIService {
 
         const inferenceToolResponse = {
           name: toolCall.name,
-          parameters: cleanNullValues(JSON.parse(toolCall.arguments)),
+          parameters: JSON.parse(toolCall.arguments),
         };
 
         return {
