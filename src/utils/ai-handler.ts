@@ -1,9 +1,9 @@
 import { OpenAI } from "openai";
 import systemPrompt from "../prompts/system.js";
 import { OPEN_ROUTER_API } from "../types/enums.js";
-import { markdownToJson } from "./response-handler.js";
 import { InferenceClient } from "@huggingface/inference";
 import { AiProviderNameOptions } from "../types/options.js";
+import { markdownToJson, cleanNullValues } from "./response-handler.js";
 import { ChatCompletionInput, ChatCompletionOutput } from "@huggingface/tasks";
 
 interface AITool {
@@ -221,7 +221,7 @@ export class AIService {
 
         const inferenceToolResponse = {
           name: toolCall.name,
-          parameters: JSON.parse(toolCall.arguments),
+          parameters: cleanNullValues(JSON.parse(toolCall.arguments)),
         };
 
         return {
@@ -240,6 +240,8 @@ export class AIService {
             error: `Invalid tool call format in content: ${message.content}`,
           };
         }
+
+        toolCall["parameters"] = cleanNullValues(toolCall.parameters);
 
         return {
           error: null,
@@ -283,7 +285,7 @@ export class AIService {
 
         const inferenceToolResponse = {
           name: toolCall.name,
-          parameters: JSON.parse(toolCall.arguments),
+          parameters: cleanNullValues(JSON.parse(toolCall.arguments)),
         };
 
         return {
@@ -298,6 +300,8 @@ export class AIService {
         const toolCall = markdownToJson<AITool>(message.content);
 
         if (!toolCall) return { error: "Invalid tool call format in content" };
+
+        toolCall["parameters"] = cleanNullValues(toolCall.parameters);
 
         return {
           error: null,
