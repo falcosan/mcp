@@ -219,11 +219,16 @@ export class AIService {
           return { error: "Invalid tool from OpenAI response" };
         }
 
+        const inferenceToolResponse = {
+          name: toolCall.name,
+          parameters: JSON.parse(toolCall.arguments),
+        };
+
         return {
           error: null,
-          toolName: toolCall.name,
-          parameters: JSON.parse(toolCall.arguments),
-          reasoning: JSON.stringify(toolCall, null, 2),
+          toolName: inferenceToolResponse.name,
+          parameters: inferenceToolResponse.parameters,
+          reasoning: JSON.stringify(inferenceToolResponse, null, 2),
         };
       }
 
@@ -235,6 +240,7 @@ export class AIService {
             error: `Invalid tool call format in content: ${message.content}`,
           };
         }
+
         return {
           error: null,
           toolName: toolCall.name,
@@ -275,11 +281,16 @@ export class AIService {
           return { error: "Invalid tool from Hugging Face response" };
         }
 
+        const inferenceToolResponse = {
+          name: toolCall.name,
+          parameters: JSON.parse(toolCall.arguments),
+        };
+
         return {
           error: null,
-          toolName: toolCall.name,
-          parameters: JSON.parse(toolCall.arguments),
-          reasoning: JSON.stringify(toolCall, null, 2),
+          toolName: inferenceToolResponse.name,
+          parameters: inferenceToolResponse.parameters,
+          reasoning: JSON.stringify(inferenceToolResponse, null, 2),
         };
       }
 
