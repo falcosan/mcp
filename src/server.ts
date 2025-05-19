@@ -39,6 +39,8 @@ export const defaultOptions = {
   mcpEndpoint: "/mcp",
   sessionTimeout: 3600000,
   sessionCleanupInterval: 60000,
+  meilisearchHost: process.env.MEILISEARCH_HOST,
+  meilisearchApiKey: process.env.MEILISEARCH_API_KEY,
 };
 
 /**
