@@ -2,11 +2,6 @@
  * Global type declarations for external modules
  */
 
-declare module "../prompts/*.js" {
-  const prompt: string;
-  export default prompt;
-}
-
 declare module "@modelcontextprotocol/sdk/server/mcp.js" {
   import { ZodObject } from "zod";
   import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
