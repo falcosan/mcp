@@ -241,8 +241,6 @@ export class AIService {
           };
         }
 
-        toolCall["parameters"] = cleanNullValues(toolCall.parameters);
-
         return {
           error: null,
           toolName: toolCall.name,
@@ -300,8 +298,6 @@ export class AIService {
         const toolCall = markdownToJson<AITool>(message.content);
 
         if (!toolCall) return { error: "Invalid tool call format in content" };
-
-        toolCall["parameters"] = cleanNullValues(toolCall.parameters);
 
         return {
           error: null,
