@@ -1,9 +1,9 @@
 import { z } from "zod";
 import { zodToJsonSchema } from "zod-to-json-schema";
 import { AIService } from "../../utils/ai-handler.js";
-import { cleanNullValues } from "../../utils/response-handler.js";
 import { createErrorResponse } from "../../utils/error-handler.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { convertNullToUndefined } from "../../utils/response-handler.js";
 
 /**
  * AI Tools
@@ -59,7 +59,7 @@ export const registerAITools = (server: McpServer) => {
                 {
                   toolName: result.toolName,
                   reasoning: result.reasoning,
-                  parameters: cleanNullValues(result.parameters),
+                  parameters: convertNullToUndefined(result.parameters),
                 },
                 null,
                 2

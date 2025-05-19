@@ -13,7 +13,7 @@ export const handleApiError = (error: any): string => {
   }
 
   // If it's a network error or other error
-  return `MCP Server error: ${JSON.stringify(error)}`;
+  return JSON.stringify(error);
 };
 
 /**

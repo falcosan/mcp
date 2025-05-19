@@ -30,9 +30,9 @@ interface AIToolMessage {
 }
 
 interface AIToolResponse {
+  error?: unknown;
   toolName?: string;
   reasoning?: string;
-  error: string | null;
   parameters?: Record<string, unknown>;
 }
 
@@ -225,7 +225,6 @@ export class AIService {
         };
 
         return {
-          error: null,
           toolName: inferenceToolResponse.name,
           parameters: inferenceToolResponse.parameters,
           reasoning: JSON.stringify(inferenceToolResponse, null, 2),
@@ -242,7 +241,6 @@ export class AIService {
         }
 
         return {
-          error: null,
           toolName: toolCall.name,
           parameters: toolCall.parameters,
           reasoning: JSON.stringify(toolCall, null, 2),
@@ -251,7 +249,7 @@ export class AIService {
 
       return { error: "No tool call or content in OpenAI response" };
     } catch (error) {
-      return { error: `OpenAI API error: ${error}` };
+      return { error };
     }
   }
 
@@ -287,7 +285,6 @@ export class AIService {
         };
 
         return {
-          error: null,
           toolName: inferenceToolResponse.name,
           parameters: inferenceToolResponse.parameters,
           reasoning: JSON.stringify(inferenceToolResponse, null, 2),
@@ -300,7 +297,6 @@ export class AIService {
         if (!toolCall) return { error: "Invalid tool call format in content" };
 
         return {
-          error: null,
           toolName: toolCall.name,
           parameters: toolCall.parameters,
           reasoning: JSON.stringify(toolCall, null, 2),
@@ -309,7 +305,7 @@ export class AIService {
 
       return { error: "No tool call or content in Hugging Face response" };
     } catch (error) {
-      return { error: `Hugging Face API error: ${error}` };
+      return { error };
     }
   }
 }

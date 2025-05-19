@@ -78,29 +78,35 @@ function parseNestedJsonStrings(obj: any): any {
  * Recursively removes null values from an object, replacing them with undefined
  * This ensures optional parameters are properly handled by JSON schema validation
  */
-export function cleanNullValues(
-  obj?: Record<string, any>
-): Record<string, any> {
-  if (!obj || typeof obj !== "object") return obj ?? {};
+export function convertNullToUndefined(
+  obj: unknown,
+  seen: WeakMap<object, unknown> = new WeakMap()
+): unknown {
+  if (obj === null) return undefined;
+  if (obj === undefined || typeof obj !== "object") return obj;
+  if (seen.has(obj)) return seen.get(obj);
+  if (obj instanceof Date) return new Date(obj.getTime());
+  if (obj instanceof RegExp) return new RegExp(obj.source, obj.flags);
 
-  const result: Record<string, any> = {};
+  if (Array.isArray(obj)) {
+    const result: unknown[] = [];
 
-  for (const [key, value] of Object.entries(obj)) {
-    if (value === null) {
-      continue;
-    } else if (typeof value === "object" && value !== null) {
-      if (Array.isArray(value)) {
-        result[key] = value.map((item) =>
-          typeof item === "object" && item !== null
-            ? cleanNullValues(item)
-            : item
-        );
-      } else {
-        result[key] = cleanNullValues(value);
-      }
-    } else {
-      result[key] = value;
+    seen.set(obj, result);
+
+    for (const item of obj) {
+      result.push(convertNullToUndefined(item, seen));
     }
+
+    return result;
+  }
+
+  const result: Record<string, unknown> = {};
+  seen.set(obj, result);
+  const keys = Object.keys(obj);
+
+  for (const key of keys) {
+    const value = (obj as Record<string, unknown>)[key];
+    result[key] = convertNullToUndefined(value, seen);
   }
 
   return result;
