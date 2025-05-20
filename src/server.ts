@@ -10,7 +10,6 @@ import { ServerOptions } from "./types/options.js";
 import registerAITools from "./tools/core/ai-tools.js";
 import { createErrorResponse } from "./utils/error-handler.js";
 import registerTaskTools from "./tools/meilisearch/task-tools.js";
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import registerIndexTools from "./tools/meilisearch/index-tools.js";
 import registerSearchTools from "./tools/meilisearch/search-tools.js";
 import registerSystemTools from "./tools/meilisearch/system-tools.js";
@@ -18,6 +17,7 @@ import registerVectorTools from "./tools/meilisearch/vector-tools.js";
 import registerDocumentTools from "./tools/meilisearch/document-tools.js";
 import registerSettingsTools from "./tools/meilisearch/settings-tools.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { McpServer as McpServerInstance } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 
 /**
@@ -50,8 +50,8 @@ export class MCPServer {
   private readonly JSON_RPC = "2.0";
   private readonly SESSION_ID_HEADER_NAME = "mcp-session-id";
 
-  private server: McpServer;
   private config: ServerOptions;
+  private server: McpServerInstance;
   private cleanupInterval: NodeJS.Timeout | null = null;
   private sessions: Map<string, SessionInfo> = new Map();
 
@@ -60,7 +60,7 @@ export class MCPServer {
    * @param server The underlying MCP server implementation
    * @param config Configuration options
    */
-  constructor(server: McpServer, config: Partial<ServerOptions> = {}) {
+  constructor(server: McpServerInstance, config: Partial<ServerOptions> = {}) {
     this.server = server;
     this.config = { ...defaultOptions, ...config };
 
@@ -400,12 +400,11 @@ export class MCPServer {
 }
 
 /**
- * Initialize the MCP server with HTTP transport
+ * Create a new MCP server instance
+ * @returns MCP server instance
  */
-const initServerHTTPTransport = async (
-  customConfig?: Partial<ServerOptions>
-) => {
-  const serverInstance = new McpServer({
+const createServerInstance = () => {
+  const serverInstance = new McpServerInstance({
     version: "1.0.0",
     name: "mcp-meilisearch",
   });
@@ -419,6 +418,16 @@ const initServerHTTPTransport = async (
   registerTaskTools(serverInstance);
   registerAITools(serverInstance);
 
+  return serverInstance;
+};
+
+/**
+ * Initialize the MCP server with HTTP transport
+ */
+const initServerHTTPTransport = async (
+  customConfig?: Partial<ServerOptions>
+) => {
+  const serverInstance = createServerInstance();
   const server = new MCPServer(serverInstance, customConfig);
 
   return { mcpServer: server };
@@ -431,26 +440,11 @@ const initServerHTTPTransport = async (
 const initServerStdioTransport = async (
   customConfig?: Partial<ServerOptions>
 ) => {
-  const serverInstance = new McpServer({
-    version: "1.0.0",
-    name: "mcp-meilisearch",
-  });
-
-  registerIndexTools(serverInstance);
-  registerDocumentTools(serverInstance);
-  registerSearchTools(serverInstance);
-  registerSettingsTools(serverInstance);
-  registerVectorTools(serverInstance);
-  registerSystemTools(serverInstance);
-  registerTaskTools(serverInstance);
-  registerAITools(serverInstance);
-
+  const serverInstance = createServerInstance();
   const server = new MCPServer(serverInstance, customConfig);
 
   const transport = new StdioServerTransport();
   await serverInstance.connect(transport);
-
-  console.info("Meilisearch MCP Server is running on stdio transport");
 
   process.on("SIGINT", () => {
     console.info("Shutting down stdio server...");
