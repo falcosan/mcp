@@ -1,38 +1,3 @@
-function tryParseJsonString(str: string) {
-  if (
-    typeof str === "string" &&
-    str.length >= 2 &&
-    ((str.startsWith("{") && str.endsWith("}")) ||
-      (str.startsWith("[") && str.endsWith("]")))
-  ) {
-    try {
-      return JSON.parse(str);
-    } catch {
-      return str;
-    }
-  }
-  return str;
-}
-
-function parseNestedJsonStrings(obj: any): unknown {
-  if (Array.isArray(obj)) {
-    return obj.map(parseNestedJsonStrings);
-  }
-  if (obj !== null && typeof obj === "object") {
-    const result: Record<string, unknown> = {};
-    for (const key in obj) {
-      if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        result[key] = parseNestedJsonStrings(obj[key]);
-      }
-    }
-    return result;
-  }
-  if (typeof obj === "string") {
-    return tryParseJsonString(obj);
-  }
-  return obj;
-}
-
 const TRAILING_COMMA_REGEX = /,\s*([}\]])/g;
 const SINGLE_LINE_COMMENT_REGEX = /\/\/[^\r\n]*/g;
 const MULTI_LINE_COMMENT_REGEX = /\/\*[\s\S]*?\*\//g;
@@ -103,6 +68,41 @@ export function markdownToJson<T>(markdownJsonString: string): T | null {
     console.error("Error:", error);
     return null;
   }
+}
+
+function tryParseJsonString(str: string) {
+  if (
+    typeof str === "string" &&
+    str.length >= 2 &&
+    ((str.startsWith("{") && str.endsWith("}")) ||
+      (str.startsWith("[") && str.endsWith("]")))
+  ) {
+    try {
+      return JSON.parse(str);
+    } catch {
+      return str;
+    }
+  }
+  return str;
+}
+
+function parseNestedJsonStrings(obj: any): unknown {
+  if (Array.isArray(obj)) {
+    return obj.map(parseNestedJsonStrings);
+  }
+  if (obj !== null && typeof obj === "object") {
+    const result: Record<string, unknown> = {};
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        result[key] = parseNestedJsonStrings(obj[key]);
+      }
+    }
+    return result;
+  }
+  if (typeof obj === "string") {
+    return tryParseJsonString(obj);
+  }
+  return obj;
 }
 
 /**

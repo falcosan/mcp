@@ -2,7 +2,7 @@
 import { ref } from "vue";
 import useMCPMeilisearch from "./composables/useMCPMeilisearch";
 
-const searchQuery = ref<string>("busca articulo de pepino");
+const searchQuery = ref<string>("busca articulos que hablan del pepino");
 const {
   error,
   tools,
