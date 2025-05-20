@@ -35,7 +35,7 @@ export default `
             -   Ensure parameter values conform to the data types specified in the tool's schema (e.g., string, number, boolean, array).
         •   Required Parameters (as defined by the selected tool's schema):
             -   Extract values explicitly stated in the request.
-            -   Preserve quoted values EXACTLY as provided by the user (e.g., if the user says "search for \"project X\" files", the parameter value should be "project X").
+            -   Preserve quoted values EXACTLY as provided by the user (e.g., if the user says "search for \n"project X\n" files", the parameter value should be "project X").
             -   Infer values ONLY when they are unambiguously and directly implied by the request's context and necessary for a required parameter. Document this inference briefly if providing an error message.
             -   For indexUid parameters, apply the "Index Name Translation" rule from REQUEST ANALYSIS.
         •   Optional Parameters (as defined by the selected tool's schema):
