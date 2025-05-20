@@ -1,9 +1,9 @@
 import { OpenAI } from "openai";
 import systemPrompt from "../prompts/system.js";
-import { OPEN_ROUTER_API } from "../types/enums.js";
 import { markdownToJson } from "./response-handler.js";
 import { InferenceClient } from "@huggingface/inference";
 import { AiProviderNameOptions } from "../types/options.js";
+import { OLLAMA_API, OPEN_ROUTER_API } from "../types/enums.js";
 import { ChatCompletionInput, ChatCompletionOutput } from "@huggingface/tasks";
 
 interface AITool {
@@ -94,6 +94,9 @@ export class AIService {
         break;
       case "huggingface":
         this.client = new InferenceClient(apiKey);
+        break;
+      case "openrouter":
+        this.client = new OpenAI({ baseURL: OLLAMA_API.baseURL });
         break;
       case "openrouter":
         this.client = new OpenAI({ apiKey, baseURL: OPEN_ROUTER_API.baseURL });

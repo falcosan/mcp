@@ -1,4 +1,8 @@
-export type AiProviderNameOptions = "openai" | "huggingface" | "openrouter";
+export type AiProviderNameOptions =
+  | "openai"
+  | "huggingface"
+  | "openrouter"
+  | "ollama";
 
 export interface ServerOptions {
   /**

@@ -59,17 +59,18 @@ pnpm add mcp-meilisearch
 
 #### AI Inference Options
 
-- `aiProviderName`: Name of the AI provider ("openai" | "huggingface" | "openrouter") (Default: "openai")
+- `aiProviderName`: Name of the AI provider ("openai" | "huggingface" | "openrouter" | "ollama") (Default: "openai")
 - `aiProviderApiKey`: AI provider API key for AI inference
 - `llmModel`: AI model to use (Default: "gpt-3.5-turbo")
 
 Please be aware that not all models support function calling, which is required for proper AI inference in this package. Make sure to select a model that supports the tools parameter.
 
-| Provider    | Supported Models                                                                                         |
-| ----------- | -------------------------------------------------------------------------------------------------------- |
-| OpenAI      | [GPT-4, GPT-3.5-turbo and other compatible models](https://platform.openai.com/docs/models)              |
-| OpenRouter  | [Models with tools parameter support](https://openrouter.ai/models?fmt=cards&supported_parameters=tools) |
-| HuggingFace | [Models with function calling capability](https://huggingface.co/models?other=function+calling)          |
+| Provider    | Supported Models                                                                              |
+| ----------- | --------------------------------------------------------------------------------------------- |
+| OpenAI      | [List of supported models](https://platform.openai.com/docs/models)                           |
+| OpenRouter  | [List of supported models](https://openrouter.ai/models?fmt=cards&supported_parameters=tools) |
+| HuggingFace | [List of supported models](https://huggingface.co/models?other=function+calling)              |
+| Ollama      | [List of supported models](https://ollama.com/search?q=function+calling)                      |
 
 #### Example server setup
 
