@@ -63,7 +63,7 @@ class ConfigHandler {
    * @param apiKey The API key for provider
    */
   setAiProviderApiKey(apiKey?: string): void {
-    this._aiProviderApiKey = apiKey || "";
+    this._aiProviderApiKey = apiKey || "sk-abcdefghijklmnopqrstuvwxyz";
   }
 
   /**

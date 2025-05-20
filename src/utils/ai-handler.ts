@@ -96,7 +96,7 @@ export class AIService {
         this.client = new InferenceClient(apiKey);
         break;
       case "ollama":
-        this.client = new OpenAI({ baseURL: OLLAMA_API.baseURL });
+        this.client = new OpenAI({ apiKey, baseURL: OLLAMA_API.baseURL });
         break;
       case "openrouter":
         this.client = new OpenAI({ apiKey, baseURL: OPEN_ROUTER_API.baseURL });
@@ -197,16 +197,16 @@ export class AIService {
 
   private async processOpenAIQuery(
     tools: AIToolDefinition[],
-    messages: AIToolMessage[]
+    messages: AIToolMessage[],
+    withoutFC = false
   ): Promise<AIToolResponse> {
     try {
       const client = this.client as OpenAI;
 
       const response = await client.chat.completions.create({
-        tools,
         messages,
         model: this.model,
-        tool_choice: "required",
+        ...(!withoutFC && { tools, tool_choice: "required" }),
       });
 
       if (!response.choices?.length) {
@@ -252,21 +252,29 @@ export class AIService {
 
       return { error: "No tool call or content in OpenAI response" };
     } catch (error) {
+      console.error(error);
+
+      if (!withoutFC) {
+        console.info("Retrying without function calling...");
+        return this.processOpenAIQuery(tools, messages, true);
+      }
+
       return { error };
     }
   }
 
   private async processHuggingFaceQuery(
     tools: AIToolDefinition[],
-    messages: AIToolMessage[]
+    messages: AIToolMessage[],
+    withoutFC = false
   ): Promise<AIToolResponse> {
     try {
       const client = this.client as typeof InferenceClient;
+
       const response: ChatCompletionOutput = await client.chatCompletion({
-        tools,
         messages,
         model: this.model,
-        tool_choice: "required",
+        ...(!withoutFC && { tools, tool_choice: "required" }),
       } as ChatCompletionInput);
 
       if (!response.choices?.length) {
@@ -308,6 +316,13 @@ export class AIService {
 
       return { error: "No tool call or content in Hugging Face response" };
     } catch (error) {
+      console.error(error);
+
+      if (!withoutFC) {
+        console.info("Retrying without function calling...");
+        return this.processHuggingFaceQuery(tools, messages, true);
+      }
+
       return { error };
     }
   }

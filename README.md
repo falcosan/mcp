@@ -130,7 +130,7 @@ await mcpMeilisearchServer({
   meilisearchHost: "http://localhost:7700",
   meilisearchApiKey: "your_meilisearch_api_key",
   aiProviderName: "openai",
-  aiProviderApiKey: "your_ai_provider_api_key", // Required for AI inference
+  aiProviderApiKey: "your_ai_provider_api_key",
   llmModel: "gpt-4",
 });
 ```
