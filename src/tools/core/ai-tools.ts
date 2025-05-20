@@ -3,6 +3,7 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import { AIService } from "../../utils/ai-handler.js";
 import { createErrorResponse } from "../../utils/error-handler.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { convertNullToUndefined } from "../../utils/response-handler.js";
 
 /**
@@ -14,6 +15,12 @@ import { convertNullToUndefined } from "../../utils/response-handler.js";
 interface ProcessAIQueryParams {
   query: string;
   specificTools?: string[];
+}
+
+interface ProcessRegisteredToolsParams {
+  description: string;
+  inputSchema: z.ZodSchema;
+  annotations?: ToolAnnotations;
 }
 
 /**
@@ -36,8 +43,9 @@ export const registerAITools = (server: McpServer) => {
       try {
         const aiService = AIService.getInstance();
         const registeredTools = Object.entries(
-          (server as unknown as { _registeredTools: Record<string, any> })
-            ._registeredTools
+          (server as any)._registeredTools as {
+            _registeredTools: ProcessRegisteredToolsParams;
+          }
         );
         const availableTools = registeredTools
           .filter(([_, { annotations }]) => annotations?.category !== "core")
