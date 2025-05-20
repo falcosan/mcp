@@ -1,5 +1,6 @@
 const TRAILING_COMMA_REGEX = /,\s*([}\]])/g;
 const SINGLE_LINE_COMMENT_REGEX = /\/\/[^\r\n]*/g;
+const THINK_TAG_REGEX = /<think>[\s\S]*?<\/think>/g;
 const MULTI_LINE_COMMENT_REGEX = /\/\*[\s\S]*?\*\//g;
 const FENCE_REGEX = /^```(?:json)?\s*([\s\S]*?)\s*```$/;
 const JSON_TAG_REGEX = /<json>\s*([\s\S]*?)\s*<\/json>/;
@@ -41,6 +42,7 @@ export function markdownToJson<T>(markdownJsonString: string): T | null {
 
     cleanedJson = cleanedJson.replace(SINGLE_LINE_COMMENT_REGEX, "");
     cleanedJson = cleanedJson.replace(MULTI_LINE_COMMENT_REGEX, "");
+    cleanedJson = cleanedJson.replace(THINK_TAG_REGEX, "");
     cleanedJson = cleanedJson.trim();
 
     if (cleanedJson === "") return null;
