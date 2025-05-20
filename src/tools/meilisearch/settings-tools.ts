@@ -134,6 +134,11 @@ export const registerSettingsTools = (server: McpServer) => {
     "Update the displayed attributes setting for a Meilisearch index",
     {
       indexUid: z.string().describe("Unique identifier of the index"),
+      displayedAttributes: z
+        .string()
+        .describe(
+          'JSON array of attributes to display, e.g. ["title", "description"]'
+        ),
     },
     { category: "meilisearch" },
     async ({ indexUid, displayedAttributes }) => {
@@ -207,6 +212,11 @@ export const registerSettingsTools = (server: McpServer) => {
     "Update the filterable attributes setting for a Meilisearch index",
     {
       indexUid: z.string().describe("Unique identifier of the index"),
+      filterableAttributes: z
+        .string()
+        .describe(
+          'JSON array of attributes that can be used as filters, e.g. ["genre", "director"]'
+        ),
     },
     { category: "meilisearch" },
     async ({ indexUid, filterableAttributes }) => {
@@ -280,6 +290,11 @@ export const registerSettingsTools = (server: McpServer) => {
     "Update the sortable attributes setting for a Meilisearch index",
     {
       indexUid: z.string().describe("Unique identifier of the index"),
+      sortableAttributes: z
+        .string()
+        .describe(
+          'JSON array of attributes that can be used for sorting, e.g. ["price", "date"]'
+        ),
     },
     { category: "meilisearch" },
     async ({ indexUid, sortableAttributes }) => {
@@ -353,6 +368,11 @@ export const registerSettingsTools = (server: McpServer) => {
     "Update the searchable attributes setting for a Meilisearch index",
     {
       indexUid: z.string().describe("Unique identifier of the index"),
+      searchableAttributes: z
+        .string()
+        .describe(
+          'JSON array of attributes that can be searched, e.g. ["title", "description"]'
+        ),
     },
     { category: "meilisearch" },
     async ({ indexUid, searchableAttributes }) => {
@@ -426,6 +446,11 @@ export const registerSettingsTools = (server: McpServer) => {
     "Update the ranking rules setting for a Meilisearch index",
     {
       indexUid: z.string().describe("Unique identifier of the index"),
+      rankingRules: z
+        .string()
+        .describe(
+          'JSON array of ranking rules, e.g. ["typo", "words", "proximity", "attribute", "sort", "exactness"]'
+        ),
     },
     { category: "meilisearch" },
     async ({ indexUid, rankingRules }) => {
@@ -499,6 +524,11 @@ export const registerSettingsTools = (server: McpServer) => {
     "Update the stop words setting for a Meilisearch index",
     {
       indexUid: z.string().describe("Unique identifier of the index"),
+      stopWords: z
+        .string()
+        .describe(
+          'JSON array of words to ignore in search queries, e.g. ["the", "a", "an"]'
+        ),
     },
     { category: "meilisearch" },
     async ({ indexUid, stopWords }) => {
@@ -572,6 +602,11 @@ export const registerSettingsTools = (server: McpServer) => {
     "Update the synonyms setting for a Meilisearch index",
     {
       indexUid: z.string().describe("Unique identifier of the index"),
+      synonyms: z
+        .string()
+        .describe(
+          'JSON object mapping words to their synonyms, e.g. {"movie": ["film"]}'
+        ),
     },
     { category: "meilisearch" },
     async ({ indexUid, synonyms }) => {
@@ -645,6 +680,11 @@ export const registerSettingsTools = (server: McpServer) => {
     "Update the typo tolerance setting for a Meilisearch index",
     {
       indexUid: z.string().describe("Unique identifier of the index"),
+      typoTolerance: z
+        .string()
+        .describe(
+          'JSON object with typo tolerance configuration, e.g. {"enabled": true, "minWordSizeForTypos": {"oneTypo": 5, "twoTypos": 9}}'
+        ),
     },
     { category: "meilisearch" },
     async ({ indexUid, typoTolerance }) => {
@@ -718,6 +758,11 @@ export const registerSettingsTools = (server: McpServer) => {
     "Update the pagination setting for a Meilisearch index",
     {
       indexUid: z.string().describe("Unique identifier of the index"),
+      pagination: z
+        .string()
+        .describe(
+          'JSON object with pagination configuration, e.g. {"maxTotalHits": 1000}'
+        ),
     },
     { category: "meilisearch" },
     async ({ indexUid, pagination }) => {
@@ -791,6 +836,11 @@ export const registerSettingsTools = (server: McpServer) => {
     "Update the faceting setting for a Meilisearch index",
     {
       indexUid: z.string().describe("Unique identifier of the index"),
+      faceting: z
+        .string()
+        .describe(
+          'JSON object with faceting configuration, e.g. {"maxValuesPerFacet": 100}'
+        ),
     },
     { category: "meilisearch" },
     async ({ indexUid, faceting }) => {
@@ -864,6 +914,11 @@ export const registerSettingsTools = (server: McpServer) => {
     "Update the dictionary setting for a Meilisearch index",
     {
       indexUid: z.string().describe("Unique identifier of the index"),
+      dictionary: z
+        .string()
+        .describe(
+          'JSON array of words to consider as a single word, e.g. ["San Francisco", "New York"]'
+        ),
     },
     { category: "meilisearch" },
     async ({ indexUid, dictionary }) => {
@@ -937,6 +992,11 @@ export const registerSettingsTools = (server: McpServer) => {
     "Update the proximity precision setting for a Meilisearch index",
     {
       indexUid: z.string().describe("Unique identifier of the index"),
+      proximityPrecision: z
+        .string()
+        .describe(
+          "String with proximity precision value, can be 'byWord' or 'byAttribute'"
+        ),
     },
     { category: "meilisearch" },
     async ({ indexUid, proximityPrecision }) => {
@@ -1010,6 +1070,11 @@ export const registerSettingsTools = (server: McpServer) => {
     "Update the separator tokens setting for a Meilisearch index",
     {
       indexUid: z.string().describe("Unique identifier of the index"),
+      separatorTokens: z
+        .string()
+        .describe(
+          'JSON array of tokens that should be considered as word separators, e.g. ["-", "_"]'
+        ),
     },
     { category: "meilisearch" },
     async ({ indexUid, separatorTokens }) => {
@@ -1083,6 +1148,11 @@ export const registerSettingsTools = (server: McpServer) => {
     "Update the non-separator tokens setting for a Meilisearch index",
     {
       indexUid: z.string().describe("Unique identifier of the index"),
+      nonSeparatorTokens: z
+        .string()
+        .describe(
+          'JSON array of tokens that should not be considered as word separators, e.g. ["@", "."]'
+        ),
     },
     { category: "meilisearch" },
     async ({ indexUid, nonSeparatorTokens }) => {
@@ -1156,6 +1226,11 @@ export const registerSettingsTools = (server: McpServer) => {
     "Update the word dictionary setting for a Meilisearch index",
     {
       indexUid: z.string().describe("Unique identifier of the index"),
+      wordDictionary: z
+        .string()
+        .describe(
+          'JSON array of custom words to add to the dictionary, e.g. ["cbuilder", "meilisearch"]'
+        ),
     },
     { category: "meilisearch" },
     async ({ indexUid, wordDictionary }) => {

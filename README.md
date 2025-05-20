@@ -354,18 +354,131 @@ The MCP server exposes various tools that allow you to interact with Meilisearch
 - **Parameters**:
   - `indexUid` (string, required): Unique identifier of the index.
 
-#### get-searchable-attributes / get-displayed-attributes / get-filterable-attributes / get-sortable-attributes / get-ranking-rules / get-stop-words / get-synonyms / get-distinct-attribute / get-typo-tolerance / get-faceting / get-pagination
+#### Get Settings Tools
 
-- **Description**: Get the specific setting for an index.
-- **Parameters**:
+The following tools retrieve specific settings for a Meilisearch index:
+
+- **get-displayed-attributes**
+- **get-searchable-attributes**
+- **get-filterable-attributes**
+- **get-sortable-attributes**
+- **get-ranking-rules**
+- **get-stop-words**
+- **get-synonyms**
+- **get-typo-tolerance**
+- **get-pagination**
+- **get-faceting**
+- **get-dictionary**
+- **get-proximity-precision**
+- **get-separator-tokens**
+- **get-non-separator-tokens**
+- **get-word-dictionary**
+
+All these tools have the same parameter:
+
+- `indexUid` (string, required): Unique identifier of the index.
+
+#### Update Settings Tools
+
+The following tools update specific settings for a Meilisearch index:
+
+- **update-displayed-attributes**
+
   - `indexUid` (string, required): Unique identifier of the index.
+  - `displayedAttributes` (string, required): JSON array of attributes to display, e.g. ["title", "description"].
 
-#### update-searchable-attributes / update-displayed-attributes / update-filterable-attributes / update-sortable-attributes / update-ranking-rules / update-stop-words / update-synonyms / update-distinct-attribute / update-typo-tolerance / update-faceting / update-pagination
+- **update-searchable-attributes**
 
-- **Description**: Update a specific setting for an index.
-- **Parameters**:
   - `indexUid` (string, required): Unique identifier of the index.
-  - `value` (string, required): JSON value for the setting.
+  - `searchableAttributes` (string, required): JSON array of attributes that can be searched, e.g. ["title", "description"].
+
+- **update-filterable-attributes**
+
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `filterableAttributes` (string, required): JSON array of attributes that can be used as filters, e.g. ["genre", "director"].
+
+- **update-sortable-attributes**
+
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `sortableAttributes` (string, required): JSON array of attributes that can be used for sorting, e.g. ["price", "date"].
+
+- **update-ranking-rules**
+
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `rankingRules` (string, required): JSON array of ranking rules, e.g. ["typo", "words", "proximity", "attribute", "sort", "exactness"].
+
+- **update-stop-words**
+
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `stopWords` (string, required): JSON array of words to ignore in search queries, e.g. ["the", "a", "an"].
+
+- **update-synonyms**
+
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `synonyms` (string, required): JSON object mapping words to their synonyms, e.g. {"movie": ["film"]}.
+
+- **update-typo-tolerance**
+
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `typoTolerance` (string, required): JSON object with typo tolerance configuration, e.g. {"enabled": true, "minWordSizeForTypos": {"oneTypo": 5, "twoTypos": 9}}.
+
+- **update-pagination**
+
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `pagination` (string, required): JSON object with pagination configuration, e.g. {"maxTotalHits": 1000}.
+
+- **update-faceting**
+
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `faceting` (string, required): JSON object with faceting configuration, e.g. {"maxValuesPerFacet": 100}.
+
+- **update-dictionary**
+
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `dictionary` (string, required): JSON array of words to consider as a single word, e.g. ["San Francisco", "New York"].
+
+- **update-proximity-precision**
+
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `proximityPrecision` (string, required): String with proximity precision value, can be 'byWord' or 'byAttribute'.
+
+- **update-separator-tokens**
+
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `separatorTokens` (string, required): JSON array of tokens that should be considered as word separators, e.g. ["-", "_"].
+
+- **update-non-separator-tokens**
+
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `nonSeparatorTokens` (string, required): JSON array of tokens that should not be considered as word separators, e.g. ["@", "."].
+
+- **update-word-dictionary**
+  - `indexUid` (string, required): Unique identifier of the index.
+  - `wordDictionary` (string, required): JSON array of custom words to add to the dictionary, e.g. ["cbuilder", "meilisearch"].
+
+#### Reset Settings Tools
+
+The following tools reset specific settings for a Meilisearch index to their default values:
+
+- **reset-displayed-attributes**
+- **reset-searchable-attributes**
+- **reset-filterable-attributes**
+- **reset-sortable-attributes**
+- **reset-ranking-rules**
+- **reset-stop-words**
+- **reset-synonyms**
+- **reset-typo-tolerance**
+- **reset-pagination**
+- **reset-faceting**
+- **reset-dictionary**
+- **reset-proximity-precision**
+- **reset-separator-tokens**
+- **reset-non-separator-tokens**
+- **reset-word-dictionary**
+
+All these reset tools have the same parameter:
+
+- `indexUid` (string, required): Unique identifier of the index.
 
 ### Task Tools
 
