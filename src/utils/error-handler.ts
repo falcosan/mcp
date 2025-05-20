@@ -25,7 +25,7 @@ export const handleApiError = (error: any): string => {
 export const createErrorResponse = (error: any) => {
   return {
     isError: true,
-    content: [{ type: "text", text: handleApiError(error) }],
+    content: [{ type: "text" as const, text: handleApiError(error) }],
   };
 };
 

@@ -35,7 +35,11 @@ export const registerAITools = (server: McpServer) => {
     async ({ query, specificTools }: ProcessAIQueryParams) => {
       try {
         const aiService = AIService.getInstance();
-        const availableTools = Object.entries(server._registeredTools)
+        const registeredTools = Object.entries(
+          (server as unknown as { _registeredTools: Record<string, any> })
+            ._registeredTools
+        );
+        const availableTools = registeredTools
           .filter(([_, { annotations }]) => annotations?.category !== "core")
           .map(([name, { description, inputSchema }]) => {
             const { definitions } = zodToJsonSchema(inputSchema, "parameters");
@@ -45,21 +49,23 @@ export const registerAITools = (server: McpServer) => {
               parameters: definitions?.parameters ?? {},
             };
           });
+
         aiService.setAvailableTools(availableTools);
 
-        const result = await aiService.processQuery(query, specificTools);
+        const response = await aiService.processQuery(query, specificTools);
 
-        if (result.error) return createErrorResponse(result.error);
+        if (response.error) return createErrorResponse(response.error);
 
         return {
+          isError: false,
           content: [
             {
               type: "text",
               text: JSON.stringify(
                 {
-                  toolName: result.toolName,
-                  reasoning: result.reasoning,
-                  parameters: convertNullToUndefined(result.parameters),
+                  toolName: response.toolName,
+                  reasoning: response.reasoning,
+                  parameters: convertNullToUndefined(response.parameters),
                 },
                 null,
                 2
