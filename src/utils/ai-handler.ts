@@ -95,7 +95,7 @@ export class AIService {
       case "huggingface":
         this.client = new InferenceClient(apiKey);
         break;
-      case "openrouter":
+      case "ollama":
         this.client = new OpenAI({ baseURL: OLLAMA_API.baseURL });
         break;
       case "openrouter":
