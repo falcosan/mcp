@@ -27,7 +27,7 @@ export async function mcpMeilisearchServer(
     const aiProviderName = configHandler.getAiProviderName();
     aiService.initialize(apiKey, aiProviderName, llmModel);
   } else {
-    console.warn("AI provider API key not found. AI will not be available");
+    console.warn("AI provider API key not found. Continuing without it.");
   }
 
   let mcpServerInstance: MCPServer | null = null;
