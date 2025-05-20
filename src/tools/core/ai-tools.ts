@@ -72,8 +72,10 @@ export const registerAITools = (server: McpServer) => {
               text: JSON.stringify(
                 {
                   toolName: response.toolName,
-                  reasoning: response.reasoning,
                   parameters: convertNullToUndefined(response.parameters),
+                  get reasoning() {
+                    return { name: this.toolName, parameters: this.parameters };
+                  },
                 },
                 null,
                 2

@@ -32,7 +32,6 @@ interface AIToolMessage {
 interface AIToolResponse {
   error?: unknown;
   toolName?: string;
-  reasoning?: string;
   parameters?: Record<string, unknown>;
 }
 
@@ -222,15 +221,9 @@ export class AIService {
           return { error: "Invalid tool from OpenAI response" };
         }
 
-        const inferenceToolResponse = {
-          name: toolCall.name,
-          parameters: JSON.parse(toolCall.arguments),
-        };
-
         return {
-          toolName: inferenceToolResponse.name,
-          parameters: inferenceToolResponse.parameters,
-          reasoning: JSON.stringify(inferenceToolResponse, null, 2),
+          toolName: toolCall.name,
+          parameters: JSON.parse(toolCall.arguments),
         };
       }
 
@@ -246,7 +239,6 @@ export class AIService {
         return {
           toolName: toolCall.name,
           parameters: toolCall.parameters,
-          reasoning: JSON.stringify(toolCall, null, 2),
         };
       }
 
@@ -290,15 +282,9 @@ export class AIService {
           return { error: "Invalid tool from Hugging Face response" };
         }
 
-        const inferenceToolResponse = {
-          name: toolCall.name,
-          parameters: JSON.parse(toolCall.arguments),
-        };
-
         return {
-          toolName: inferenceToolResponse.name,
-          parameters: inferenceToolResponse.parameters,
-          reasoning: JSON.stringify(inferenceToolResponse, null, 2),
+          toolName: toolCall.name,
+          parameters: JSON.parse(toolCall.arguments),
         };
       }
 
@@ -310,7 +296,6 @@ export class AIService {
         return {
           toolName: toolCall.name,
           parameters: toolCall.parameters,
-          reasoning: JSON.stringify(toolCall, null, 2),
         };
       }
 
