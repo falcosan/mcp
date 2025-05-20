@@ -70,7 +70,7 @@ Please be aware that not all models support function calling, which is required 
 | OpenAI      | [List of supported models](https://platform.openai.com/docs/models)                           |
 | OpenRouter  | [List of supported models](https://openrouter.ai/models?fmt=cards&supported_parameters=tools) |
 | HuggingFace | [List of supported models](https://huggingface.co/models?other=function+calling)              |
-| Ollama      | [List of supported models](https://ollama.com/search?q=function+calling)                      |
+| Ollama      | [List of supported models](https://ollama.com/search?c=tools)                                 |
 
 #### Example server setup
 
