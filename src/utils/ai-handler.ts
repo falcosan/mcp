@@ -196,16 +196,16 @@ export class AIService {
 
   private async processOpenAIQuery(
     tools: AIToolDefinition[],
-    messages: AIToolMessage[],
-    withoutFC = false
+    messages: AIToolMessage[]
   ): Promise<AIToolResponse> {
     try {
       const client = this.client as OpenAI;
 
       const response = await client.chat.completions.create({
+        tools,
         messages,
         model: this.model,
-        ...(!withoutFC && { tools, tool_choice: "required" }),
+        tool_choice: "required",
       });
 
       if (!response.choices?.length) {
@@ -245,28 +245,22 @@ export class AIService {
       return { error: "No tool call or content in OpenAI response" };
     } catch (error) {
       console.error(error);
-
-      if (!withoutFC) {
-        console.info("Retrying without function calling...");
-        return this.processOpenAIQuery(tools, messages, true);
-      }
-
       return { error };
     }
   }
 
   private async processHuggingFaceQuery(
     tools: AIToolDefinition[],
-    messages: AIToolMessage[],
-    withoutFC = false
+    messages: AIToolMessage[]
   ): Promise<AIToolResponse> {
     try {
       const client = this.client as typeof InferenceClient;
 
       const response: ChatCompletionOutput = await client.chatCompletion({
+        tools,
         messages,
         model: this.model,
-        ...(!withoutFC && { tools, tool_choice: "required" }),
+        tool_choice: "required",
       } as ChatCompletionInput);
 
       if (!response.choices?.length) {
@@ -302,12 +296,6 @@ export class AIService {
       return { error: "No tool call or content in Hugging Face response" };
     } catch (error) {
       console.error(error);
-
-      if (!withoutFC) {
-        console.info("Retrying without function calling...");
-        return this.processHuggingFaceQuery(tools, messages, true);
-      }
-
       return { error };
     }
   }
