@@ -64,24 +64,18 @@ export const registerAITools = (server: McpServer) => {
 
         if (response.error) return createErrorResponse(response.error);
 
+        const { toolName, parameters: rawParameters } = response;
+
+        const parameters = convertNullToUndefined(rawParameters);
+        const result = {
+          toolName,
+          parameters,
+          reasoning: JSON.stringify({ name: toolName, parameters }),
+        };
+
         return {
           isError: false,
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(
-                {
-                  toolName: response.toolName,
-                  parameters: convertNullToUndefined(response.parameters),
-                  get reasoning() {
-                    return { name: this.toolName, parameters: this.parameters };
-                  },
-                },
-                null,
-                2
-              ),
-            },
-          ],
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
         };
       } catch (error) {
         return createErrorResponse(error);
