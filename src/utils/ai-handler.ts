@@ -214,6 +214,8 @@ export class AIService {
 
       const message = response.choices[0].message;
 
+      console.log(message);
+
       if (message.tool_calls?.length) {
         const toolCall = message.tool_calls[0]?.function;
 
