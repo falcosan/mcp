@@ -213,7 +213,7 @@ export class MCPClient {
         success,
         toolUsed: data.toolUsed,
         reasoning: data.reasoning,
-        data: structuredClone(data.content?.[0]?.text),
+        data: JSON.parse(data.content?.[0]?.text),
       };
 
       if (!result.success || !result.data) {
