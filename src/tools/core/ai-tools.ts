@@ -15,14 +15,12 @@ import { convertNullToUndefined } from "../../utils/response-handler.js";
 interface ProcessAIQueryParams {
   query: string;
   specificTools?: string[];
-  justReasoning?: boolean;
 }
 
 interface ProcessRegisteredToolsParams {
   description: string;
   inputSchema: z.ZodSchema;
   annotations?: ToolAnnotations;
-  callback: (parameters: unknown) => Promise<unknown>;
 }
 
 /**
@@ -39,15 +37,9 @@ export const registerAITools = (server: McpServer) => {
         .array(z.string())
         .optional()
         .describe("Optional array of specific tool names to consider"),
-      justReasoning: z
-        .boolean()
-        .optional()
-        .describe(
-          "If true, only returns the reasoning without calling the tool"
-        ),
     },
     { category: "core" },
-    async ({ query, specificTools, justReasoning }: ProcessAIQueryParams) => {
+    async ({ query, specificTools }: ProcessAIQueryParams) => {
       try {
         const aiService = AIService.getInstance();
         const registeredTools = Object.entries(
@@ -57,11 +49,10 @@ export const registerAITools = (server: McpServer) => {
         );
         const availableTools = registeredTools
           .filter(([_, { annotations }]) => annotations?.category !== "core")
-          .map(([name, { callback, description, inputSchema }]) => {
+          .map(([name, { description, inputSchema }]) => {
             const { definitions } = zodToJsonSchema(inputSchema, "parameters");
             return {
               name,
-              callback,
               description,
               parameters: definitions?.parameters ?? {},
             };
@@ -73,42 +64,18 @@ export const registerAITools = (server: McpServer) => {
 
         if (response.error) return createErrorResponse(response.error);
 
-        const toolUsed = response.toolName;
-        const parameters = convertNullToUndefined(response.parameters);
-        const reasoning = JSON.stringify({ parameters, name: toolUsed });
+        const { toolName, parameters: rawParameters } = response;
 
-        if (justReasoning) {
-          return {
-            isError: false,
-            content: [
-              {
-                type: "text",
-                text: JSON.stringify({ reasoning, toolUsed }),
-              },
-            ],
-          };
-        }
-
-        const toolToCall = availableTools.find(
-          (tool) => tool.name === response.toolName
-        );
-        if (!toolToCall) {
-          return createErrorResponse("No tool name provided in AI response");
-        }
-        const result = await toolToCall.callback(parameters);
-
-        if (!result) {
-          return createErrorResponse("Received null or undefined result");
-        }
+        const parameters = convertNullToUndefined(rawParameters);
+        const result = {
+          toolName,
+          parameters,
+          reasoning: JSON.stringify({ name: toolName, parameters }),
+        };
 
         return {
           isError: false,
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify({ ...result, reasoning, toolUsed }, null, 2),
-            },
-          ],
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
         };
       } catch (error) {
         return createErrorResponse(error);

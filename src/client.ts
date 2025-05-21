@@ -193,35 +193,46 @@ export class MCPClient {
     query: string,
     options: { specificTools?: string[]; justReasoning?: boolean } = {}
   ): Promise<{
+    success: boolean;
     data?: any;
     error?: string;
-    success: boolean;
     toolUsed?: string;
     reasoning?: string;
   }> {
     const { specificTools, justReasoning } = options;
 
     try {
-      const { data, error, success } = await this.callTool("process-ai-query", {
+      const result = await this.callTool("process-ai-query", {
         query,
         specificTools,
-        justReasoning,
       });
 
-      const result = {
-        error,
-        success,
-        toolUsed: data.toolUsed,
-        reasoning: data.reasoning,
-        data: JSON.parse(data.content?.[0]?.text),
-      };
+      if (!result.success) return result;
 
-      if (!result.success || !result.data) {
-        console.error(result.error);
-        return result;
+      const { toolName, parameters, reasoning } = result.data;
+
+      if (justReasoning) {
+        return {
+          reasoning,
+          success: true,
+          toolUsed: toolName,
+        };
       }
 
-      return result;
+      if (!toolName) {
+        return {
+          success: false,
+          error: "No tool name provided in AI response",
+        };
+      }
+
+      const toolResult = await this.callTool(toolName, parameters);
+
+      return {
+        ...toolResult,
+        reasoning,
+        toolUsed: toolName,
+      };
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);
