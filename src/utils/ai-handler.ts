@@ -220,7 +220,7 @@ export class AIService {
         return { error };
       }
 
-      const summary = results.map((result) => result.summary).join(" ");
+      const summary = results.map((result) => result?.summary || "").join(" ");
 
       return { summary };
     } else {
