@@ -6,19 +6,22 @@ import {
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
+interface ToolClientResponse {
+  data?: any;
+  error?: string;
+  success: boolean;
+}
+
+interface AIToolClientResponse extends ToolClientResponse {
+  summary?: any;
+  toolUsed?: string;
+  reasoning?: string;
+}
+
 interface AIToolClientOptions {
   specificTools?: string[];
   justReasoning?: boolean;
   provideSummary?: boolean;
-}
-
-interface AIToolClientResponse {
-  data?: any;
-  summary?: any;
-  error?: string;
-  success: boolean;
-  toolUsed?: string;
-  reasoning?: string;
 }
 
 export class MCPClient {
@@ -100,43 +103,6 @@ export class MCPClient {
     }
   }
 
-  private async listTools(): Promise<void> {
-    try {
-      const toolsResult = await this.client.listTools();
-
-      if (!toolsResult) {
-        this.tools = [];
-      } else if (toolsResult.tools && Array.isArray(toolsResult.tools)) {
-        this.tools = toolsResult.tools
-          .filter(({ annotations }) => annotations?.category !== "core")
-          .map((tool: any) => ({
-            name: tool.name,
-            description: tool.description ?? "",
-            parameters: tool.parameters || {},
-          }));
-      } else {
-        this.tools = [];
-      }
-    } catch (error) {
-      this.tools = [];
-    } finally {
-      if (this.toolsUpdatedCallback) {
-        this.toolsUpdatedCallback([...this.tools]);
-      }
-    }
-  }
-
-  private setUpNotifications(): void {
-    this.client.setNotificationHandler(
-      LoggingMessageNotificationSchema,
-      console.info
-    );
-    this.client.setNotificationHandler(
-      ToolListChangedNotificationSchema,
-      this.listTools
-    );
-  }
-
   /**
    * Calls a tool on the MCP server with optional arguments
    * Parses and processes the response from the server
@@ -148,11 +114,7 @@ export class MCPClient {
   async callTool(
     name: string,
     args?: Record<string, any>
-  ): Promise<{
-    success: boolean;
-    data?: any;
-    error?: string;
-  }> {
+  ): Promise<ToolClientResponse> {
     try {
       const result = await this.client.callTool({ name, arguments: args });
 
@@ -247,11 +209,7 @@ export class MCPClient {
       };
 
       if (provideSummary) {
-        const summary = await this.callTool("process-ai-text", {
-          query: JSON.stringify(toolResult.data),
-        });
-
-        if (!summary.success) console.error(summary);
+        const summary = await this.processSummary(toolResult.data);
 
         response["summary"] = summary.data;
       }
@@ -267,9 +225,19 @@ export class MCPClient {
     }
   }
 
-  private setUpTransport(): void {
-    if (this.transport == null) return;
-    this.transport.onerror = this.cleanup;
+  /**
+   * Process a summary text using AI
+   * @param query The natural language query to process
+   * @throws Error if AI inference fails
+   */
+  async processSummary(query: unknown): Promise<AIToolClientResponse> {
+    const result = await this.callTool("process-ai-text", {
+      query: JSON.stringify(query),
+    });
+
+    if (!result.success) console.error(result);
+
+    return result;
   }
 
   /**
@@ -280,5 +248,47 @@ export class MCPClient {
     if (this.client == null) return;
     await this.client.close();
     this.isConnected = false;
+  }
+
+  private async listTools(): Promise<void> {
+    try {
+      const toolsResult = await this.client.listTools();
+
+      if (!toolsResult) {
+        this.tools = [];
+      } else if (toolsResult.tools && Array.isArray(toolsResult.tools)) {
+        this.tools = toolsResult.tools
+          .filter(({ annotations }) => annotations?.category !== "core")
+          .map((tool) => ({
+            name: tool.name,
+            parameters: tool.parameters || {},
+            description: tool.description ?? "",
+          }));
+      } else {
+        this.tools = [];
+      }
+    } catch (error) {
+      this.tools = [];
+    } finally {
+      if (this.toolsUpdatedCallback) {
+        this.toolsUpdatedCallback([...this.tools]);
+      }
+    }
+  }
+
+  private setUpNotifications(): void {
+    this.client.setNotificationHandler(
+      LoggingMessageNotificationSchema,
+      console.info
+    );
+    this.client.setNotificationHandler(
+      ToolListChangedNotificationSchema,
+      this.listTools
+    );
+  }
+
+  private setUpTransport(): void {
+    if (this.transport == null) return;
+    this.transport.onerror = this.cleanup;
   }
 }
