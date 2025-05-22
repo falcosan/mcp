@@ -18,9 +18,9 @@ export interface MCPTool {
 export default function useMCPMeilisearch() {
   const useAI = ref<boolean>(false);
   const tools = ref<MCPTool[]>([]);
+  const withSummary = ref<boolean>(true);
   const error = ref<string | null>(null);
   const client = ref<MCPClient | null>(null);
-  const useHybridResponse = ref<boolean>(true);
   const loading = ref({ client: true, tool: false });
   const result = ref<MCPMeilisearchResult | null>(null);
 
@@ -68,7 +68,7 @@ export default function useMCPMeilisearch() {
     try {
       const response = await client.value.callToolWithAI(query, {
         specificTools,
-        provideHybridResponse: useHybridResponse.value,
+        provideSummary: withSummary.value,
       });
 
       result.value = response;
@@ -101,8 +101,8 @@ export default function useMCPMeilisearch() {
     useAI.value = value;
   };
 
-  const toggleHybridResponse = (value: boolean) => {
-    useHybridResponse.value = value;
+  const toggleWithSummary = (value: boolean) => {
+    withSummary.value = value;
   };
 
   onMounted(async () => {
@@ -129,9 +129,9 @@ export default function useMCPMeilisearch() {
     useAI,
     client,
     loading,
-    useHybridResponse,
+    withSummary,
     toggleAIInference,
-    toggleHybridResponse,
+    toggleWithSummary,
     searchAcrossAllIndexes,
   };
 }

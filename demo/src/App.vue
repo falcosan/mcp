@@ -10,9 +10,9 @@ const {
   useAI,
   client,
   loading,
+  withSummary,
   toggleAIInference,
-  useHybridResponse,
-  toggleHybridResponse,
+  toggleWithSummary,
   searchAcrossAllIndexes,
 } = useMCPMeilisearch();
 
@@ -25,9 +25,9 @@ const handleToggleAI = (event: Event) => {
   toggleAIInference(target.checked);
 };
 
-const handleToggleHybridResponse = (event: Event) => {
+const handletoggleWithSummary = (event: Event) => {
   const target = event.target as HTMLInputElement;
-  toggleHybridResponse(target.checked);
+  toggleWithSummary(target.checked);
 };
 </script>
 
@@ -55,13 +55,13 @@ const handleToggleHybridResponse = (event: Event) => {
 
           <input
             type="checkbox"
-            :checked="useHybridResponse"
-            id="hybrid-toggle"
-            @change="handleToggleHybridResponse"
-            style="margin-right: 5px"
+            id="summary-toggle"
             :disabled="!useAI"
+            :checked="withSummary"
+            style="margin-right: 5px"
+            @change="handletoggleWithSummary"
           />
-          <label for="hybrid-toggle">Hybrid Response</label>
+          <label for="summary-toggle">With Summary</label>
         </div>
 
         <input

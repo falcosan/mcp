@@ -1,5 +1,5 @@
 import { OpenAI } from "openai";
-import systemPrompts from "../prompts/system/index.js";
+import developerPrompts from "../prompts/developer/index.js";
 import { markdownToJson } from "./response-handler.js";
 import { InferenceClient } from "@huggingface/inference";
 import { AiProviderNameOptions } from "../types/options.js";
@@ -29,7 +29,7 @@ interface AIToolDefinition {
 
 interface AIToolMessage {
   content: string;
-  role: "user" | "system";
+  role: "user" | "developer";
   [key: string]: unknown;
 }
 
@@ -179,22 +179,22 @@ export class AIService {
     const toolsSubstringIdentifier = "MCP_TOOLS";
     const { processType, specificTools } = options;
 
-    let systemPrompt = systemPrompts[processType];
+    let developerPrompt = developerPrompts[processType];
 
     const mentionedTools = this.extractToolNames(query);
     const toolsToUse =
       specificTools || (mentionedTools.length ? mentionedTools : undefined);
     const tools = this.getToolDefinitions(toolsToUse);
 
-    if (systemPrompt.includes(toolsSubstringIdentifier)) {
-      systemPrompt = systemPrompt.replace(
+    if (developerPrompt.includes(toolsSubstringIdentifier)) {
+      developerPrompt = developerPrompt.replace(
         toolsSubstringIdentifier,
         JSON.stringify(tools, null, 2)
       );
     }
 
     const messages = [
-      { role: "system" as const, content: systemPrompt },
+      { role: "developer" as const, content: developerPrompt },
       { role: "user" as const, content: query },
     ];
 
