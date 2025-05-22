@@ -12,7 +12,7 @@ import { convertNullToUndefined } from "../../utils/response-handler.js";
  * This module implements tools for AI-powered features in the MCP server.
  */
 
-interface ProcessAIQueryParams {
+interface ProcessAIParams {
   query: string;
   specificTools?: string[];
 }
@@ -23,13 +23,33 @@ interface ProcessRegisteredToolsParams {
   annotations?: ToolAnnotations;
 }
 
+const setAvailableTools = (aiService: AIService, server: McpServer) => {
+  const registeredTools = Object.entries(
+    (server as any)._registeredTools as {
+      _registeredTools: ProcessRegisteredToolsParams;
+    }
+  );
+  const availableTools = registeredTools
+    .filter(([_, { annotations }]) => annotations?.category !== "core")
+    .map(([name, { description, inputSchema }]) => {
+      const { definitions } = zodToJsonSchema(inputSchema, "parameters");
+      return {
+        name,
+        description,
+        parameters: definitions?.parameters ?? {},
+      };
+    });
+
+  aiService.setAvailableTools(availableTools);
+};
+
 /**
  * Register AI tools with the MCP server
  * @param server - The MCP server instance
  */
 export const registerAITools = (server: McpServer) => {
   server.tool(
-    "process-ai-query",
+    "process-ai-tool",
     "Process a natural language query using AI to determine which tool to use",
     {
       query: z.string().describe("The natural language query to process"),
@@ -39,33 +59,20 @@ export const registerAITools = (server: McpServer) => {
         .describe("Optional array of specific tool names to consider"),
     },
     { category: "core" },
-    async ({ query, specificTools }: ProcessAIQueryParams) => {
+    async ({ query, specificTools }: ProcessAIParams) => {
       try {
         const aiService = AIService.getInstance();
-        const registeredTools = Object.entries(
-          (server as any)._registeredTools as {
-            _registeredTools: ProcessRegisteredToolsParams;
-          }
-        );
-        const availableTools = registeredTools
-          .filter(([_, { annotations }]) => annotations?.category !== "core")
-          .map(([name, { description, inputSchema }]) => {
-            const { definitions } = zodToJsonSchema(inputSchema, "parameters");
-            return {
-              name,
-              description,
-              parameters: definitions?.parameters ?? {},
-            };
-          });
 
-        aiService.setAvailableTools(availableTools);
+        setAvailableTools(aiService, server);
 
-        const response = await aiService.processQuery(query, specificTools);
+        const response = await aiService.setupAIProcess(query, {
+          specificTools,
+          processType: "tool",
+        });
 
         if (response.error) return createErrorResponse(response.error);
 
         const { toolName, parameters: rawParameters } = response;
-
         const parameters = convertNullToUndefined(rawParameters);
         const result = {
           toolName,
@@ -73,6 +80,41 @@ export const registerAITools = (server: McpServer) => {
           reasoning: JSON.stringify({ name: toolName, parameters }),
         };
 
+        return {
+          isError: false,
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
+      } catch (error) {
+        return createErrorResponse(error);
+      }
+    }
+  );
+
+  server.tool(
+    "process-ai-text",
+    "Process a summary text using AI to describe the data result from a tool",
+    {
+      query: z.string().describe("The natural language query to process"),
+      specificTools: z
+        .array(z.string())
+        .optional()
+        .describe("Optional array of specific tool names to consider"),
+    },
+    { category: "core" },
+    async ({ query, specificTools }: ProcessAIParams) => {
+      try {
+        const aiService = AIService.getInstance();
+
+        setAvailableTools(aiService, server);
+
+        const response = await aiService.setupAIProcess(query, {
+          specificTools,
+          processType: "text",
+        });
+
+        if (response.error) return createErrorResponse(response.error);
+
+        const { message: result } = response;
         return {
           isError: false,
           content: [{ type: "text", text: JSON.stringify(result, null, 2) }],

@@ -6,6 +6,20 @@ import {
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
+interface AIToolClientOptions {
+  specificTools?: string[];
+  justReasoning?: boolean;
+  provideHybridResponse?: boolean;
+}
+
+interface AIToolClientResponse {
+  data?: any;
+  error?: string;
+  success: boolean;
+  toolUsed?: string;
+  reasoning?: string;
+}
+
 export class MCPClient {
   /**
    * Indicates whether the client is connected to the MCP server
@@ -186,28 +200,34 @@ export class MCPClient {
    * @param options Options for the AI processing
    * @param options.specificTools Optional array of specific tool names to consider
    * @param options.justReasoning If true, only returns the reasoning without calling the tool
+   * @param options.provideHybridResponse If true, provides a hybrid response with summary and raw JSON
    * @throws Error if AI inference fails
    * @returns The result of calling the selected tool, or an error
    */
   async callToolWithAI(
     query: string,
-    options: { specificTools?: string[]; justReasoning?: boolean } = {}
-  ): Promise<{
-    success: boolean;
-    data?: any;
-    error?: string;
-    toolUsed?: string;
-    reasoning?: string;
-  }> {
-    const { specificTools, justReasoning } = options;
+    options: AIToolClientOptions = {}
+  ): Promise<AIToolClientResponse> {
+    const { specificTools, justReasoning, provideHybridResponse } = options;
+    const toolsToUse = provideHybridResponse
+      ? "process-ai-text"
+      : "process-ai-tool";
 
     try {
-      const result = await this.callTool("process-ai-query", {
+      const result = await this.callTool(toolsToUse, {
         query,
         specificTools,
+        provideHybridResponse,
       });
 
       if (!result.success) return result;
+
+      if (provideHybridResponse) {
+        return {
+          ...result,
+          success: true,
+        };
+      }
 
       const { toolName, parameters, reasoning } = result.data;
 
