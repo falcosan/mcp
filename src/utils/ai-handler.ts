@@ -199,9 +199,30 @@ export class AIService {
     ];
 
     if (processType === "text") {
-      return this.provider === "huggingface"
-        ? await this.processHuggingFaceText(messages)
-        : await this.processOpenAIText(messages);
+      const processTextMethod =
+        this.provider === "huggingface"
+          ? this.processHuggingFaceText.bind(this)
+          : this.processOpenAIText.bind(this);
+      const chunks = this.splitTextIntoChunks(query, 50000);
+
+      if (chunks.length === 1) {
+        return processTextMethod(messages);
+      }
+
+      const chunkPromises = chunks.map((content) =>
+        processTextMethod([messages[0], { role: "user" as const, content }])
+      );
+
+      const results = await Promise.all(chunkPromises);
+      const error = results.find((result) => result.error);
+
+      if (error) {
+        return { error };
+      }
+
+      const summary = results.map((result) => result.summary).join(" ");
+
+      return { summary };
     } else {
       return this.provider === "huggingface"
         ? await this.processHuggingFaceTool(tools, messages)
@@ -303,39 +324,6 @@ export class AIService {
     }
   }
 
-  private async processHuggingFaceText(
-    messages: AIToolMessage[]
-  ): Promise<AIProcessResponse> {
-    try {
-      const client = this.client as typeof InferenceClient;
-
-      const response: ChatCompletionOutput = await client.chatCompletion({
-        messages,
-        model: this.model,
-      } as ChatCompletionInput);
-
-      if (!response.choices?.length) {
-        return {
-          error: "No response returned from OpenAI; processType: 'text'.",
-        };
-      }
-
-      const message = response.choices[0].message;
-
-      if (message.content) {
-        return { summary: message.content };
-      }
-
-      return {
-        error: "No content in Hugging Face response; processType: 'text'.",
-      };
-    } catch (error) {
-      console.error(error);
-
-      return { error };
-    }
-  }
-
   private async processHuggingFaceTool(
     tools: AIToolDefinition[],
     messages: AIToolMessage[]
@@ -397,5 +385,96 @@ export class AIService {
 
       return { error };
     }
+  }
+
+  private async processHuggingFaceText(
+    messages: AIToolMessage[]
+  ): Promise<AIProcessResponse> {
+    try {
+      const client = this.client as typeof InferenceClient;
+
+      const response: ChatCompletionOutput = await client.chatCompletion({
+        messages,
+        model: this.model,
+      } as ChatCompletionInput);
+
+      if (!response.choices?.length) {
+        return {
+          error: "No response returned from OpenAI; processType: 'text'.",
+        };
+      }
+
+      const message = response.choices[0].message;
+
+      if (message.content) {
+        return { summary: message.content };
+      }
+
+      return {
+        error: "No content in Hugging Face response; processType: 'text'.",
+      };
+    } catch (error) {
+      console.error(error);
+
+      return { error };
+    }
+  }
+
+  private splitTextIntoChunks(text: string, chunkSize: number): string[] {
+    if (text.length <= chunkSize) {
+      return [text];
+    }
+
+    let currentIndex = 0;
+
+    const chunks: string[] = [];
+    const textLength = text.length;
+    const sentenceEndRegex = /[.!?]\s+/g;
+
+    while (currentIndex < textLength) {
+      let proposedEndIndex = Math.min(currentIndex + chunkSize, textLength);
+      let actualEndIndex = proposedEndIndex;
+
+      if (proposedEndIndex < textLength) {
+        let bestBreakPoint = -1;
+
+        const relevantTextSlice = text.substring(
+          currentIndex,
+          proposedEndIndex
+        );
+
+        let match;
+        let lastMatch;
+
+        sentenceEndRegex.lastIndex = 0;
+
+        while ((match = sentenceEndRegex.exec(relevantTextSlice)) !== null) {
+          lastMatch = match;
+        }
+
+        if (lastMatch) {
+          bestBreakPoint = currentIndex + lastMatch.index + lastMatch[0].length;
+        }
+
+        if (bestBreakPoint > currentIndex) {
+          actualEndIndex = bestBreakPoint;
+        } else {
+          const lastSpaceIndex = text.lastIndexOf(" ", proposedEndIndex - 1);
+
+          if (lastSpaceIndex > currentIndex) {
+            actualEndIndex = lastSpaceIndex + 1;
+          } else {
+            actualEndIndex = proposedEndIndex;
+          }
+        }
+      } else {
+        actualEndIndex = textLength;
+      }
+
+      chunks.push(text.substring(currentIndex, actualEndIndex));
+      currentIndex = actualEndIndex;
+    }
+
+    return chunks;
   }
 }

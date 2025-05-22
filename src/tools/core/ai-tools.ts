@@ -38,47 +38,6 @@ const setAvailableTools = (aiService: AIService, server: McpServer) => {
   aiService.setAvailableTools(availableTools);
 };
 
-const splitTextIntoChunks = (text: string, chunkSize: number): string[] => {
-  if (text.length <= chunkSize) {
-    return [text];
-  }
-
-  let currentIndex = 0;
-  const chunks: string[] = [];
-
-  while (currentIndex < text.length) {
-    let endIndex = Math.min(currentIndex + chunkSize, text.length);
-
-    if (endIndex < text.length) {
-      const sentenceEndMatch = text
-        .substring(currentIndex, endIndex)
-        .match(/[.!?]\s+/g);
-
-      if (sentenceEndMatch?.length) {
-        const lastMatch = sentenceEndMatch[sentenceEndMatch.length - 1];
-        const lastMatchIndex = text.lastIndexOf(
-          lastMatch,
-          currentIndex + chunkSize
-        );
-
-        if (lastMatchIndex > currentIndex) {
-          endIndex = lastMatchIndex + lastMatch.length;
-        }
-      } else {
-        const lastSpace = text.lastIndexOf(" ", endIndex);
-        if (lastSpace > currentIndex) {
-          endIndex = lastSpace + 1;
-        }
-      }
-    }
-
-    chunks.push(text.substring(currentIndex, endIndex));
-    currentIndex = endIndex;
-  }
-
-  return chunks;
-};
-
 /**
  * Register AI tools with the MCP server
  * @param server - The MCP server instance
@@ -129,89 +88,24 @@ export const registerAITools = (server: McpServer) => {
   server.tool(
     "process-ai-text",
     "Process a summary text using AI to describe the data result from a tool",
-    {
-      query: z.string().describe("The natural language query to process"),
-      chunkSize: z
-        .number()
-        .positive()
-        .default(50000)
-        .describe(
-          "Optional size of chunks to split the query into (characters)"
-        ),
-    },
+    { query: z.string().describe("The natural language query to process") },
     { category: "core" },
-    async ({ query, chunkSize }) => {
+    async ({ query }) => {
       try {
         const aiService = AIService.getInstance();
 
-        if (query.length <= chunkSize) {
-          const response = await aiService.setupAIProcess(query, {
-            processType: "text",
-          });
+        const response = await aiService.setupAIProcess(query, {
+          processType: "text",
+        });
 
-          return response.error
-            ? createErrorResponse(response.error)
-            : {
-                isError: false,
-                content: [
-                  {
-                    type: "text",
-                    text: JSON.stringify(response.summary, null, 2),
-                  },
-                ],
-              };
-        }
+        if (response.error) return createErrorResponse(response.error);
 
-        const chunks = splitTextIntoChunks(query, chunkSize);
-        const chunkPromises = chunks.map((chunk) =>
-          aiService.setupAIProcess(chunk, { processType: "text" })
-        );
+        const { summary: result } = response;
 
-        const chunkResponses = await Promise.all(chunkPromises);
-
-        const errorResponse = chunkResponses.find((response) => response.error);
-        if (errorResponse) {
-          return createErrorResponse(errorResponse.error);
-        }
-
-        const summaries = chunkResponses
-          .map((response) => response.summary)
-          .filter(Boolean);
-
-        if (!summaries.length) {
-          return createErrorResponse("Failed to process query chunks");
-        }
-
-        if (summaries.length === 1) {
-          return {
-            isError: false,
-            content: [
-              { type: "text", text: JSON.stringify(summaries[0], null, 2) },
-            ],
-          };
-        }
-
-        const combinedText = summaries.join(" ");
-        const finalResponse = await aiService.setupAIProcess(
-          `Synthesize the following text into a coherent summary: ${combinedText}`,
-          { processType: "text" }
-        );
-
-        return finalResponse.error
-          ? createErrorResponse(finalResponse.error)
-          : {
-              isError: false,
-              content: [
-                {
-                  type: "text",
-                  text: JSON.stringify(
-                    finalResponse.summary || combinedText,
-                    null,
-                    2
-                  ),
-                },
-              ],
-            };
+        return {
+          isError: false,
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
       } catch (error) {
         return createErrorResponse(error);
       }
