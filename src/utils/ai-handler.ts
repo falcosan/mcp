@@ -332,7 +332,7 @@ export class AIService {
       } as ChatCompletionInput);
 
       if (!response) {
-        return { error: "No stream returned from OpenAI" };
+        return { error: "No stream returned from Hugging Face" };
       }
 
       let message = "";
