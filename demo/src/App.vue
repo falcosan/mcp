@@ -104,9 +104,8 @@ const handleToggleHybridResponse = (event: Event) => {
                 background-color: #f0f8ff;
                 border-left: 4px solid #0077cc;
               "
-            >
-              {{ result.summary }}
-            </div>
+              v-html="result.summary"
+            />
           </div>
 
           <div v-if="result.reasoning">
