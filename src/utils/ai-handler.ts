@@ -1,5 +1,5 @@
 import { OpenAI } from "openai";
-import systemPrompt from "../prompts/system.js";
+import systemPrompts from "../prompts/system/index.js";
 import { markdownToJson } from "./response-handler.js";
 import { InferenceClient } from "@huggingface/inference";
 import { AiProviderNameOptions } from "../types/options.js";
@@ -10,6 +10,11 @@ interface AITool {
   name: string;
   description: string;
   parameters: Record<string, unknown>;
+}
+
+interface AIProcessSetupOptions {
+  specificTools?: string[];
+  processType: "tool" | "text";
 }
 
 interface AIToolDefinition {
@@ -29,9 +34,16 @@ interface AIToolMessage {
 }
 
 interface AIToolResponse {
-  error?: unknown;
   toolName?: string;
   parameters?: Record<string, unknown>;
+}
+
+interface AITextResponse {
+  summary?: string;
+}
+
+interface AIProcessResponse extends AIToolResponse, AITextResponse {
+  error?: unknown;
 }
 
 /**
@@ -46,7 +58,6 @@ export class AIService {
   private static instance: AIService | null = null;
   private static serverInitialized: boolean = false;
   private provider: AiProviderNameOptions = "openai";
-  private readonly systemPrompt: string = systemPrompt;
   private client: OpenAI | typeof InferenceClient | null = null;
 
   /**
@@ -155,59 +166,67 @@ export class AIService {
     return mentionedTools;
   }
 
-  /**
-   * Process a user query and determine which tool to use
-   * @param query User query
-   * @param specificTools Optional array of specific tool names to consider
-   * @returns Object containing the selected tool name and parameters
-   */
-  async processQuery(
+  async setupAIProcess(
     query: string,
-    specificTools?: string[]
-  ): Promise<AIToolResponse> {
+    options: AIProcessSetupOptions
+  ): Promise<AIProcessResponse> {
     if (!this.ensureInitialized()) {
       return {
         error: "AI service not initialized. Please provide an API key.",
       };
     }
 
+    const toolsSubstringIdentifier = "MCP_TOOLS";
+    const { processType, specificTools } = options;
+
+    let systemPrompt = systemPrompts[processType];
+
     const mentionedTools = this.extractToolNames(query);
     const toolsToUse =
       specificTools || (mentionedTools.length ? mentionedTools : undefined);
     const tools = this.getToolDefinitions(toolsToUse);
-    const systemPrompt = this.systemPrompt.replace(
-      "MCP_TOOLS",
-      JSON.stringify(tools, null, 2)
-    );
+
+    if (systemPrompt.includes(toolsSubstringIdentifier)) {
+      systemPrompt = systemPrompt.replace(
+        toolsSubstringIdentifier,
+        JSON.stringify(tools, null, 2)
+      );
+    }
 
     const messages = [
       { role: "system" as const, content: systemPrompt },
       { role: "user" as const, content: query },
     ];
 
-    if (this.provider === "huggingface") {
-      return await this.processHuggingFaceQuery(tools, messages);
+    if (processType === "text") {
+      return this.provider === "huggingface"
+        ? await this.processHuggingFaceText(messages)
+        : await this.processOpenAIText(messages);
+    } else {
+      return this.provider === "huggingface"
+        ? await this.processHuggingFaceTool(tools, messages)
+        : await this.processOpenAITool(tools, messages);
     }
-
-    return await this.processOpenAIQuery(tools, messages);
   }
 
-  private async processOpenAIQuery(
+  private async processOpenAITool(
     tools: AIToolDefinition[],
-    messages: AIToolMessage[],
-    withoutFC = false
-  ): Promise<AIToolResponse> {
+    messages: AIToolMessage[]
+  ): Promise<AIProcessResponse> {
     try {
       const client = this.client as OpenAI;
 
       const response = await client.chat.completions.create({
+        tools,
         messages,
         model: this.model,
-        ...(!withoutFC && { tools, tool_choice: "required" }),
+        tool_choice: "required",
       });
 
       if (!response.choices?.length) {
-        return { error: "No choices returned from OpenAI" };
+        return {
+          error: "No choices returned from OpenAI; processType: 'tool'",
+        };
       }
 
       const message = response.choices[0].message;
@@ -216,7 +235,9 @@ export class AIService {
         const toolCall = message.tool_calls[0]?.function;
 
         if (!toolCall) {
-          return { error: "Invalid tool from OpenAI response" };
+          return {
+            error: "Invalid tool from OpenAI response; processType: 'tool'",
+          };
         }
 
         return {
@@ -230,7 +251,7 @@ export class AIService {
 
         if (!toolCall) {
           return {
-            error: `Invalid tool call format in content: ${message.content}`,
+            error: "Invalid tool call format in content; processType: 'tool'",
           };
         }
 
@@ -240,35 +261,99 @@ export class AIService {
         };
       }
 
-      return { error: "No tool call or content in OpenAI response" };
+      return {
+        error:
+          "No tool call or content in OpenAI response; processType: 'tool'.",
+      };
     } catch (error) {
       console.error(error);
-
-      if (!withoutFC) {
-        console.info("Retrying without function calling...");
-        return this.processOpenAIQuery(tools, messages, true);
-      }
 
       return { error };
     }
   }
 
-  private async processHuggingFaceQuery(
-    tools: AIToolDefinition[],
-    messages: AIToolMessage[],
-    withoutFC = false
-  ): Promise<AIToolResponse> {
+  private async processOpenAIText(
+    messages: AIToolMessage[]
+  ): Promise<AIProcessResponse> {
+    try {
+      const client = this.client as OpenAI;
+
+      const response = await client.chat.completions.create({
+        messages,
+        model: this.model,
+      });
+
+      if (!response.choices?.length) {
+        return {
+          error: "No response returned from OpenAI; processType: 'text'.",
+        };
+      }
+
+      const message = response.choices[0].message;
+
+      if (message.content) {
+        return { summary: message.content };
+      }
+
+      return { error: "No content in OpenAI response; processType: 'text'." };
+    } catch (error) {
+      console.error(error);
+
+      return { error };
+    }
+  }
+
+  private async processHuggingFaceText(
+    messages: AIToolMessage[]
+  ): Promise<AIProcessResponse> {
     try {
       const client = this.client as typeof InferenceClient;
 
       const response: ChatCompletionOutput = await client.chatCompletion({
         messages,
         model: this.model,
-        ...(!withoutFC && { tools, tool_choice: "required" }),
       } as ChatCompletionInput);
 
       if (!response.choices?.length) {
-        return { error: "No choices in Hugging Face response" };
+        return {
+          error: "No response returned from OpenAI; processType: 'text'.",
+        };
+      }
+
+      const message = response.choices[0].message;
+
+      if (message.content) {
+        return { summary: message.content };
+      }
+
+      return {
+        error: "No content in Hugging Face response; processType: 'text'.",
+      };
+    } catch (error) {
+      console.error(error);
+
+      return { error };
+    }
+  }
+
+  private async processHuggingFaceTool(
+    tools: AIToolDefinition[],
+    messages: AIToolMessage[]
+  ): Promise<AIProcessResponse> {
+    try {
+      const client = this.client as typeof InferenceClient;
+
+      const response: ChatCompletionOutput = await client.chatCompletion({
+        tools,
+        messages,
+        model: this.model,
+        tool_choice: "required",
+      } as ChatCompletionInput);
+
+      if (!response.choices?.length) {
+        return {
+          error: "No choices in Hugging Face response; processType: 'tool'",
+        };
       }
 
       const message = response.choices[0].message;
@@ -277,7 +362,10 @@ export class AIService {
         const toolCall = message.tool_calls[0]?.function;
 
         if (!toolCall) {
-          return { error: "Invalid tool from Hugging Face response" };
+          return {
+            error:
+              "Invalid tool from Hugging Face response; processType: 'tool'",
+          };
         }
 
         return {
@@ -289,7 +377,10 @@ export class AIService {
       if (message.content) {
         const toolCall = markdownToJson<AITool>(message.content);
 
-        if (!toolCall) return { error: "Invalid tool call format in content" };
+        if (!toolCall)
+          return {
+            error: "Invalid tool call format in content; processType: 'tool'",
+          };
 
         return {
           toolName: toolCall.name,
@@ -297,14 +388,12 @@ export class AIService {
         };
       }
 
-      return { error: "No tool call or content in Hugging Face response" };
+      return {
+        error:
+          "No tool call or content in Hugging Face response; processType: 'tool'",
+      };
     } catch (error) {
       console.error(error);
-
-      if (!withoutFC) {
-        console.info("Retrying without function calling...");
-        return this.processHuggingFaceQuery(tools, messages, true);
-      }
 
       return { error };
     }

@@ -6,6 +6,21 @@ import {
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
+interface AIToolClientOptions {
+  specificTools?: string[];
+  justReasoning?: boolean;
+  provideHybridResponse?: boolean;
+}
+
+interface AIToolClientResponse {
+  data?: any;
+  summary?: any;
+  error?: string;
+  success: boolean;
+  toolUsed?: string;
+  reasoning?: string;
+}
+
 export class MCPClient {
   /**
    * Indicates whether the client is connected to the MCP server
@@ -186,23 +201,18 @@ export class MCPClient {
    * @param options Options for the AI processing
    * @param options.specificTools Optional array of specific tool names to consider
    * @param options.justReasoning If true, only returns the reasoning without calling the tool
+   * @param options.provideHybridResponse If true, provides a hybrid response with summary and raw JSON
    * @throws Error if AI inference fails
    * @returns The result of calling the selected tool, or an error
    */
   async callToolWithAI(
     query: string,
-    options: { specificTools?: string[]; justReasoning?: boolean } = {}
-  ): Promise<{
-    success: boolean;
-    data?: any;
-    error?: string;
-    toolUsed?: string;
-    reasoning?: string;
-  }> {
-    const { specificTools, justReasoning } = options;
+    options: AIToolClientOptions = {}
+  ): Promise<AIToolClientResponse> {
+    const { specificTools, justReasoning, provideHybridResponse } = options;
 
     try {
-      const result = await this.callTool("process-ai-query", {
+      const result = await this.callTool("process-ai-tool", {
         query,
         specificTools,
       });
@@ -228,11 +238,25 @@ export class MCPClient {
 
       const toolResult = await this.callTool(toolName, parameters);
 
-      return {
+      if (!toolResult.success) return toolResult;
+
+      const response: AIToolClientResponse = {
         ...toolResult,
         reasoning,
         toolUsed: toolName,
       };
+
+      if (provideHybridResponse) {
+        const summary = await this.callTool("process-ai-text", {
+          query: JSON.stringify(toolResult.data),
+        });
+
+        if (!summary.success) console.error(summary);
+
+        response["summary"] = summary.data;
+      }
+
+      return response;
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);

@@ -2,9 +2,10 @@ import { MCPClient } from "../../../dist/client";
 import { ref, onMounted, onUnmounted } from "vue";
 
 export interface MCPMeilisearchResult {
-  success: boolean;
   data?: unknown;
   error?: string;
+  success: boolean;
+  summary?: unknown;
   toolUsed?: string;
   reasoning?: string;
 }
@@ -19,6 +20,7 @@ export default function useMCPMeilisearch() {
   const tools = ref<MCPTool[]>([]);
   const error = ref<string | null>(null);
   const client = ref<MCPClient | null>(null);
+  const useHybridResponse = ref<boolean>(true);
   const loading = ref({ client: true, tool: false });
   const result = ref<MCPMeilisearchResult | null>(null);
 
@@ -66,6 +68,7 @@ export default function useMCPMeilisearch() {
     try {
       const response = await client.value.callToolWithAI(query, {
         specificTools,
+        provideHybridResponse: useHybridResponse.value,
       });
 
       result.value = response;
@@ -98,6 +101,10 @@ export default function useMCPMeilisearch() {
     useAI.value = value;
   };
 
+  const toggleHybridResponse = (value: boolean) => {
+    useHybridResponse.value = value;
+  };
+
   onMounted(async () => {
     mcp.onToolsUpdatedCallback((t) => (tools.value = t));
 
@@ -122,7 +129,9 @@ export default function useMCPMeilisearch() {
     useAI,
     client,
     loading,
+    useHybridResponse,
     toggleAIInference,
+    toggleHybridResponse,
     searchAcrossAllIndexes,
   };
 }

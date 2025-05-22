@@ -11,6 +11,8 @@ const {
   client,
   loading,
   toggleAIInference,
+  useHybridResponse,
+  toggleHybridResponse,
   searchAcrossAllIndexes,
 } = useMCPMeilisearch();
 
@@ -21,6 +23,11 @@ const handleSearch = () => {
 const handleToggleAI = (event: Event) => {
   const target = event.target as HTMLInputElement;
   toggleAIInference(target.checked);
+};
+
+const handleToggleHybridResponse = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  toggleHybridResponse(target.checked);
 };
 </script>
 
@@ -44,7 +51,17 @@ const handleToggleAI = (event: Event) => {
             @change="handleToggleAI"
             style="margin-right: 5px"
           />
-          <label for="ai-toggle">Use AI</label>
+          <label for="ai-toggle" style="margin-right: 15px">Use AI</label>
+
+          <input
+            type="checkbox"
+            :checked="useHybridResponse"
+            id="hybrid-toggle"
+            @change="handleToggleHybridResponse"
+            style="margin-right: 5px"
+            :disabled="!useAI"
+          />
+          <label for="hybrid-toggle">Hybrid Response</label>
         </div>
 
         <input
@@ -75,9 +92,23 @@ const handleToggleAI = (event: Event) => {
         <div v-if="result.success" style="color: green">Success!</div>
         <div v-else style="color: red">Error: {{ result.error }}</div>
 
-        <div v-if="useAI && result.toolUsed" style="margin-top: 10px">
+        <div v-if="useAI && result.toolUsed" style="margin-top: 1em">
           <div><strong>Tool Used:</strong> {{ result.toolUsed }}</div>
-          <div v-if="result.reasoning">
+
+          <div v-if="result.summary" style="margin-top: 1em">
+            <strong>Summary:</strong>
+            <div
+              style="
+                margin-top: 5px;
+                padding: 10px;
+                background-color: #f0f8ff;
+                border-left: 4px solid #0077cc;
+              "
+              v-html="result.summary"
+            />
+          </div>
+
+          <div v-if="result.reasoning" style="margin-top: 1em">
             <strong>Reasoning:</strong>
             <p style="margin-top: 5px; font-style: italic">
               {{ result.reasoning }}
@@ -85,9 +116,20 @@ const handleToggleAI = (event: Event) => {
           </div>
         </div>
 
-        <pre style="margin-top: 1em; overflow: auto; max-height: 400px">{{
-          result.data
-        }}</pre>
+        <div style="margin-top: 1em">
+          <strong>Result Data:</strong>
+          <pre
+            style="
+              overflow: auto;
+              max-height: 400px;
+              margin-top: 5px;
+              background-color: #f5f5f5;
+              padding: 10px;
+              border-radius: 4px;
+            "
+            >{{ result.data }}</pre
+          >
+        </div>
       </div>
 
       <h3 style="margin-top: 2em">Available Tools</h3>
