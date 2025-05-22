@@ -97,21 +97,42 @@ await client.connectToServer("http://localhost:4995/mcp");
 const result = await client.callTool("global-search", {
   q: "search kiosco antonio",
 });
-
-// Use AI inference to choose the most appropriate tool
-
-const result = await client.callToolWithAI("Find articles about cucumber", {
-  provideSummary: true,
-});
-console.log(`Tool used: ${result.toolUsed}`);
-console.log(`Reasoning: ${result.reasoning}`);
-console.log(`Results: ${JSON.stringify(result.data)}`);
-console.log(`Summary: ${result.summary}`);
 ```
 
-#### AI Inference Client Methods
+#### Client Methods
 
-#### `callToolWithAI(query, options)`
+##### `callTool(name, args)`
+
+Calls a specific tool on the MCP server with optional arguments.
+
+**Parameters:**
+
+- `name`: String - The name of the tool to call
+- `args`: Object (Optional) - Arguments to pass to the tool
+
+**Returns:**
+
+- Promise resolving to a `ToolClientResponse` object with:
+  - `success`: Boolean - Whether the tool call was successful
+  - `data`: Any (Optional) - The data returned by the tool if successful
+  - `error`: String (Optional) - Error message if the tool call failed
+
+##### `processSummary(query)`
+
+Processes data using AI to generate a human-readable summary.
+
+**Parameters:**
+
+- `query`: Any - The data to be summarized
+
+**Returns:**
+
+- Promise resolving to an `AIToolClientResponse` object with:
+  - `success`: Boolean - Whether the summary generation was successful
+  - `data`: Any (Optional) - The generated summary if successful
+  - `error`: String (Optional) - Error message if summary generation failed
+
+##### `callToolWithAI(query, options)`
 
 Processes a user query through AI to determine and execute the most appropriate tool.
 
@@ -120,8 +141,7 @@ Processes a user query through AI to determine and execute the most appropriate 
 - `query`: String - The user's query or request to be processed
 - `options`: Object (Optional) - Configuration options
   - `specificTools`: String[] (Optional) - Restricts tool selection to this list of tool names
-  - `justReasoning`: Boolean (Optional) - When set to `true`, returns only the AI's reasoning without executing the
-    selected tool
+  - `justReasoning`: Boolean (Optional) - When set to `true`, returns only the AI's reasoning without executing the selected tool
   - `provideSummary`: Boolean (Optional) - When set to `true`, generates a concise summary of the search results along with the regular response
 
 ### Starting the Server
