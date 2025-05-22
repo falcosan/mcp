@@ -12,13 +12,13 @@ interface ToolClientResponse {
   success: boolean;
 }
 
-interface AIToolClientResponse extends ToolClientResponse {
+interface SearchToolClientResponse extends ToolClientResponse {
   summary?: any;
   toolUsed?: string;
   reasoning?: string;
 }
 
-interface AIToolClientOptions {
+interface SearchToolClientOptions {
   specificTools?: string[];
   justReasoning?: boolean;
   provideSummary?: boolean;
@@ -169,8 +169,8 @@ export class MCPClient {
    */
   async callToolWithAI(
     query: string,
-    options: AIToolClientOptions = {}
-  ): Promise<AIToolClientResponse> {
+    options: SearchToolClientOptions = {}
+  ): Promise<SearchToolClientResponse> {
     const { specificTools, justReasoning, provideSummary } = options;
 
     try {
@@ -202,7 +202,7 @@ export class MCPClient {
 
       if (!toolResult.success) return toolResult;
 
-      const response: AIToolClientResponse = {
+      const response: SearchToolClientResponse = {
         ...toolResult,
         reasoning,
         toolUsed: toolName,
@@ -230,7 +230,7 @@ export class MCPClient {
    * @param query The natural language query to process
    * @throws Error if AI inference fails
    */
-  async processSummary(query: unknown): Promise<AIToolClientResponse> {
+  async processSummary(query: any): Promise<ToolClientResponse> {
     const result = await this.callTool("process-ai-text", {
       query: JSON.stringify(query),
     });

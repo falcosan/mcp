@@ -110,13 +110,6 @@ Calls a specific tool on the MCP server with optional arguments.
 - `name`: String - The name of the tool to call
 - `args`: Object (Optional) - Arguments to pass to the tool
 
-**Returns:**
-
-- Promise resolving to a `ToolClientResponse` object with:
-  - `success`: Boolean - Whether the tool call was successful
-  - `data`: Any (Optional) - The data returned by the tool if successful
-  - `error`: String (Optional) - Error message if the tool call failed
-
 ##### `processSummary(query)`
 
 Processes data using AI to generate a human-readable summary.
@@ -124,13 +117,6 @@ Processes data using AI to generate a human-readable summary.
 **Parameters:**
 
 - `query`: Any - The data to be summarized
-
-**Returns:**
-
-- Promise resolving to an `AIToolClientResponse` object with:
-  - `success`: Boolean - Whether the summary generation was successful
-  - `data`: Any (Optional) - The generated summary if successful
-  - `error`: String (Optional) - Error message if summary generation failed
 
 ##### `callToolWithAI(query, options)`
 
