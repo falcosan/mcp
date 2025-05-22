@@ -240,18 +240,23 @@ export class MCPClient {
 
       if (!toolResult.success) return toolResult;
 
-      const summary = await this.callTool("process-ai-text", {
-        query: JSON.stringify(toolResult.data),
-      });
-
-      if (!summary.success) console.error(summary);
-
-      return {
+      const response: AIToolClientResponse = {
         ...toolResult,
         reasoning,
         toolUsed: toolName,
-        summary: summary.data,
       };
+
+      if (provideHybridResponse) {
+        const summary = await this.callTool("process-ai-text", {
+          query: JSON.stringify(toolResult.data),
+        });
+
+        if (!summary.success) console.error(summary);
+
+        response["summary"] = summary.data;
+      }
+
+      return response;
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : String(error);

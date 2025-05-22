@@ -92,10 +92,10 @@ const handleToggleHybridResponse = (event: Event) => {
         <div v-if="result.success" style="color: green">Success!</div>
         <div v-else style="color: red">Error: {{ result.error }}</div>
 
-        <div v-if="useAI && result.toolUsed" style="margin-top: 10px">
+        <div v-if="useAI && result.toolUsed" style="margin-top: 1em">
           <div><strong>Tool Used:</strong> {{ result.toolUsed }}</div>
 
-          <div v-if="result.summary" style="margin-top: 10px">
+          <div v-if="result.summary" style="margin-top: 1em">
             <strong>Summary:</strong>
             <div
               style="
@@ -108,7 +108,7 @@ const handleToggleHybridResponse = (event: Event) => {
             />
           </div>
 
-          <div v-if="result.reasoning">
+          <div v-if="result.reasoning" style="margin-top: 1em">
             <strong>Reasoning:</strong>
             <p style="margin-top: 5px; font-style: italic">
               {{ result.reasoning }}
