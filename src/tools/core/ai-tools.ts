@@ -12,11 +12,6 @@ import { convertNullToUndefined } from "../../utils/response-handler.js";
  * This module implements tools for AI-powered features in the MCP server.
  */
 
-interface ProcessAIParams {
-  query: string;
-  specificTools?: string[];
-}
-
 interface ProcessRegisteredToolsParams {
   description: string;
   inputSchema: z.ZodSchema;
@@ -59,7 +54,7 @@ export const registerAITools = (server: McpServer) => {
         .describe("Optional array of specific tool names to consider"),
     },
     { category: "core" },
-    async ({ query, specificTools }: ProcessAIParams) => {
+    async ({ query, specificTools }) => {
       try {
         const aiService = AIService.getInstance();
 
@@ -93,28 +88,20 @@ export const registerAITools = (server: McpServer) => {
   server.tool(
     "process-ai-text",
     "Process a summary text using AI to describe the data result from a tool",
-    {
-      query: z.string().describe("The natural language query to process"),
-      specificTools: z
-        .array(z.string())
-        .optional()
-        .describe("Optional array of specific tool names to consider"),
-    },
+    { query: z.string().describe("The natural language query to process") },
     { category: "core" },
-    async ({ query, specificTools }: ProcessAIParams) => {
+    async ({ query }) => {
       try {
         const aiService = AIService.getInstance();
 
-        setAvailableTools(aiService, server);
-
         const response = await aiService.setupAIProcess(query, {
-          specificTools,
           processType: "text",
         });
 
         if (response.error) return createErrorResponse(response.error);
 
-        const { message: result } = response;
+        const { summary: result } = response;
+
         return {
           isError: false,
           content: [{ type: "text", text: JSON.stringify(result, null, 2) }],

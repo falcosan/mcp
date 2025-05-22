@@ -95,7 +95,6 @@ const handleToggleHybridResponse = (event: Event) => {
         <div v-if="useAI && result.toolUsed" style="margin-top: 10px">
           <div><strong>Tool Used:</strong> {{ result.toolUsed }}</div>
 
-          <!-- Display summary for hybrid responses -->
           <div v-if="result.summary" style="margin-top: 10px">
             <strong>Summary:</strong>
             <div

@@ -4,8 +4,8 @@ import { ref, onMounted, onUnmounted } from "vue";
 export interface MCPMeilisearchResult {
   data?: unknown;
   error?: string;
-  summary?: string;
   success: boolean;
+  summary?: unknown;
   toolUsed?: string;
   reasoning?: string;
 }

@@ -14,6 +14,7 @@ interface AIToolClientOptions {
 
 interface AIToolClientResponse {
   data?: any;
+  summary?: any;
   error?: string;
   success: boolean;
   toolUsed?: string;
@@ -209,25 +210,14 @@ export class MCPClient {
     options: AIToolClientOptions = {}
   ): Promise<AIToolClientResponse> {
     const { specificTools, justReasoning, provideHybridResponse } = options;
-    const toolsToUse = provideHybridResponse
-      ? "process-ai-text"
-      : "process-ai-tool";
 
     try {
-      const result = await this.callTool(toolsToUse, {
+      const result = await this.callTool("process-ai-tool", {
         query,
         specificTools,
-        provideHybridResponse,
       });
 
       if (!result.success) return result;
-
-      if (provideHybridResponse) {
-        return {
-          ...result,
-          success: true,
-        };
-      }
 
       const { toolName, parameters, reasoning } = result.data;
 
@@ -248,10 +238,19 @@ export class MCPClient {
 
       const toolResult = await this.callTool(toolName, parameters);
 
+      if (!toolResult.success) return toolResult;
+
+      const summary = await this.callTool("process-ai-text", {
+        query: JSON.stringify(toolResult.data),
+      });
+
+      if (!summary.success) console.error(summary);
+
       return {
         ...toolResult,
         reasoning,
         toolUsed: toolName,
+        summary: summary.data,
       };
     } catch (error) {
       const errorMessage =

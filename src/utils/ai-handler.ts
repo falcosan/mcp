@@ -39,7 +39,7 @@ interface AIToolResponse {
 }
 
 interface AITextResponse {
-  message?: string;
+  summary?: string;
 }
 
 interface AIProcessResponse extends AIToolResponse, AITextResponse {
@@ -175,15 +175,23 @@ export class AIService {
         error: "AI service not initialized. Please provide an API key.",
       };
     }
+
+    const toolsSubstringIdentifier = "MCP_TOOLS";
     const { processType, specificTools } = options;
+
+    let systemPrompt = systemPrompts[processType];
+
     const mentionedTools = this.extractToolNames(query);
     const toolsToUse =
       specificTools || (mentionedTools.length ? mentionedTools : undefined);
     const tools = this.getToolDefinitions(toolsToUse);
-    const systemPrompt = systemPrompts[processType].replace(
-      "MCP_TOOLS",
-      JSON.stringify(tools, null, 2)
-    );
+
+    if (systemPrompt.includes(toolsSubstringIdentifier)) {
+      systemPrompt = systemPrompt.replace(
+        toolsSubstringIdentifier,
+        JSON.stringify(tools, null, 2)
+      );
+    }
 
     const messages = [
       { role: "system" as const, content: systemPrompt },
@@ -191,41 +199,14 @@ export class AIService {
     ];
 
     if (processType === "text") {
-      return await this.setupTextProcess(tools, messages);
+      return this.provider === "huggingface"
+        ? await this.processHuggingFaceText(messages)
+        : await this.processOpenAIText(messages);
+    } else {
+      return this.provider === "huggingface"
+        ? await this.processHuggingFaceTool(tools, messages)
+        : await this.processOpenAITool(tools, messages);
     }
-    return await this.setupToolProcess(tools, messages);
-  }
-
-  /**
-   * Process a user query and determine which tool to use
-   * @param query User query
-   * @param specificTools Optional array of specific tool names to consider
-   * @returns Object containing the selected tool name and parameters
-   */
-  private async setupToolProcess(
-    tools: AIToolDefinition[],
-    messages: AIToolMessage[]
-  ): Promise<AIProcessResponse> {
-    if (this.provider === "huggingface") {
-      return await this.processHuggingFaceTool(tools, messages);
-    }
-    return await this.processOpenAITool(tools, messages);
-  }
-
-  /**
-   * Process a summary text using AI to describe the data result from a tool
-   * @param query The user's query
-   * @param specificTools Optional array of specific tool names to consider
-   * @returns Object containing the selected tool name and parameters
-   */
-  private async setupTextProcess(
-    tools: AIToolDefinition[],
-    messages: AIToolMessage[]
-  ): Promise<AIProcessResponse> {
-    if (this.provider === "huggingface") {
-      return await this.processHuggingFaceText(tools, messages);
-    }
-    return await this.processOpenAIText(tools, messages);
   }
 
   private async processOpenAITool(
@@ -239,10 +220,13 @@ export class AIService {
         tools,
         messages,
         model: this.model,
+        tool_choice: "required",
       });
 
       if (!response.choices?.length) {
-        return { error: "No choices returned from OpenAI" };
+        return {
+          error: "No choices returned from OpenAI; processType: 'tool'",
+        };
       }
 
       const message = response.choices[0].message;
@@ -251,7 +235,9 @@ export class AIService {
         const toolCall = message.tool_calls[0]?.function;
 
         if (!toolCall) {
-          return { error: "Invalid tool from OpenAI response" };
+          return {
+            error: "Invalid tool from OpenAI response; processType: 'tool'",
+          };
         }
 
         return {
@@ -265,7 +251,7 @@ export class AIService {
 
         if (!toolCall) {
           return {
-            error: `Invalid tool call format in content: ${message.content}`,
+            error: "Invalid tool call format in content; processType: 'tool'",
           };
         }
 
@@ -275,7 +261,10 @@ export class AIService {
         };
       }
 
-      return { error: "No tool call or content in OpenAI response" };
+      return {
+        error:
+          "No tool call or content in OpenAI response; processType: 'tool'.",
+      };
     } catch (error) {
       console.error(error);
 
@@ -284,7 +273,6 @@ export class AIService {
   }
 
   private async processOpenAIText(
-    tools: AIToolDefinition[],
     messages: AIToolMessage[]
   ): Promise<AIProcessResponse> {
     try {
@@ -292,25 +280,22 @@ export class AIService {
 
       const response = await client.chat.completions.create({
         messages,
-        stream: true,
         model: this.model,
       });
 
-      if (!response) {
-        return { error: "No stream returned from OpenAI" };
+      if (!response.choices?.length) {
+        return {
+          error: "No response returned from OpenAI; processType: 'text'.",
+        };
       }
 
-      let message = "";
+      const message = response.choices[0].message;
 
-      for await (const chunk of response) {
-        message += chunk.choices[0]?.delta?.content;
+      if (message.content) {
+        return { summary: message.content };
       }
 
-      if (message) {
-        return { message };
-      }
-
-      return { error: "No content in OpenAI stream response" };
+      return { error: "No content in OpenAI response; processType: 'text'." };
     } catch (error) {
       console.error(error);
 
@@ -319,7 +304,6 @@ export class AIService {
   }
 
   private async processHuggingFaceText(
-    tools: AIToolDefinition[],
     messages: AIToolMessage[]
   ): Promise<AIProcessResponse> {
     try {
@@ -327,25 +311,24 @@ export class AIService {
 
       const response: ChatCompletionOutput = await client.chatCompletion({
         messages,
-        stream: true,
         model: this.model,
       } as ChatCompletionInput);
 
-      if (!response) {
-        return { error: "No stream returned from Hugging Face" };
+      if (!response.choices?.length) {
+        return {
+          error: "No response returned from OpenAI; processType: 'text'.",
+        };
       }
 
-      let message = "";
+      const message = response.choices[0].message;
 
-      for await (const chunk of response.choices) {
-        message += chunk.message.content;
+      if (message.content) {
+        return { summary: message.content };
       }
 
-      if (message) {
-        return { message };
-      }
-
-      return { error: "No content in OpenAI stream response" };
+      return {
+        error: "No content in Hugging Face response; processType: 'text'.",
+      };
     } catch (error) {
       console.error(error);
 
@@ -364,10 +347,13 @@ export class AIService {
         tools,
         messages,
         model: this.model,
+        tool_choice: "required",
       } as ChatCompletionInput);
 
       if (!response.choices?.length) {
-        return { error: "No choices in Hugging Face response" };
+        return {
+          error: "No choices in Hugging Face response; processType: 'tool'",
+        };
       }
 
       const message = response.choices[0].message;
@@ -376,7 +362,10 @@ export class AIService {
         const toolCall = message.tool_calls[0]?.function;
 
         if (!toolCall) {
-          return { error: "Invalid tool from Hugging Face response" };
+          return {
+            error:
+              "Invalid tool from Hugging Face response; processType: 'tool'",
+          };
         }
 
         return {
@@ -388,7 +377,10 @@ export class AIService {
       if (message.content) {
         const toolCall = markdownToJson<AITool>(message.content);
 
-        if (!toolCall) return { error: "Invalid tool call format in content" };
+        if (!toolCall)
+          return {
+            error: "Invalid tool call format in content; processType: 'tool'",
+          };
 
         return {
           toolName: toolCall.name,
@@ -396,7 +388,10 @@ export class AIService {
         };
       }
 
-      return { error: "No tool call or content in Hugging Face response" };
+      return {
+        error:
+          "No tool call or content in Hugging Face response; processType: 'tool'",
+      };
     } catch (error) {
       console.error(error);
 
