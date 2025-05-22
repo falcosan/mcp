@@ -117,7 +117,9 @@ Processes a user query through AI to determine and execute the most appropriate 
 - `query`: String - The user's query or request to be processed
 - `options`: Object (Optional) - Configuration options
   - `specificTools`: String[] (Optional) - Restricts tool selection to this list of tool names
-  - `justReasoning`: Boolean (Optional) - When set to `true`, returns only the AI's reasoning without executing the selected tool
+  - `justReasoning`: Boolean (Optional) - When set to `true`, returns only the AI's reasoning without executing the
+    selected tool
+  - `withSummary`: Boolean (Optional) - When set to `true`, generates a concise summary of the search results along with the regular response
 
 ### Starting the Server
 

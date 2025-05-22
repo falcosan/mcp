@@ -9,7 +9,7 @@ import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/
 interface AIToolClientOptions {
   specificTools?: string[];
   justReasoning?: boolean;
-  provideHybridResponse?: boolean;
+  provideSummary?: boolean;
 }
 
 interface AIToolClientResponse {
@@ -201,7 +201,7 @@ export class MCPClient {
    * @param options Options for the AI processing
    * @param options.specificTools Optional array of specific tool names to consider
    * @param options.justReasoning If true, only returns the reasoning without calling the tool
-   * @param options.provideHybridResponse If true, provides a hybrid response with summary and raw JSON
+   * @param options.provideSummary If true, beyond the raw JSON, it will also provide a summary of the result
    * @throws Error if AI inference fails
    * @returns The result of calling the selected tool, or an error
    */
@@ -209,7 +209,7 @@ export class MCPClient {
     query: string,
     options: AIToolClientOptions = {}
   ): Promise<AIToolClientResponse> {
-    const { specificTools, justReasoning, provideHybridResponse } = options;
+    const { specificTools, justReasoning, provideSummary } = options;
 
     try {
       const result = await this.callTool("process-ai-tool", {
@@ -246,7 +246,7 @@ export class MCPClient {
         toolUsed: toolName,
       };
 
-      if (provideHybridResponse) {
+      if (provideSummary) {
         const summary = await this.callTool("process-ai-text", {
           query: JSON.stringify(toolResult.data),
         });
