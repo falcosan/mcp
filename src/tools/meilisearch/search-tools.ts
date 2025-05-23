@@ -33,7 +33,9 @@ interface MultiSearchParams {
 }
 
 interface GlobalSearchParams
-  extends Pick<SearchParams, "q" | "limit" | "attributesToRetrieve"> {}
+  extends Pick<SearchParams, "q" | "limit" | "attributesToRetrieve"> {
+  indexUids: string[];
+}
 
 const SearchParamsSchema = {
   indexUid: z.string().describe("Unique identifier of the index"),
@@ -89,6 +91,71 @@ const SearchParamsSchema = {
     .describe("Matching strategy: 'all' or 'last'"),
 };
 
+const getIndexUids = async (): Promise<string[]> => {
+  const indexesResponse = await apiClient.get("/indexes", {
+    params: { limit: 1000 },
+  });
+  const indexUids: string[] = indexesResponse.data.results.map(
+    (index: { uid: string }) => index.uid
+  );
+
+  return indexUids;
+};
+
+const globalSearch = async ({
+  q,
+  limit,
+  indexUids,
+  attributesToRetrieve,
+}: GlobalSearchParams) => {
+  try {
+    if (!indexUids?.length) {
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: JSON.stringify(
+              { hits: [], message: "No indexes found in Meilisearch." },
+              null,
+              2
+            ),
+          },
+        ],
+      };
+    }
+
+    const searchPromises = indexUids.map(async (uid) => {
+      try {
+        const searchResult = await apiClient.post(`/indexes/${uid}/search`, {
+          q,
+          limit,
+          attributesToRetrieve,
+        });
+        return searchResult.data.hits.map((hit: any) => ({
+          indexUid: uid,
+          ...hit,
+        }));
+      } catch (searchError: any) {
+        return [];
+      }
+    });
+
+    const resultsPerIndex = await Promise.all(searchPromises);
+    const result = { limit, query: q, hits: resultsPerIndex.flat() };
+
+    return {
+      content: [
+        {
+          type: "text" as const,
+          text: JSON.stringify(result, null, 2),
+        },
+      ],
+    };
+  } catch (error: any) {
+    return createErrorResponse(error);
+  }
+};
+
 /**
  * Register search tools with the MCP server
  *
@@ -135,6 +202,17 @@ export const registerSearchTools = (server: McpServer) => {
           showMatchesPosition,
           matchingStrategy,
         });
+        const indexUids = await getIndexUids();
+
+        if (!indexUids.includes(indexUid)) {
+          return await globalSearch({
+            q,
+            limit,
+            indexUids,
+            attributesToRetrieve,
+          });
+        }
+
         return {
           content: [
             { type: "text", text: JSON.stringify(response.data, null, 2) },
@@ -181,6 +259,17 @@ export const registerSearchTools = (server: McpServer) => {
               ],
             };
           }
+
+          const indexUids = await getIndexUids();
+
+          if (!indexUids.includes(search.indexUid)) {
+            return await globalSearch({
+              indexUids,
+              q: search.q,
+              limit: search.limit,
+              attributesToRetrieve: search.attributesToRetrieve,
+            });
+          }
         }
 
         const response = await apiClient.post("/multi-search", {
@@ -216,62 +305,19 @@ export const registerSearchTools = (server: McpServer) => {
         .describe("Attributes to include in results"),
     },
     { category: "meilisearch" },
-    async ({ q, limit, attributesToRetrieve }: GlobalSearchParams) => {
-      try {
-        const indexesResponse = await apiClient.get("/indexes", {
-          params: { limit: 1000 },
-        });
-        const indexUids: string[] = indexesResponse.data.results.map(
-          (index: any) => index.uid
-        );
+    async ({
+      q,
+      limit,
+      attributesToRetrieve,
+    }: Omit<GlobalSearchParams, "indexUids">) => {
+      const indexUids = await getIndexUids();
 
-        if (!indexUids?.length) {
-          return {
-            content: [
-              {
-                type: "text",
-                text: JSON.stringify(
-                  { hits: [], message: "No indexes found in Meilisearch." },
-                  null,
-                  2
-                ),
-              },
-            ],
-          };
-        }
-        const searchPromises = indexUids.map(async (uid) => {
-          try {
-            const searchResult = await apiClient.post(
-              `/indexes/${uid}/search`,
-              {
-                q,
-                limit,
-                attributesToRetrieve,
-              }
-            );
-            return searchResult.data.hits.map((hit: any) => ({
-              indexUid: uid,
-              ...hit,
-            }));
-          } catch (searchError: any) {
-            return [];
-          }
-        });
-
-        const resultsPerIndex = await Promise.all(searchPromises);
-        const hits = resultsPerIndex.flat();
-
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify({ query: q, hits, limit }, null, 2),
-            },
-          ],
-        };
-      } catch (error: any) {
-        return createErrorResponse(error);
-      }
+      return await globalSearch({
+        q,
+        limit,
+        indexUids,
+        attributesToRetrieve,
+      });
     }
   );
 
