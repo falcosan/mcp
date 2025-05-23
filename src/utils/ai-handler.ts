@@ -1,8 +1,8 @@
 import { OpenAI } from "openai";
-import developerPrompts from "../prompts/developer/index.js";
 import { markdownToJson } from "./response-handler.js";
 import { InferenceClient } from "@huggingface/inference";
 import { AiProviderNameOptions } from "../types/options.js";
+import developerPrompts from "../prompts/developer/index.js";
 import { OLLAMA_API, OPEN_ROUTER_API } from "../types/enums.js";
 import { ChatCompletionInput, ChatCompletionOutput } from "@huggingface/tasks";
 
@@ -53,6 +53,7 @@ interface AIProcessResponse extends AIToolResponse, AITextResponse {
  * to use based on the user's query
  */
 export class AIService {
+  private readonly chunkSize = 50000;
   private availableTools: AITool[] = [];
   private model: string = "gpt-3.5-turbo";
   private static instance: AIService | null = null;
@@ -203,17 +204,27 @@ export class AIService {
         this.provider === "huggingface"
           ? this.processHuggingFaceText.bind(this)
           : this.processOpenAIText.bind(this);
-      const chunks = this.splitTextIntoChunks(query, 50000);
+      const chunks = this.splitTextIntoChunks(query, this.chunkSize);
 
       if (chunks.length === 1) {
         return processTextMethod(messages);
       }
 
-      const chunkPromises = chunks.map((content) =>
-        processTextMethod([messages[0], { role: "user" as const, content }])
-      );
+      const results: AIProcessResponse[] = [];
 
-      const results = await Promise.all(chunkPromises);
+      for (let i = 0; i < chunks.length; i++) {
+        const result = await processTextMethod([
+          messages[0],
+          { role: "user" as const, content: chunks[i] },
+        ]);
+
+        results.push(result);
+
+        if (i < chunks.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+      }
+
       const error = results.find((result) => result.error);
 
       if (error) {
