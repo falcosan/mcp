@@ -235,7 +235,7 @@ export class MCPClient {
       query: JSON.stringify(query),
     });
 
-    if (!result.success) console.error(result);
+    if (!result.success) console.warn(result);
 
     return result;
   }

@@ -210,28 +210,15 @@ export class AIService {
         return processTextMethod(messages);
       }
 
-      const results: AIProcessResponse[] = [];
+      const chunkPromises = chunks.map((content) =>
+        processTextMethod([messages[0], { role: "user" as const, content }])
+      );
 
-      for (let i = 0; i < chunks.length; i++) {
-        const result = await processTextMethod([
-          messages[0],
-          { role: "user" as const, content: chunks[i] },
-        ]);
-
-        results.push(result);
-
-        if (i < chunks.length - 1) {
-          await new Promise((resolve) => setTimeout(resolve, 500));
-        }
-      }
-
-      const error = results.find((result) => result.error);
-
-      if (error) {
-        return { error };
-      }
-
-      const summary = results.map((result) => result?.summary || "").join(" ");
+      const results = await Promise.all(chunkPromises);
+      const summary = results
+        .filter((result) => !result.error)
+        .map((result) => result?.summary || "")
+        .join(" ");
 
       return { summary };
     } else {
