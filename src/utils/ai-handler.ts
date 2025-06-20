@@ -59,7 +59,7 @@ export class AIService {
   private static instance: AIService | null = null;
   private static serverInitialized: boolean = false;
   private provider: AiProviderNameOptions = "openai";
-  private client: OpenAI | typeof InferenceClient | null = null;
+  private client: OpenAI | InferenceClient | null = null;
 
   /**
    * Private constructor to prevent direct instantiation
@@ -327,7 +327,7 @@ export class AIService {
     messages: AIToolMessage[]
   ): Promise<AIProcessResponse> {
     try {
-      const client = this.client as typeof InferenceClient;
+      const client = this.client as InferenceClient;
 
       const response: ChatCompletionOutput = await client.chatCompletion({
         tools,
@@ -389,7 +389,7 @@ export class AIService {
     messages: AIToolMessage[]
   ): Promise<AIProcessResponse> {
     try {
-      const client = this.client as typeof InferenceClient;
+      const client = this.client as InferenceClient;
 
       const response: ChatCompletionOutput = await client.chatCompletion({
         messages,
