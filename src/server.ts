@@ -82,7 +82,7 @@ export class MCPServer {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
     res.setHeader(
       "Access-Control-Allow-Headers",
-      "Origin, X-Requested-With, Content-Type, Accept, mcp-session-id"
+      "Origin, X-Requested-With, Content-Type, Accept, mcp-session-id, mcp-protocol-version"
     );
 
     if (req.method === "OPTIONS") {
