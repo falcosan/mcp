@@ -15,7 +15,7 @@ interface SearchParams {
   q: string;
   limit?: number;
   offset?: number;
-  filter?: string;
+  filter?: string | string[];
   sort?: string[];
   facets?: string[];
   attributesToRetrieve?: string[];
@@ -50,7 +50,10 @@ const SearchParamsSchema = {
     .min(0)
     .optional()
     .describe("Number of results to skip (default: 0)"),
-  filter: z.string().optional().describe("Filter query to apply"),
+  filter: z
+    .union([z.string(), z.array(z.string())])
+    .optional()
+    .describe("Filter query to apply"),
   sort: z
     .array(z.string())
     .optional()
