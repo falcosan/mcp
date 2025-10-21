@@ -29,15 +29,15 @@
     "prepublishOnly": "rm -rf dist && npm version patch && npm run build"
   },
   "dependencies": {
-    "@huggingface/inference": "^4.0.6",
-    "@modelcontextprotocol/sdk": "^1.13.0",
+    "@huggingface/inference": "^4.12.0",
+    "@modelcontextprotocol/sdk": "^1.20.1",
     "axios": "^1.12.2",
-    "openai": "^5.5.1",
+    "openai": "^6.6.0",
     "zod": "^3.25.67"
   },
   "devDependencies": {
-    "@types/node": "^24.0.3",
-    "typescript": "^5.8.3"
+    "@types/node": "^24.9.1",
+    "typescript": "^5.9.3"
   },
   "engines": {
     "node": ">=20.12.2",
