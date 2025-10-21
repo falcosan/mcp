@@ -4,6 +4,7 @@ import { InferenceClient } from "@huggingface/inference";
 import { AiProviderNameOptions } from "../types/options.js";
 import developerPrompts from "../prompts/developer/index.js";
 import { OLLAMA_API, OPEN_ROUTER_API } from "../types/enums.js";
+import { ChatCompletionMessageFunctionToolCall } from "openai/resources";
 import { ChatCompletionInput, ChatCompletionOutput } from "@huggingface/tasks";
 
 interface AITool {
@@ -249,9 +250,11 @@ export class AIService {
       }
 
       const message = response.choices[0].message;
+      const toolCalls =
+        message.tool_calls as ChatCompletionMessageFunctionToolCall[];
 
-      if (message.tool_calls?.length) {
-        const toolCall = message.tool_calls[0]?.function;
+      if (toolCalls?.length) {
+        const toolCall = toolCalls[0]?.function;
 
         if (!toolCall) {
           return {
