@@ -25,7 +25,6 @@ const setAvailableTools = (aiService: AIService, server: McpServer) => {
   const availableTools = registeredTools
     .filter(([_, { _meta }]) => _meta?.category !== "core")
     .map(([name, { description, inputSchema }]) => {
-      // Wrap plain object shape with z.object() if needed
       const schema =
         inputSchema instanceof z.ZodType
           ? inputSchema
