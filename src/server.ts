@@ -245,8 +245,6 @@ export class MCPServer {
       sessionIdGenerator: () => newSessionId,
     });
 
-    transport.sessionId = newSessionId;
-
     try {
       await this.server.connect(transport);
 

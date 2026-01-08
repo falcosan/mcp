@@ -134,11 +134,11 @@ const globalSearch = async ({
           limit,
           attributesToRetrieve,
         });
-        return searchResult.data.hits.map((hit: any) => ({
+        return searchResult.data.hits.map((hit: Record<string, unknown>) => ({
           indexUid: uid,
           ...hit,
         }));
-      } catch (searchError: any) {
+      } catch {
         return [];
       }
     });
@@ -154,7 +154,7 @@ const globalSearch = async ({
         },
       ],
     };
-  } catch (error: any) {
+  } catch (error) {
     return createErrorResponse(error);
   }
 };
@@ -165,12 +165,14 @@ const globalSearch = async ({
  * @param server - The MCP server instance
  */
 export const registerSearchTools = (server: McpServer) => {
-  // Search in an index
-  server.tool(
+  // Search for documents in an index
+  server.registerTool(
     "search",
-    "Search for documents in a Meilisearch index",
-    SearchParamsSchema,
-    { category: "meilisearch" },
+    {
+      description: "Search for documents in a Meilisearch index",
+      inputSchema: SearchParamsSchema,
+      _meta: { category: "meilisearch" },
+    },
     async ({
       indexUid,
       q,
@@ -228,20 +230,21 @@ export const registerSearchTools = (server: McpServer) => {
   );
 
   // Multi-search across multiple indexes
-  server.tool(
+  server.registerTool(
     "multi-search",
-    "Perform multiple searches in one request",
     {
-      queries: z
-        .array(z.object(SearchParamsSchema))
-        .describe(
-          "JSON array of search queries, each containing the same parameters as the `search` tool"
-        ),
+      description: "Perform multiple searches in one request",
+      inputSchema: {
+        queries: z
+          .array(z.object(SearchParamsSchema))
+          .describe(
+            "JSON array of search queries, each containing the same parameters as the `search` tool"
+          ),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ queries }: MultiSearchParams) => {
       try {
-        // Ensure queries is an array
         if (!Array.isArray(queries)) {
           return {
             isError: true,
@@ -249,7 +252,6 @@ export const registerSearchTools = (server: McpServer) => {
           };
         }
 
-        // Ensure each search has at least indexUid
         for (const search of queries) {
           if (!search.indexUid) {
             return {
@@ -289,25 +291,29 @@ export const registerSearchTools = (server: McpServer) => {
     }
   );
 
-  server.tool(
+  // Global search across all indexes
+  server.registerTool(
     "global-search",
-    "Search for a term across all available Meilisearch indexes and return combined results",
     {
-      q: z.string().describe("Search query"),
-      limit: z
-        .number()
-        .min(1)
-        .optional()
-        .describe(
-          "Maximum number of results to return per index (default: 20)"
-        ),
-      attributesToRetrieve: z
-        .array(z.string())
-        .optional()
-        .default(["*"])
-        .describe("Attributes to include in results"),
+      description:
+        "Search for a term across all available Meilisearch indexes and return combined results",
+      inputSchema: {
+        q: z.string().describe("Search query"),
+        limit: z
+          .number()
+          .min(1)
+          .optional()
+          .describe(
+            "Maximum number of results to return per index (default: 20)"
+          ),
+        attributesToRetrieve: z
+          .array(z.string())
+          .optional()
+          .default(["*"])
+          .describe("Attributes to include in results"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({
       q,
       limit,
@@ -325,25 +331,27 @@ export const registerSearchTools = (server: McpServer) => {
   );
 
   // Facet search
-  server.tool(
+  server.registerTool(
     "facet-search",
-    "Search for facet values matching specific criteria",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      facetName: z.string().describe("Name of the facet to search"),
-      facetQuery: z
-        .string()
-        .optional()
-        .describe("Query to match against facet values"),
-      filter: z
-        .string()
-        .optional()
-        .describe("Filter to apply to the base search"),
+      description: "Search for facet values matching specific criteria",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        facetName: z.string().describe("Name of the facet to search"),
+        facetQuery: z
+          .string()
+          .optional()
+          .describe("Query to match against facet values"),
+        filter: z
+          .string()
+          .optional()
+          .describe("Filter to apply to the base search"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, facetName, facetQuery, filter }) => {
       try {
-        const params: Record<string, any> = {
+        const params: Record<string, unknown> = {
           facetName,
         };
 

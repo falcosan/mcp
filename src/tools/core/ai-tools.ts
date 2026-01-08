@@ -3,7 +3,6 @@ import { zodToJsonSchema } from "zod-to-json-schema";
 import { AIService } from "../../utils/ai-handler.js";
 import { createErrorResponse } from "../../utils/error-handler.js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { ToolAnnotations } from "@modelcontextprotocol/sdk/types.js";
 import { convertNullToUndefined } from "../../utils/response-handler.js";
 
 /**
@@ -15,19 +14,23 @@ import { convertNullToUndefined } from "../../utils/response-handler.js";
 interface ProcessRegisteredToolsParams {
   description: string;
   inputSchema: z.ZodSchema;
-  annotations?: ToolAnnotations;
+  _meta?: { category?: string };
 }
 
 const setAvailableTools = (aiService: AIService, server: McpServer) => {
-  const registeredTools = Object.entries(
-    (server as any)._registeredTools as {
-      _registeredTools: ProcessRegisteredToolsParams;
-    }
-  );
+  const serverAny = server as unknown as {
+    _registeredTools: Record<string, ProcessRegisteredToolsParams>;
+  };
+  const registeredTools = Object.entries(serverAny._registeredTools);
   const availableTools = registeredTools
-    .filter(([_, { annotations }]) => annotations?.category !== "core")
+    .filter(([_, { _meta }]) => _meta?.category !== "core")
     .map(([name, { description, inputSchema }]) => {
-      const { definitions } = zodToJsonSchema(inputSchema, "parameters");
+      // Wrap plain object shape with z.object() if needed
+      const schema =
+        inputSchema instanceof z.ZodType
+          ? inputSchema
+          : z.object(inputSchema as z.ZodRawShape);
+      const { definitions } = zodToJsonSchema(schema, "parameters");
       return {
         name,
         description,
@@ -43,17 +46,20 @@ const setAvailableTools = (aiService: AIService, server: McpServer) => {
  * @param server - The MCP server instance
  */
 export const registerAITools = (server: McpServer) => {
-  server.tool(
+  server.registerTool(
     "process-ai-tool",
-    "Process a natural language query using AI to determine which tool to use",
     {
-      query: z.string().describe("The natural language query to process"),
-      specificTools: z
-        .array(z.string())
-        .optional()
-        .describe("Optional array of specific tool names to consider"),
+      description:
+        "Process a natural language query using AI to determine which tool to use",
+      inputSchema: {
+        query: z.string().describe("The natural language query to process"),
+        specificTools: z
+          .array(z.string())
+          .optional()
+          .describe("Optional array of specific tool names to consider"),
+      },
+      _meta: { category: "core" },
     },
-    { category: "core" },
     async ({ query, specificTools }) => {
       try {
         const aiService = AIService.getInstance();
@@ -85,11 +91,16 @@ export const registerAITools = (server: McpServer) => {
     }
   );
 
-  server.tool(
+  server.registerTool(
     "process-ai-text",
-    "Process a summary text using AI to describe the data result from a tool",
-    { query: z.string().describe("The natural language query to process") },
-    { category: "core" },
+    {
+      description:
+        "Process a summary text using AI to describe the data result from a tool",
+      inputSchema: {
+        query: z.string().describe("The natural language query to process"),
+      },
+      _meta: { category: "core" },
+    },
     async ({ query }) => {
       try {
         const aiService = AIService.getInstance();

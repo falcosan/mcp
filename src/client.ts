@@ -258,10 +258,10 @@ export class MCPClient {
         this.tools = [];
       } else if (toolsResult.tools && Array.isArray(toolsResult.tools)) {
         this.tools = toolsResult.tools
-          .filter(({ annotations }) => annotations?.category !== "core")
+          .filter(({ _meta }) => _meta?.category !== "core")
           .map((tool) => ({
             name: tool.name,
-            parameters: tool.parameters || {},
+            parameters: tool.inputSchema || {},
             description: tool.description ?? "",
           }));
       } else {
