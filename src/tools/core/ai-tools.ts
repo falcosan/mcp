@@ -13,7 +13,7 @@ import { convertNullToUndefined } from "../../utils/response-handler.js";
 
 interface ProcessRegisteredToolsParams {
   description: string;
-  inputSchema: z.ZodSchema;
+  inputSchema: z.ZodRawShape;
   _meta?: { category?: string };
 }
 
@@ -25,11 +25,10 @@ const setAvailableTools = (aiService: AIService, server: McpServer) => {
   const availableTools = registeredTools
     .filter(([_, { _meta }]) => _meta?.category !== "core")
     .map(([name, { description, inputSchema }]) => {
-      const schema =
-        inputSchema instanceof z.ZodType
-          ? inputSchema
-          : z.object(inputSchema as z.ZodRawShape);
-      const { definitions } = zodToJsonSchema(schema, "parameters");
+      const { definitions } = zodToJsonSchema(
+        z.object(inputSchema),
+        "parameters"
+      );
       return {
         name,
         description,
