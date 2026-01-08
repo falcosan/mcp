@@ -16,13 +16,15 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
  */
 export const registerSettingsTools = (server: McpServer) => {
   // Get all settings for an index
-  server.tool(
+  server.registerTool(
     "get-settings",
-    "Get all settings for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description: "Get all settings for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(`/indexes/${indexUid}/settings`);
@@ -37,23 +39,22 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Update all settings for an index
-  server.tool(
+  server.registerTool(
     "update-settings",
-    "Update all settings for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      settings: z
-        .string()
-        .describe("JSON object containing settings to update"),
+      description: "Update all settings for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        settings: z
+          .string()
+          .describe("JSON object containing settings to update"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, settings }) => {
       try {
-        // Parse the settings string to ensure it's valid JSON
         const parsedSettings = JSON.parse(settings);
 
-        // Ensure settings is an object
         if (
           typeof parsedSettings !== "object" ||
           parsedSettings === null ||
@@ -80,14 +81,16 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Reset all settings for an index
-  server.tool(
+  server.registerTool(
     "reset-settings",
-    "Reset all settings for a Meilisearch index to their default values",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description:
+        "Reset all settings for a Meilisearch index to their default values",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -104,14 +107,16 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Get displayed attributes setting
-  server.tool(
+  server.registerTool(
     "get-displayed-attributes",
-    "Get the displayed attributes setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description:
+        "Get the displayed attributes setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -128,19 +133,21 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Update displayed attributes setting
-  server.tool(
+  server.registerTool(
     "update-displayed-attributes",
-    "Update the displayed attributes setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      displayedAttributes: z
-        .string()
-        .describe(
-          'JSON array of attributes to display, e.g. ["title", "description"]'
-        ),
+      description:
+        "Update the displayed attributes setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        displayedAttributes: z
+          .string()
+          .describe(
+            'JSON array of attributes to display, e.g. ["title", "description"]'
+          ),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, displayedAttributes }) => {
       try {
         const response = await apiClient.put(
@@ -158,14 +165,16 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Reset displayed attributes setting
-  server.tool(
+  server.registerTool(
     "reset-displayed-attributes",
-    "Reset the displayed attributes setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description:
+        "Reset the displayed attributes setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -182,14 +191,16 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Get filterable attributes setting
-  server.tool(
+  server.registerTool(
     "get-filterable-attributes",
-    "Get the filterable attributes setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description:
+        "Get the filterable attributes setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -206,19 +217,21 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Update filterable attributes setting
-  server.tool(
+  server.registerTool(
     "update-filterable-attributes",
-    "Update the filterable attributes setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      filterableAttributes: z
-        .string()
-        .describe(
-          'JSON array of attributes that can be used as filters, e.g. ["genre", "director"]'
-        ),
+      description:
+        "Update the filterable attributes setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        filterableAttributes: z
+          .string()
+          .describe(
+            'JSON array of attributes that can be used as filters, e.g. ["genre", "director"]'
+          ),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, filterableAttributes }) => {
       try {
         const response = await apiClient.put(
@@ -236,14 +249,16 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Reset filterable attributes setting
-  server.tool(
+  server.registerTool(
     "reset-filterable-attributes",
-    "Reset the filterable attributes setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description:
+        "Reset the filterable attributes setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -260,14 +275,16 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Get sortable attributes setting
-  server.tool(
+  server.registerTool(
     "get-sortable-attributes",
-    "Get the sortable attributes setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description:
+        "Get the sortable attributes setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -284,19 +301,21 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Update sortable attributes setting
-  server.tool(
+  server.registerTool(
     "update-sortable-attributes",
-    "Update the sortable attributes setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      sortableAttributes: z
-        .string()
-        .describe(
-          'JSON array of attributes that can be used for sorting, e.g. ["price", "date"]'
-        ),
+      description:
+        "Update the sortable attributes setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        sortableAttributes: z
+          .string()
+          .describe(
+            'JSON array of attributes that can be used for sorting, e.g. ["price", "date"]'
+          ),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, sortableAttributes }) => {
       try {
         const response = await apiClient.put(
@@ -314,14 +333,16 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Reset sortable attributes setting
-  server.tool(
+  server.registerTool(
     "reset-sortable-attributes",
-    "Reset the sortable attributes setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description:
+        "Reset the sortable attributes setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -338,14 +359,16 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Get searchable attributes setting
-  server.tool(
+  server.registerTool(
     "get-searchable-attributes",
-    "Get the searchable attributes setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description:
+        "Get the searchable attributes setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -362,19 +385,21 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Update searchable attributes setting
-  server.tool(
+  server.registerTool(
     "update-searchable-attributes",
-    "Update the searchable attributes setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      searchableAttributes: z
-        .string()
-        .describe(
-          'JSON array of attributes that can be searched, e.g. ["title", "description"]'
-        ),
+      description:
+        "Update the searchable attributes setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        searchableAttributes: z
+          .string()
+          .describe(
+            'JSON array of attributes that can be searched, e.g. ["title", "description"]'
+          ),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, searchableAttributes }) => {
       try {
         const response = await apiClient.put(
@@ -392,14 +417,16 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Reset searchable attributes setting
-  server.tool(
+  server.registerTool(
     "reset-searchable-attributes",
-    "Reset the searchable attributes setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description:
+        "Reset the searchable attributes setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -416,14 +443,15 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Get ranking rules setting
-  server.tool(
+  server.registerTool(
     "get-ranking-rules",
-    "Get the ranking rules setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description: "Get the ranking rules setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -440,19 +468,20 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Update ranking rules setting
-  server.tool(
+  server.registerTool(
     "update-ranking-rules",
-    "Update the ranking rules setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      rankingRules: z
-        .string()
-        .describe(
-          'JSON array of ranking rules, e.g. ["typo", "words", "proximity", "attribute", "sort", "exactness"]'
-        ),
+      description: "Update the ranking rules setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        rankingRules: z
+          .string()
+          .describe(
+            'JSON array of ranking rules, e.g. ["typo", "words", "proximity", "attribute", "sort", "exactness"]'
+          ),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, rankingRules }) => {
       try {
         const response = await apiClient.put(
@@ -470,14 +499,15 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Reset ranking rules setting
-  server.tool(
+  server.registerTool(
     "reset-ranking-rules",
-    "Reset the ranking rules setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description: "Reset the ranking rules setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -494,14 +524,15 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Get stop words setting
-  server.tool(
+  server.registerTool(
     "get-stop-words",
-    "Get the stop words setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description: "Get the stop words setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -518,19 +549,20 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Update stop words setting
-  server.tool(
+  server.registerTool(
     "update-stop-words",
-    "Update the stop words setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      stopWords: z
-        .string()
-        .describe(
-          'JSON array of words to ignore in search queries, e.g. ["the", "a", "an"]'
-        ),
+      description: "Update the stop words setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        stopWords: z
+          .string()
+          .describe(
+            'JSON array of words to ignore in search queries, e.g. ["the", "a", "an"]'
+          ),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, stopWords }) => {
       try {
         const response = await apiClient.put(
@@ -548,14 +580,15 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Reset stop words setting
-  server.tool(
+  server.registerTool(
     "reset-stop-words",
-    "Reset the stop words setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description: "Reset the stop words setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -572,14 +605,15 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Get synonyms setting
-  server.tool(
+  server.registerTool(
     "get-synonyms",
-    "Get the synonyms setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description: "Get the synonyms setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -596,19 +630,20 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Update synonyms setting
-  server.tool(
+  server.registerTool(
     "update-synonyms",
-    "Update the synonyms setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      synonyms: z
-        .string()
-        .describe(
-          'JSON object mapping words to their synonyms, e.g. {"movie": ["film"]}'
-        ),
+      description: "Update the synonyms setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        synonyms: z
+          .string()
+          .describe(
+            'JSON object mapping words to their synonyms, e.g. {"movie": ["film"]}'
+          ),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, synonyms }) => {
       try {
         const response = await apiClient.put(
@@ -626,14 +661,15 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Reset synonyms setting
-  server.tool(
+  server.registerTool(
     "reset-synonyms",
-    "Reset the synonyms setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description: "Reset the synonyms setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -650,14 +686,15 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Get typo tolerance setting
-  server.tool(
+  server.registerTool(
     "get-typo-tolerance",
-    "Get the typo tolerance setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description: "Get the typo tolerance setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -674,19 +711,20 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Update typo tolerance setting
-  server.tool(
+  server.registerTool(
     "update-typo-tolerance",
-    "Update the typo tolerance setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      typoTolerance: z
-        .string()
-        .describe(
-          'JSON object with typo tolerance configuration, e.g. {"enabled": true, "minWordSizeForTypos": {"oneTypo": 5, "twoTypos": 9}}'
-        ),
+      description: "Update the typo tolerance setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        typoTolerance: z
+          .string()
+          .describe(
+            'JSON object with typo tolerance configuration, e.g. {"enabled": true, "minWordSizeForTypos": {"oneTypo": 5, "twoTypos": 9}}'
+          ),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, typoTolerance }) => {
       try {
         const response = await apiClient.put(
@@ -704,14 +742,15 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Reset typo tolerance setting
-  server.tool(
+  server.registerTool(
     "reset-typo-tolerance",
-    "Reset the typo tolerance setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description: "Reset the typo tolerance setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -728,14 +767,15 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Get pagination setting
-  server.tool(
+  server.registerTool(
     "get-pagination",
-    "Get the pagination setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description: "Get the pagination setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -752,19 +792,20 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Update pagination setting
-  server.tool(
+  server.registerTool(
     "update-pagination",
-    "Update the pagination setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      pagination: z
-        .string()
-        .describe(
-          'JSON object with pagination configuration, e.g. {"maxTotalHits": 1000}'
-        ),
+      description: "Update the pagination setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        pagination: z
+          .string()
+          .describe(
+            'JSON object with pagination configuration, e.g. {"maxTotalHits": 1000}'
+          ),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, pagination }) => {
       try {
         const response = await apiClient.put(
@@ -782,14 +823,15 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Reset pagination setting
-  server.tool(
+  server.registerTool(
     "reset-pagination",
-    "Reset the pagination setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description: "Reset the pagination setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -806,14 +848,15 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Get faceting setting
-  server.tool(
+  server.registerTool(
     "get-faceting",
-    "Get the faceting setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description: "Get the faceting setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -830,19 +873,20 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Update faceting setting
-  server.tool(
+  server.registerTool(
     "update-faceting",
-    "Update the faceting setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      faceting: z
-        .string()
-        .describe(
-          'JSON object with faceting configuration, e.g. {"maxValuesPerFacet": 100}'
-        ),
+      description: "Update the faceting setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        faceting: z
+          .string()
+          .describe(
+            'JSON object with faceting configuration, e.g. {"maxValuesPerFacet": 100}'
+          ),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, faceting }) => {
       try {
         const response = await apiClient.put(
@@ -860,14 +904,15 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Reset faceting setting
-  server.tool(
+  server.registerTool(
     "reset-faceting",
-    "Reset the faceting setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description: "Reset the faceting setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -884,14 +929,15 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Get dictionary setting
-  server.tool(
+  server.registerTool(
     "get-dictionary",
-    "Get the dictionary setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description: "Get the dictionary setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -908,19 +954,20 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Update dictionary setting
-  server.tool(
+  server.registerTool(
     "update-dictionary",
-    "Update the dictionary setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      dictionary: z
-        .string()
-        .describe(
-          'JSON array of words to consider as a single word, e.g. ["San Francisco", "New York"]'
-        ),
+      description: "Update the dictionary setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        dictionary: z
+          .string()
+          .describe(
+            'JSON array of words to consider as a single word, e.g. ["San Francisco", "New York"]'
+          ),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, dictionary }) => {
       try {
         const response = await apiClient.put(
@@ -938,14 +985,15 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Reset dictionary setting
-  server.tool(
+  server.registerTool(
     "reset-dictionary",
-    "Reset the dictionary setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description: "Reset the dictionary setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -962,14 +1010,16 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Get proximity precision setting
-  server.tool(
+  server.registerTool(
     "get-proximity-precision",
-    "Get the proximity precision setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description:
+        "Get the proximity precision setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -986,19 +1036,21 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Update proximity precision setting
-  server.tool(
+  server.registerTool(
     "update-proximity-precision",
-    "Update the proximity precision setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      proximityPrecision: z
-        .string()
-        .describe(
-          "String with proximity precision value, can be 'byWord' or 'byAttribute'"
-        ),
+      description:
+        "Update the proximity precision setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        proximityPrecision: z
+          .string()
+          .describe(
+            "String with proximity precision value, can be 'byWord' or 'byAttribute'"
+          ),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, proximityPrecision }) => {
       try {
         const response = await apiClient.put(
@@ -1016,14 +1068,16 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Reset proximity precision setting
-  server.tool(
+  server.registerTool(
     "reset-proximity-precision",
-    "Reset the proximity precision setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description:
+        "Reset the proximity precision setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -1040,14 +1094,15 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Get separator tokens setting
-  server.tool(
+  server.registerTool(
     "get-separator-tokens",
-    "Get the separator tokens setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description: "Get the separator tokens setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -1064,19 +1119,21 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Update separator tokens setting
-  server.tool(
+  server.registerTool(
     "update-separator-tokens",
-    "Update the separator tokens setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      separatorTokens: z
-        .string()
-        .describe(
-          'JSON array of tokens that should be considered as word separators, e.g. ["-", "_"]'
-        ),
+      description:
+        "Update the separator tokens setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        separatorTokens: z
+          .string()
+          .describe(
+            'JSON array of tokens that should be considered as word separators, e.g. ["-", "_"]'
+          ),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, separatorTokens }) => {
       try {
         const response = await apiClient.put(
@@ -1094,14 +1151,15 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Reset separator tokens setting
-  server.tool(
+  server.registerTool(
     "reset-separator-tokens",
-    "Reset the separator tokens setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description: "Reset the separator tokens setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -1118,14 +1176,16 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Get non-separator tokens setting
-  server.tool(
+  server.registerTool(
     "get-non-separator-tokens",
-    "Get the non-separator tokens setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description:
+        "Get the non-separator tokens setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -1142,19 +1202,21 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Update non-separator tokens setting
-  server.tool(
+  server.registerTool(
     "update-non-separator-tokens",
-    "Update the non-separator tokens setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      nonSeparatorTokens: z
-        .string()
-        .describe(
-          'JSON array of tokens that should not be considered as word separators, e.g. ["@", "."]'
-        ),
+      description:
+        "Update the non-separator tokens setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        nonSeparatorTokens: z
+          .string()
+          .describe(
+            'JSON array of tokens that should not be considered as word separators, e.g. ["@", "."]'
+          ),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, nonSeparatorTokens }) => {
       try {
         const response = await apiClient.put(
@@ -1172,14 +1234,16 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Reset non-separator tokens setting
-  server.tool(
+  server.registerTool(
     "reset-non-separator-tokens",
-    "Reset the non-separator tokens setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description:
+        "Reset the non-separator tokens setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -1196,14 +1260,15 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Get word dictionary setting
-  server.tool(
+  server.registerTool(
     "get-word-dictionary",
-    "Get the word dictionary setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description: "Get the word dictionary setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -1220,19 +1285,20 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Update word dictionary setting
-  server.tool(
+  server.registerTool(
     "update-word-dictionary",
-    "Update the word dictionary setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      wordDictionary: z
-        .string()
-        .describe(
-          'JSON array of custom words to add to the dictionary, e.g. ["cbuilder", "meilisearch"]'
-        ),
+      description: "Update the word dictionary setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        wordDictionary: z
+          .string()
+          .describe(
+            'JSON array of custom words to add to the dictionary, e.g. ["cbuilder", "meilisearch"]'
+          ),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, wordDictionary }) => {
       try {
         const response = await apiClient.put(
@@ -1250,14 +1316,15 @@ export const registerSettingsTools = (server: McpServer) => {
     }
   );
 
-  // Reset word dictionary setting
-  server.tool(
+  server.registerTool(
     "reset-word-dictionary",
-    "Reset the word dictionary setting for a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description: "Reset the word dictionary setting for a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(

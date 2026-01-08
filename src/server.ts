@@ -245,10 +245,13 @@ export class MCPServer {
       sessionIdGenerator: () => newSessionId,
     });
 
-    transport.sessionId = newSessionId;
-
     try {
       await this.server.connect(transport);
+
+      this.sessions.set(newSessionId, {
+        transport,
+        lastActivity: Date.now(),
+      });
 
       res.setHeader(this.SESSION_ID_HEADER_NAME, newSessionId);
       res.setHeader(
@@ -258,16 +261,12 @@ export class MCPServer {
 
       await transport.handleRequest(req, res, body);
 
-      this.sessions.set(newSessionId, {
-        transport,
-        lastActivity: Date.now(),
-      });
-
       this.sendToolListChangedNotification(transport);
 
       console.info(`New session established: ${newSessionId}`);
     } catch (error) {
       console.error("Error handling initialize request:", error);
+      this.sessions.delete(newSessionId);
       transport.close();
       this.sendErrorResponse(res, 500, `Failed to initialize: ${error}`);
     }

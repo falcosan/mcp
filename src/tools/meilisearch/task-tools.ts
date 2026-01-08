@@ -43,52 +43,60 @@ interface WaitForTaskParams {
  */
 export const registerTaskTools = (server: McpServer) => {
   // List all tasks
-  server.tool(
+  server.registerTool(
     "list-tasks",
-    "List all tasks in the Meilisearch instance",
     {
-      limit: z
-        .number()
-        .min(0)
-        .optional()
-        .describe("Maximum number of tasks to return"),
-      from: z
-        .number()
-        .min(0)
-        .optional()
-        .describe("Task uid from which to start fetching"),
-      statuses: z
-        .array(
-          z.enum(["enqueued", "processing", "succeeded", "failed", "canceled"])
-        )
-        .optional()
-        .describe("Statuses of tasks to return"),
-      types: z
-        .array(
-          z.enum([
-            "indexCreation",
-            "indexUpdate",
-            "indexDeletion",
-            "documentAddition",
-            "documentUpdate",
-            "documentDeletion",
-            "settingsUpdate",
-            "dumpCreation",
-            "taskCancelation",
-          ])
-        )
-        .optional()
-        .describe("Types of tasks to return"),
-      indexUids: z
-        .array(z.string())
-        .optional()
-        .describe("UIDs of the indexes on which tasks were performed"),
-      uids: z
-        .array(z.number())
-        .optional()
-        .describe("UIDs of specific tasks to return"),
+      description: "List all tasks in the Meilisearch instance",
+      inputSchema: {
+        limit: z
+          .number()
+          .min(0)
+          .optional()
+          .describe("Maximum number of tasks to return"),
+        from: z
+          .number()
+          .min(0)
+          .optional()
+          .describe("Task uid from which to start fetching"),
+        statuses: z
+          .array(
+            z.enum([
+              "enqueued",
+              "processing",
+              "succeeded",
+              "failed",
+              "canceled",
+            ])
+          )
+          .optional()
+          .describe("Statuses of tasks to return"),
+        types: z
+          .array(
+            z.enum([
+              "indexCreation",
+              "indexUpdate",
+              "indexDeletion",
+              "documentAddition",
+              "documentUpdate",
+              "documentDeletion",
+              "settingsUpdate",
+              "dumpCreation",
+              "taskCancelation",
+            ])
+          )
+          .optional()
+          .describe("Types of tasks to return"),
+        indexUids: z
+          .array(z.string())
+          .optional()
+          .describe("UIDs of the indexes on which tasks were performed"),
+        uids: z
+          .array(z.number())
+          .optional()
+          .describe("UIDs of specific tasks to return"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({
       limit,
       from,
@@ -98,7 +106,7 @@ export const registerTaskTools = (server: McpServer) => {
       uids,
     }: ListTasksParams) => {
       try {
-        const params: Record<string, any> = {};
+        const params: Record<string, unknown> = {};
         if (limit !== undefined) params.limit = limit;
         if (from !== undefined) params.from = from;
         if (statuses && statuses.length > 0)
@@ -120,14 +128,15 @@ export const registerTaskTools = (server: McpServer) => {
     }
   );
 
-  // Get a specific task
-  server.tool(
+  server.registerTool(
     "get-task",
-    "Get information about a specific task",
     {
-      taskUid: z.number().describe("Unique identifier of the task"),
+      description: "Get information about a specific task",
+      inputSchema: {
+        taskUid: z.number().describe("Unique identifier of the task"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ taskUid }: GetTaskParams) => {
       try {
         const response = await apiClient.get(`/tasks/${taskUid}`);
@@ -142,46 +151,47 @@ export const registerTaskTools = (server: McpServer) => {
     }
   );
 
-  // Cancel tasks
-  server.tool(
+  server.registerTool(
     "cancel-tasks",
-    "Cancel tasks based on provided filters",
     {
-      statuses: z
-        .array(z.enum(["enqueued", "processing"]))
-        .optional()
-        .describe("Statuses of tasks to cancel"),
-      types: z
-        .array(
-          z.enum([
-            "indexCreation",
-            "indexUpdate",
-            "indexDeletion",
-            "documentAddition",
-            "documentUpdate",
-            "documentDeletion",
-            "settingsUpdate",
-            "dumpCreation",
-            "taskCancelation",
-          ])
-        )
-        .optional()
-        .describe("Types of tasks to cancel"),
-      indexUids: z
-        .array(z.string())
-        .optional()
-        .describe(
-          "UIDs of the indexes on which tasks to cancel were performed"
-        ),
-      uids: z
-        .array(z.number())
-        .optional()
-        .describe("UIDs of the tasks to cancel"),
+      description: "Cancel tasks based on provided filters",
+      inputSchema: {
+        statuses: z
+          .array(z.enum(["enqueued", "processing"]))
+          .optional()
+          .describe("Statuses of tasks to cancel"),
+        types: z
+          .array(
+            z.enum([
+              "indexCreation",
+              "indexUpdate",
+              "indexDeletion",
+              "documentAddition",
+              "documentUpdate",
+              "documentDeletion",
+              "settingsUpdate",
+              "dumpCreation",
+              "taskCancelation",
+            ])
+          )
+          .optional()
+          .describe("Types of tasks to cancel"),
+        indexUids: z
+          .array(z.string())
+          .optional()
+          .describe(
+            "UIDs of the indexes on which tasks to cancel were performed"
+          ),
+        uids: z
+          .array(z.number())
+          .optional()
+          .describe("UIDs of the tasks to cancel"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ statuses, types, indexUids, uids }: CancelTasksParams) => {
       try {
-        const body: Record<string, any> = {};
+        const body: Record<string, unknown> = {};
         if (statuses && statuses.length > 0) body.statuses = statuses;
         if (types && types.length > 0) body.types = types;
         if (indexUids && indexUids.length > 0) body.indexUids = indexUids;
@@ -199,24 +209,27 @@ export const registerTaskTools = (server: McpServer) => {
     }
   );
 
-  // Wait for a task to complete
-  server.tool(
+  server.registerTool(
     "wait-for-task",
-    "Wait for a specific task to complete",
     {
-      taskUid: z.number().describe("Unique identifier of the task to wait for"),
-      timeoutMs: z
-        .number()
-        .min(0)
-        .optional()
-        .describe("Maximum time to wait in milliseconds (default: 5000)"),
-      intervalMs: z
-        .number()
-        .min(100)
-        .optional()
-        .describe("Polling interval in milliseconds (default: 500)"),
+      description: "Wait for a specific task to complete",
+      inputSchema: {
+        taskUid: z
+          .number()
+          .describe("Unique identifier of the task to wait for"),
+        timeoutMs: z
+          .number()
+          .min(0)
+          .optional()
+          .describe("Maximum time to wait in milliseconds (default: 5000)"),
+        intervalMs: z
+          .number()
+          .min(100)
+          .optional()
+          .describe("Polling interval in milliseconds (default: 500)"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({
       taskUid,
       timeoutMs = 5000,
@@ -228,17 +241,14 @@ export const registerTaskTools = (server: McpServer) => {
         let taskData = null;
 
         while (!taskCompleted && Date.now() - startTime < timeoutMs) {
-          // Fetch the current task status
           const response = await apiClient.get(`/tasks/${taskUid}`);
           taskData = response.data;
 
-          // Check if the task has completed
           if (
             ["succeeded", "failed", "canceled"].includes(response.statusText)
           ) {
             taskCompleted = true;
           } else {
-            // Wait for the polling interval
             await new Promise((resolve) => setTimeout(resolve, intervalMs));
           }
         }

@@ -44,23 +44,25 @@ interface SwapIndexesParams {
  */
 export const registerIndexTools = (server: McpServer) => {
   // List all indexes
-  server.tool(
+  server.registerTool(
     "list-indexes",
-    "List all indexes in the Meilisearch instance",
     {
-      limit: z
-        .number()
-        .min(1)
-        .max(100)
-        .optional()
-        .describe("Maximum number of indexes to return"),
-      offset: z
-        .number()
-        .min(0)
-        .optional()
-        .describe("Number of indexes to skip"),
+      description: "List all indexes in the Meilisearch instance",
+      inputSchema: {
+        limit: z
+          .number()
+          .min(1)
+          .max(100)
+          .optional()
+          .describe("Maximum number of indexes to return"),
+        offset: z
+          .number()
+          .min(0)
+          .optional()
+          .describe("Number of indexes to skip"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ limit, offset }: ListIndexesParams) => {
       try {
         const response = await apiClient.get("/indexes", {
@@ -80,14 +82,16 @@ export const registerIndexTools = (server: McpServer) => {
     }
   );
 
-  // Get index information
-  server.tool(
+  // Get a specific index
+  server.registerTool(
     "get-index",
-    "Get information about a specific Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description: "Get information about a specific Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }: GetIndexParams) => {
       try {
         const response = await apiClient.get(`/indexes/${indexUid}`);
@@ -103,14 +107,16 @@ export const registerIndexTools = (server: McpServer) => {
   );
 
   // Create a new index
-  server.tool(
+  server.registerTool(
     "create-index",
-    "Create a new Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier for the new index"),
-      primaryKey: z.string().optional().describe("Primary key for the index"),
+      description: "Create a new Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier for the new index"),
+        primaryKey: z.string().optional().describe("Primary key for the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, primaryKey }: CreateIndexParams) => {
       try {
         const response = await apiClient.post("/indexes", {
@@ -129,14 +135,17 @@ export const registerIndexTools = (server: McpServer) => {
   );
 
   // Update an index
-  server.tool(
+  server.registerTool(
     "update-index",
-    "Update a Meilisearch index (currently only supports updating the primary key)",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      primaryKey: z.string().describe("New primary key for the index"),
+      description:
+        "Update a Meilisearch index (currently only supports updating the primary key)",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        primaryKey: z.string().describe("New primary key for the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, primaryKey }: UpdateIndexParams) => {
       try {
         const response = await apiClient.patch(`/indexes/${indexUid}`, {
@@ -154,13 +163,17 @@ export const registerIndexTools = (server: McpServer) => {
   );
 
   // Delete an index
-  server.tool(
+  server.registerTool(
     "delete-index",
-    "Delete a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index to delete"),
+      description: "Delete a Meilisearch index",
+      inputSchema: {
+        indexUid: z
+          .string()
+          .describe("Unique identifier of the index to delete"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }: DeleteIndexParams) => {
       try {
         const response = await apiClient.delete(`/indexes/${indexUid}`);
@@ -176,23 +189,23 @@ export const registerIndexTools = (server: McpServer) => {
   );
 
   // Swap indexes
-  server.tool(
+  server.registerTool(
     "swap-indexes",
-    "Swap two or more indexes in Meilisearch",
     {
-      indexes: z
-        .string()
-        .describe(
-          'JSON array of index pairs to swap, e.g. [["movies", "movies_new"]]'
-        ),
+      description: "Swap two or more indexes in Meilisearch",
+      inputSchema: {
+        indexes: z
+          .string()
+          .describe(
+            'JSON array of index pairs to swap, e.g. [["movies", "movies_new"]]'
+          ),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexes }: SwapIndexesParams) => {
       try {
-        // Parse the indexes string to ensure it's valid JSON
         const parsedIndexes = JSON.parse(indexes);
 
-        // Ensure indexes is an array of arrays
         if (
           !Array.isArray(parsedIndexes) ||
           !parsedIndexes.every(

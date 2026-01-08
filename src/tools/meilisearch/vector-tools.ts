@@ -17,11 +17,14 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
  */
 export const registerVectorTools = (server: McpServer) => {
   // Enable vector search experimental feature
-  server.tool(
+  server.registerTool(
     "enable-vector-search",
-    "Enable the vector search experimental feature in Meilisearch",
-    {},
-    { category: "meilisearch" },
+    {
+      description:
+        "Enable the vector search experimental feature in Meilisearch",
+      inputSchema: {},
+      _meta: { category: "meilisearch" },
+    },
     async () => {
       try {
         const response = await apiClient.post("/experimental-features", {
@@ -38,12 +41,13 @@ export const registerVectorTools = (server: McpServer) => {
     }
   );
 
-  // Get experimental features status
-  server.tool(
+  server.registerTool(
     "get-experimental-features",
-    "Get the status of experimental features in Meilisearch",
-    {},
-    { category: "meilisearch" },
+    {
+      description: "Get the status of experimental features in Meilisearch",
+      inputSchema: {},
+      _meta: { category: "meilisearch" },
+    },
     async () => {
       try {
         const response = await apiClient.get("/experimental-features");
@@ -58,23 +62,22 @@ export const registerVectorTools = (server: McpServer) => {
     }
   );
 
-  // Update embedders configuration
-  server.tool(
+  server.registerTool(
     "update-embedders",
-    "Configure embedders for vector search",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      embedders: z
-        .string()
-        .describe("JSON object containing embedder configurations"),
+      description: "Configure embedders for vector search",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        embedders: z
+          .string()
+          .describe("JSON object containing embedder configurations"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, embedders }) => {
       try {
-        // Parse the embedders string to ensure it's valid JSON
         const parsedEmbedders = JSON.parse(embedders);
 
-        // Ensure embedders is an object
         if (
           typeof parsedEmbedders !== "object" ||
           parsedEmbedders === null ||
@@ -103,14 +106,15 @@ export const registerVectorTools = (server: McpServer) => {
     }
   );
 
-  // Get embedders configuration
-  server.tool(
+  server.registerTool(
     "get-embedders",
-    "Get the embedders configuration for an index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description: "Get the embedders configuration for an index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.get(
@@ -127,14 +131,15 @@ export const registerVectorTools = (server: McpServer) => {
     }
   );
 
-  // Reset embedders configuration
-  server.tool(
+  server.registerTool(
     "reset-embedders",
-    "Reset the embedders configuration for an index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description: "Reset the embedders configuration for an index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }) => {
       try {
         const response = await apiClient.delete(
@@ -151,62 +156,63 @@ export const registerVectorTools = (server: McpServer) => {
     }
   );
 
-  // Perform vector search
-  server.tool(
+  server.registerTool(
     "vector-search",
-    "Perform a vector search in a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      vector: z
-        .string()
-        .describe("JSON array representing the vector to search for"),
-      limit: z
-        .number()
-        .min(1)
-        .max(1000)
-        .optional()
-        .describe("Maximum number of results to return (default: 20)"),
-      offset: z
-        .number()
-        .min(0)
-        .optional()
-        .describe("Number of results to skip (default: 0)"),
-      filter: z
-        .string()
-        .optional()
-        .describe("Filter to apply (e.g., 'genre = horror AND year > 2020')"),
-      embedder: z
-        .string()
-        .optional()
-        .describe(
-          "Name of the embedder to use (if omitted, a 'vector' must be provided)"
-        ),
-      attributes: z
-        .array(z.string())
-        .optional()
-        .describe("Attributes to include in the vector search"),
-      query: z
-        .string()
-        .optional()
-        .describe(
-          "Text query to search for (if using 'embedder' instead of 'vector')"
-        ),
-      hybrid: z
-        .boolean()
-        .optional()
-        .describe(
-          "Whether to perform a hybrid search (combining vector and text search)"
-        ),
-      hybridRatio: z
-        .number()
-        .min(0)
-        .max(1)
-        .optional()
-        .describe(
-          "Ratio of vector vs text search in hybrid search (0-1, default: 0.5)"
-        ),
+      description: "Perform a vector search in a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        vector: z
+          .string()
+          .describe("JSON array representing the vector to search for"),
+        limit: z
+          .number()
+          .min(1)
+          .max(1000)
+          .optional()
+          .describe("Maximum number of results to return (default: 20)"),
+        offset: z
+          .number()
+          .min(0)
+          .optional()
+          .describe("Number of results to skip (default: 0)"),
+        filter: z
+          .string()
+          .optional()
+          .describe("Filter to apply (e.g., 'genre = horror AND year > 2020')"),
+        embedder: z
+          .string()
+          .optional()
+          .describe(
+            "Name of the embedder to use (if omitted, a 'vector' must be provided)"
+          ),
+        attributes: z
+          .array(z.string())
+          .optional()
+          .describe("Attributes to include in the vector search"),
+        query: z
+          .string()
+          .optional()
+          .describe(
+            "Text query to search for (if using 'embedder' instead of 'vector')"
+          ),
+        hybrid: z
+          .boolean()
+          .optional()
+          .describe(
+            "Whether to perform a hybrid search (combining vector and text search)"
+          ),
+        hybridRatio: z
+          .number()
+          .min(0)
+          .max(1)
+          .optional()
+          .describe(
+            "Ratio of vector vs text search in hybrid search (0-1, default: 0.5)"
+          ),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({
       indexUid,
       vector,
@@ -220,9 +226,8 @@ export const registerVectorTools = (server: McpServer) => {
       hybridRatio,
     }) => {
       try {
-        const searchParams: Record<string, any> = {};
+        const searchParams: Record<string, unknown> = {};
 
-        // Add required vector parameter
         if (vector) {
           try {
             searchParams.vector = JSON.parse(vector);
@@ -236,7 +241,6 @@ export const registerVectorTools = (server: McpServer) => {
           }
         }
 
-        // Add embedder parameters
         if (embedder) {
           searchParams.embedder = embedder;
 
@@ -245,7 +249,6 @@ export const registerVectorTools = (server: McpServer) => {
           }
         }
 
-        // Ensure we have either vector or (embedder + query)
         if (!vector && (!embedder || query === undefined)) {
           return {
             isError: true,
@@ -258,7 +261,6 @@ export const registerVectorTools = (server: McpServer) => {
           };
         }
 
-        // Add optional parameters
         if (limit !== undefined) searchParams.limit = limit;
         if (offset !== undefined) searchParams.offset = offset;
         if (filter) searchParams.filter = filter;

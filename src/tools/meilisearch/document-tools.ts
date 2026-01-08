@@ -57,29 +57,31 @@ interface DeleteAllDocumentsParams {
  */
 export const registerDocumentTools = (server: McpServer) => {
   // Get documents from an index
-  server.tool(
+  server.registerTool(
     "get-documents",
-    "Get documents from a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      limit: z
-        .number()
-        .min(1)
-        .max(1000)
-        .optional()
-        .describe("Maximum number of documents to return (default: 20)"),
-      offset: z
-        .number()
-        .min(0)
-        .optional()
-        .describe("Number of documents to skip (default: 0)"),
-      fields: z
-        .array(z.string())
-        .optional()
-        .describe("Fields to return in the documents"),
-      filter: z.string().optional().describe("Filter query to apply"),
+      description: "Get documents from a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        limit: z
+          .number()
+          .min(1)
+          .max(1000)
+          .optional()
+          .describe("Maximum number of documents to return (default: 20)"),
+        offset: z
+          .number()
+          .min(0)
+          .optional()
+          .describe("Number of documents to skip (default: 0)"),
+        fields: z
+          .array(z.string())
+          .optional()
+          .describe("Fields to return in the documents"),
+        filter: z.string().optional().describe("Filter query to apply"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, limit, offset, fields, filter }: GetDocumentsParams) => {
       try {
         const response = await apiClient.get(`/indexes/${indexUid}/documents`, {
@@ -102,18 +104,20 @@ export const registerDocumentTools = (server: McpServer) => {
   );
 
   // Get a single document by ID
-  server.tool(
+  server.registerTool(
     "get-document",
-    "Get a document by its ID from a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      documentId: z.string().describe("ID of the document to retrieve"),
-      fields: z
-        .array(z.string())
-        .optional()
-        .describe("Fields to return in the document"),
+      description: "Get a document by its ID from a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        documentId: z.string().describe("ID of the document to retrieve"),
+        fields: z
+          .array(z.string())
+          .optional()
+          .describe("Fields to return in the document"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, documentId, fields }: GetDocumentParams) => {
       try {
         const response = await apiClient.get(
@@ -136,18 +140,20 @@ export const registerDocumentTools = (server: McpServer) => {
   );
 
   // Add documents to an index
-  server.tool(
+  server.registerTool(
     "add-documents",
-    "Add documents to a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      documents: z.string().describe("JSON array of documents to add"),
-      primaryKey: z
-        .string()
-        .optional()
-        .describe("Primary key for the documents"),
+      description: "Add documents to a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        documents: z.string().describe("JSON array of documents to add"),
+        primaryKey: z
+          .string()
+          .optional()
+          .describe("Primary key for the documents"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, documents, primaryKey }: AddDocumentsParams) => {
       try {
         // Parse the documents string to ensure it's valid JSON
@@ -185,18 +191,20 @@ export const registerDocumentTools = (server: McpServer) => {
   );
 
   // Update documents in an index
-  server.tool(
+  server.registerTool(
     "update-documents",
-    "Update documents in a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      documents: z.string().describe("JSON array of documents to update"),
-      primaryKey: z
-        .string()
-        .optional()
-        .describe("Primary key for the documents"),
+      description: "Update documents in a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        documents: z.string().describe("JSON array of documents to update"),
+        primaryKey: z
+          .string()
+          .optional()
+          .describe("Primary key for the documents"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, documents, primaryKey }: UpdateDocumentsParams) => {
       try {
         // Parse the documents string to ensure it's valid JSON
@@ -234,14 +242,16 @@ export const registerDocumentTools = (server: McpServer) => {
   );
 
   // Delete a document by ID
-  server.tool(
+  server.registerTool(
     "delete-document",
-    "Delete a document by its ID from a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      documentId: z.string().describe("ID of the document to delete"),
+      description: "Delete a document by its ID from a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        documentId: z.string().describe("ID of the document to delete"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, documentId }: DeleteDocumentParams) => {
       try {
         const response = await apiClient.delete(
@@ -259,14 +269,19 @@ export const registerDocumentTools = (server: McpServer) => {
   );
 
   // Delete multiple documents by ID
-  server.tool(
+  server.registerTool(
     "delete-documents",
-    "Delete multiple documents by their IDs from a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
-      documentIds: z.string().describe("JSON array of document IDs to delete"),
+      description:
+        "Delete multiple documents by their IDs from a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+        documentIds: z
+          .string()
+          .describe("JSON array of document IDs to delete"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid, documentIds }: DeleteDocumentsParams) => {
       try {
         // Parse the document IDs string to ensure it's valid JSON
@@ -298,13 +313,15 @@ export const registerDocumentTools = (server: McpServer) => {
   );
 
   // Delete all documents in an index
-  server.tool(
+  server.registerTool(
     "delete-all-documents",
-    "Delete all documents in a Meilisearch index",
     {
-      indexUid: z.string().describe("Unique identifier of the index"),
+      description: "Delete all documents in a Meilisearch index",
+      inputSchema: {
+        indexUid: z.string().describe("Unique identifier of the index"),
+      },
+      _meta: { category: "meilisearch" },
     },
-    { category: "meilisearch" },
     async ({ indexUid }: DeleteAllDocumentsParams) => {
       try {
         const response = await apiClient.delete(
